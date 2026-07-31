@@ -17,7 +17,7 @@ Established July 2026 against Statamic 6.26 / Laravel 13 / PHP 8.5.
 | `skills/` | Agent skills — the operating layer over the standards | yes |
 | `tools/addon-lint/` | The automated checker | yes |
 | `templates/` | Drop-in CI workflow and `.gitattributes` | yes |
-| `docs/` | How to maintain the studio itself | yes |
+| `docs/` | How to maintain the studio, and how to publish an addon | yes |
 | `findings/reference/` | Deep analyses of 13 official and third-party addons | yes |
 | `findings/existing/` | Audit of the 12 in-house addons (July 2026 baseline) | yes |
 | `findings/lint/` | Machine + markdown lint reports | yes |

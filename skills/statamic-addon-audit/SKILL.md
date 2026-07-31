@@ -69,7 +69,12 @@ Every finding needs a location and a concrete fix. "The UI feels off" is not a f
 "`resources/js/pages/Index.vue:42` hand-builds a `<table>`, so the screen has no filters, saved views
 or bulk actions unlike every core listing — replace with `<Listing>`" is.
 
-## 4. Filing the work
+## 4. If the verdict is "ship"
+
+Publishing is its own checklist, and the order matters: an addon is only as installable as its least
+available dependency. See `<studio>/docs/publishing-to-packagist.md`.
+
+## 5. Filing the work
 
 Per the GoldnerOS convention: agent-buildable work goes to `STATE/backlog/` as a candidate,
 work needing Adrian goes to `STATE/tasks/`, decisions go to `STATE/approvals/`.
