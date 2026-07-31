@@ -51,16 +51,40 @@ final class AddonServiceProviderRule extends AbstractRule
             return []; // structure.service-provider already reports this.
         }
 
-        if ($addon->serviceProviders() !== []) {
-            return [];
+        $providers = $addon->serviceProviders();
+
+        if ($providers === []) {
+            return [$this->fail(
+                'No service provider class was found in src/.',
+                'composer.json',
+                null,
+                'class ServiceProvider extends \Statamic\Providers\AddonServiceProvider'
+            )];
         }
 
-        return [$this->fail(
-            'No class in src/ extends AddonServiceProvider.',
-            'composer.json',
-            null,
-            'class ServiceProvider extends \Statamic\Providers\AddonServiceProvider'
-        )];
+        $findings = [];
+
+        foreach ($providers as $provider) {
+            $contents = $addon->read($provider) ?? '';
+
+            if (preg_match('/extends\s+\\\\?(\w+\\\\)*AddonServiceProvider\b/', $contents) === 1) {
+                continue;
+            }
+
+            // A package that must also boot in a Statamic-less context cannot extend
+            // AddonServiceProvider, so this is a prompt to confirm the choice was deliberate,
+            // not a defect. Everything else should extend it.
+            $findings[] = $this->failWith(
+                Severity::INFO,
+                'Extends Laravel\'s ServiceProvider rather than AddonServiceProvider.',
+                $provider,
+                null,
+                'Deliberate only if the package must boot without Statamic. Otherwise you are '
+                .'re-implementing autoloading, route registration, view namespacing and Vite wiring by hand.'
+            );
+        }
+
+        return $findings;
     }
 }
 

@@ -209,7 +209,11 @@ final class ViteProviderPropertyRule extends AbstractRule
         foreach ($addon->serviceProviders() as $provider) {
             $contents = $addon->read($provider) ?? '';
 
-            $hasVite = preg_match('/\$vite\s*=/', $contents) === 1;
+            // Two legal registrations: the $vite property on an AddonServiceProvider, or a
+            // Statamic::vite() call — which is what a package that must also boot without
+            // Statamic has to use, since it cannot extend AddonServiceProvider at all.
+            $hasVite = preg_match('/\$vite\s*=/', $contents) === 1
+                || preg_match('/Statamic::vite\(|Statamic\\\\Statamic::vite\(/', $contents) === 1;
             $legacy = $addon->grep('/protected\s+\$(scripts|stylesheets)\s*=/', [$provider]);
 
             foreach ($legacy as $hit) {

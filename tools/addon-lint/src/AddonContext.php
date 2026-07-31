@@ -280,7 +280,9 @@ final class AddonContext
 
             $contents = $this->read($file) ?? '';
 
-            if (preg_match('/class\s+\w+\s+extends\s+\\\\?(\w+\\\\)*AddonServiceProvider\b/', $contents) === 1) {
+            // An addon may legitimately extend Laravel's own ServiceProvider instead — a package
+            // that has to boot in a Statamic-less context cannot use AddonServiceProvider at all.
+            if (preg_match('/class\s+\w+\s+extends\s+\\\\?(\w+\\\\)*(Addon|Base)?ServiceProvider\b/', $contents) === 1) {
                 $found[] = $file;
             }
         }
@@ -416,7 +418,13 @@ final class AddonContext
             return null;
         }
 
-        $command = sprintf('git -C %s ls-files 2>/dev/null', escapeshellarg($this->root));
+        // `--others --exclude-standard` adds files that are not committed yet but are not
+        // ignored either. Without it the linter silently skips exactly the files someone
+        // just wrote, which makes it useless as a pre-commit check.
+        $command = sprintf(
+            'git -C %s ls-files --cached --others --exclude-standard 2>/dev/null',
+            escapeshellarg($this->root)
+        );
         $output = [];
         $status = 0;
         exec($command, $output, $status);
