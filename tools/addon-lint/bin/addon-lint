@@ -1,0 +1,164 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+/**
+ * addon-lint — check a Statamic addon against the Statamic Addon Studio standards.
+ *
+ * Usage:
+ *   addon-lint <path> [<path>...] [options]
+ *
+ * Options:
+ *   --format=console|json|markdown   Output format (default: console)
+ *   --category=ui,code               Only run these rule categories
+ *   --fail-on=blocker|major|minor    Exit non-zero at this severity (default: major)
+ *   --output=<file>                  Write the report to a file instead of stdout
+ *   --list-rules                     Print the rule catalogue and exit
+ *   --no-color                       Disable ANSI colours
+ *   -v, --verbose                    Include each rule's rationale
+ */
+
+namespace StatamicAddonStudio\Lint;
+
+$base = dirname(__DIR__);
+
+foreach (['Severity', 'Finding', 'Rule', 'AbstractRule', 'AddonContext', 'Config', 'Report', 'Linter', 'Reporter', 'RuleRegistry'] as $class) {
+    require_once $base.'/src/'.$class.'.php';
+}
+
+$argv = $_SERVER['argv'];
+array_shift($argv);
+
+$paths = [];
+$options = [
+    'format' => 'console',
+    'fail-on' => Severity::MAJOR,
+    'category' => null,
+    'output' => null,
+    'color' => stream_isatty(STDOUT),
+    'verbose' => false,
+    'list-rules' => false,
+];
+
+foreach ($argv as $arg) {
+    if ($arg === '--no-color') {
+        $options['color'] = false;
+    } elseif ($arg === '-v' || $arg === '--verbose') {
+        $options['verbose'] = true;
+    } elseif ($arg === '--list-rules') {
+        $options['list-rules'] = true;
+    } elseif ($arg === '-h' || $arg === '--help') {
+        fwrite(STDOUT, help());
+        exit(0);
+    } elseif (str_starts_with($arg, '--')) {
+        [$key, $value] = array_pad(explode('=', substr($arg, 2), 2), 2, '');
+        $options[$key] = $value;
+    } else {
+        $paths[] = $arg;
+    }
+}
+
+$linter = RuleRegistry::all($base.'/rules');
+
+if ($options['list-rules']) {
+    fwrite(STDOUT, listRules($linter));
+    exit(0);
+}
+
+if ($paths === []) {
+    $paths = [getcwd()];
+}
+
+$categories = is_string($options['category']) && $options['category'] !== ''
+    ? array_map('trim', explode(',', $options['category']))
+    : null;
+
+$reports = [];
+
+foreach ($paths as $path) {
+    $root = realpath($path);
+
+    if ($root === false || ! is_dir($root)) {
+        fwrite(STDERR, "addon-lint: not a directory: {$path}\n");
+        exit(2);
+    }
+
+    $addon = new AddonContext($root);
+    $reports[] = $linter->run($addon, Config::forAddon($addon, $categories));
+}
+
+$reporter = new Reporter((bool) $options['color'] && $options['output'] === null);
+
+$output = match ($options['format']) {
+    'json' => $reporter->json($reports),
+    'markdown', 'md' => $reporter->markdown($reports, $linter),
+    default => $reporter->console($reports, $linter, (bool) $options['verbose']),
+};
+
+if (is_string($options['output']) && $options['output'] !== '') {
+    file_put_contents($options['output'], $output);
+    fwrite(STDOUT, "addon-lint: wrote {$options['output']}\n");
+} else {
+    fwrite(STDOUT, $output);
+}
+
+$threshold = is_string($options['fail-on']) ? $options['fail-on'] : Severity::MAJOR;
+
+if ($threshold !== 'never') {
+    foreach ($reports as $report) {
+        if ($report->failsAt($threshold)) {
+            exit(1);
+        }
+    }
+}
+
+exit(0);
+
+function listRules(Linter $linter): string
+{
+    $rules = $linter->rules();
+    uasort($rules, fn (Rule $a, Rule $b) => [$a->category(), $a->id()] <=> [$b->category(), $b->id()]);
+
+    $out = sprintf("%d rules\n\n", count($rules));
+    $category = null;
+
+    foreach ($rules as $rule) {
+        if ($rule->category() !== $category) {
+            $category = $rule->category();
+            $out .= "\n".strtoupper($category)."\n";
+        }
+
+        $out .= sprintf("  %-38s %-8s %s\n", $rule->id(), $rule->severity(), $rule->title());
+    }
+
+    return $out;
+}
+
+function help(): string
+{
+    return <<<'TXT'
+addon-lint — check a Statamic addon against the Statamic Addon Studio standards.
+
+Usage:
+  addon-lint <path> [<path>...] [options]
+
+Options:
+  --format=console|json|markdown   Output format (default: console)
+  --category=ui,code               Only run these rule categories
+  --fail-on=blocker|major|minor    Exit non-zero at this severity (default: major)
+                                   Use --fail-on=never to always exit 0.
+  --output=<file>                  Write the report to a file instead of stdout
+  --list-rules                     Print the rule catalogue and exit
+  --no-color                       Disable ANSI colours
+  -v, --verbose                    Include each rule's rationale
+
+Per-addon configuration lives in `addon-lint.json` in the addon root:
+
+  {
+    "disable": ["release.changelog"],
+    "severity": { "ui.dark-mode": "minor" }
+  }
+
+TXT;
+}

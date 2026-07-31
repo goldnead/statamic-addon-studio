@@ -1,0 +1,7 @@
+reference/
+playground/
+vendor/
+node_modules/
+.DS_Store
+*.log
+tools/**/vendor/
