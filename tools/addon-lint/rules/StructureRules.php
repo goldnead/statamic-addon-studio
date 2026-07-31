@@ -339,6 +339,104 @@ final class DependencyConstraintsRule extends AbstractRule
     }
 }
 
+final class FrameworkRangeRule extends AbstractRule
+{
+    public function id(): string
+    {
+        return 'structure.framework-range';
+    }
+
+    public function title(): string
+    {
+        return 'Do not promise a Laravel version the declared Statamic version cannot install';
+    }
+
+    public function category(): string
+    {
+        return 'structure';
+    }
+
+    public function severity(): string
+    {
+        return Severity::MAJOR;
+    }
+
+    public function rationale(): string
+    {
+        return 'Statamic 6 requires laravel/framework ^12.40 || ^13.0. An addon declaring ^11 alongside '
+            .'statamic/cms ^6.0 states a support range that cannot resolve for anyone — and a CI job that '
+            .'tests one combination never notices. Found live in brand-context on its first CI run.';
+    }
+
+    /** Statamic major => the Laravel majors it accepts. */
+    private const SUPPORTED = [
+        6 => [12, 13],
+        5 => [10, 11, 12],
+        4 => [9, 10, 11],
+    ];
+
+    public function appliesTo(AddonContext $addon): bool
+    {
+        return $addon->composerValue('require.laravel/framework') !== null
+            && $addon->composerValue('require.statamic/cms') !== null;
+    }
+
+    public function check(AddonContext $addon): array
+    {
+        $laravel = (string) $addon->composerValue('require.laravel/framework');
+        $statamic = (string) $addon->composerValue('require.statamic/cms');
+
+        $statamicMajors = $this->majors($statamic);
+        $laravelMajors = $this->majors($laravel);
+
+        if ($statamicMajors === [] || $laravelMajors === []) {
+            return [];
+        }
+
+        $allowed = [];
+
+        foreach ($statamicMajors as $major) {
+            foreach (self::SUPPORTED[$major] ?? [] as $candidate) {
+                $allowed[$candidate] = true;
+            }
+        }
+
+        if ($allowed === []) {
+            return []; // An unknown Statamic major; say nothing rather than guess.
+        }
+
+        $impossible = array_values(array_filter($laravelMajors, fn (int $m) => ! isset($allowed[$m])));
+
+        if ($impossible === []) {
+            return [];
+        }
+
+        return [$this->fail(
+            sprintf(
+                'laravel/framework `%s` allows Laravel %s, which statamic/cms `%s` cannot install.',
+                $laravel,
+                implode(' and ', $impossible),
+                $statamic
+            ),
+            'composer.json',
+            null,
+            sprintf('Narrow the constraint to Laravel %s.', implode('/', array_keys($allowed)))
+        )];
+    }
+
+    /** @return int[] */
+    private function majors(string $constraint): array
+    {
+        if (preg_match_all('/(\d+)(?:\.\d+)*/', $constraint, $matches) < 1) {
+            return [];
+        }
+
+        $majors = array_map('intval', $matches[1]);
+
+        return array_values(array_unique($majors));
+    }
+}
+
 final class LicenseRule extends AbstractRule
 {
     public function id(): string
