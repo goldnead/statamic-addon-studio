@@ -113,7 +113,7 @@ final class LegacyBladeShellRule extends AbstractRule
                 'Blade CP page extending a core layout: '.trim($hit['text']),
                 $hit['file'],
                 $hit['line'],
-                'Render an Inertia page from the controller instead; see standards/ui-standard.md.'
+                'Render an Inertia page from the controller instead; see standards/ui-vocabulary.md.'
             );
         }
 

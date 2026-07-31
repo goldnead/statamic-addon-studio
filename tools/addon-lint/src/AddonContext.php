@@ -430,6 +430,10 @@ final class AddonContext
 
     private function scannedFiles(): array
     {
+        if (! is_dir($this->root)) {
+            return [];
+        }
+
         $skip = ['vendor', 'node_modules', '.git', '.idea', 'build', 'coverage'];
         $files = [];
 

@@ -61,6 +61,15 @@ Silence here means the addon installs with no CP assets at all.
 **The public API.** Tag names, parameters, config keys and facade methods are semver-locked from the
 first release. Name them once, properly.
 
+## Copy the templates
+
+`<studio>/templates/workflows/tests.yml` → `.github/workflows/tests.yml` — matrix across the range
+composer.json promises, addon-lint as a hard gate, Pint as a check (never an auto-commit onto a
+contributor's branch), and a dist rebuild that fails on drift.
+
+`<studio>/templates/gitattributes` → `.gitattributes` — without it, every installing site downloads
+your tests, CI config and build sources.
+
 ## Wire it up for development
 
 ```bash

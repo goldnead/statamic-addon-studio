@@ -12,7 +12,7 @@ use StatamicAddonStudio\Lint\Severity;
 /**
  * Control-Panel UI and frontend build.
  *
- * Every rule here traces back to `standards/ui-standard.md` and was verified against
+ * Every rule here traces back to `standards/ui-vocabulary.md` and was verified against
  * the reference addons in `reference/` on Statamic 6.26.
  */
 final class ViteConfigRule extends AbstractRule
