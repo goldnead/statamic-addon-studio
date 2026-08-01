@@ -100,18 +100,75 @@ cmd_drop_repos() {
       }));
       $n = count($c["repositories"]) - count($kept);
       if ($kept) { $c["repositories"] = $kept; } else { unset($c["repositories"]); }
-      file_put_contents($f, json_encode($c, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES) . "\n");
+      // UNESCAPED_UNICODE ist Pflicht: ohne das wird jeder Gedankenstrich in einer
+      // Beschreibung zu — und der Diff enthaelt Aenderungen, die niemand wollte.
+      file_put_contents($f, json_encode(
+          $c, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE
+      ) . "\n");
       echo "-- " . basename($argv[1]) . ": $n Eintrag/Eintraege entfernt\n";
     ' "$dir"
   done
   echo
-  echo "Jetzt je Repo `composer update --dry-run` pruefen, dann committen."
+  echo 'Jetzt je Repo `composer update --dry-run` pruefen, dann committen.'
+}
+
+# Packagist-Anmeldung ueber die API statt ueber den Browser. Braucht PACKAGIST_USERNAME
+# und PACKAGIST_API_TOKEN (Profil -> Show API Token) in der Umgebung oder in
+# GoldnerOS/.env. Ohne Token gibt die Funktion die Browser-Schritte in der richtigen
+# Reihenfolge aus und meldet sich nirgends an.
+cmd_submit() {
+  local envfile="$HOME/GoldnerOS/.env"
+  if [ -z "${PACKAGIST_API_TOKEN:-}" ] && [ -f "$envfile" ]; then
+    PACKAGIST_USERNAME=$(grep -m1 '^PACKAGIST_USERNAME=' "$envfile" 2>/dev/null | cut -d= -f2-)
+    PACKAGIST_API_TOKEN=$(grep -m1 '^PACKAGIST_API_TOKEN=' "$envfile" 2>/dev/null | cut -d= -f2-)
+  fi
+
+  if [ -z "${PACKAGIST_API_TOKEN:-}" ]; then
+    echo "Kein PACKAGIST_API_TOKEN gefunden. Zwei Wege:"
+    echo
+    echo "  A) Token hinterlegen (dann macht dieses Skript den Rest):"
+    echo "     packagist.org -> Profil -> Show API Token"
+    echo "     In $envfile eintragen:"
+    echo "       PACKAGIST_USERNAME=goldnead"
+    echo "       PACKAGIST_API_TOKEN=..."
+    echo
+    echo "  B) Von Hand im Browser, packagist.org -> Submit, in dieser Reihenfolge."
+    echo "     Die Reihenfolge ist nicht Geschmack: ein Paket ist nur so installierbar"
+    echo "     wie sein am schlechtesten verfuegbares Geschwister."
+    local i=1
+    for p in "${ALL[@]}"; do
+      printf "     %2d. https://github.com/goldnead/statamic-%s\n" "$i" "$p"; i=$((i+1))
+    done
+    echo
+    echo "  Danach einmalig die Packagist-GitHub-App auf dem Konto installieren,"
+    echo "  sonst existiert ein neuer Tag auf GitHub und fuer Composer nicht."
+    return 1
+  fi
+
+  for p in "${ALL[@]}"; do
+    local code
+    code=$(php -r '
+      $url = "https://packagist.org/api/create-package?username=".urlencode($argv[1])
+           . "&apiToken=".urlencode($argv[2]);
+      $body = json_encode(["repository" => ["url" => "https://github.com/goldnead/statamic-".$argv[3]]]);
+      $c = curl_init($url);
+      curl_setopt_array($c, [
+        CURLOPT_POST => true, CURLOPT_POSTFIELDS => $body,
+        CURLOPT_HTTPHEADER => ["Content-Type: application/json"],
+        CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 30,
+      ]);
+      $r = curl_exec($c);
+      echo curl_getinfo($c, CURLINFO_HTTP_CODE) . " " . substr((string) $r, 0, 200);
+    ' "$PACKAGIST_USERNAME" "$PACKAGIST_API_TOKEN" "$p")
+    printf "%-22s %s\n" "$p" "$code"
+  done
 }
 
 case "${1:-}" in
   check)      cmd_check ;;
   public)     cmd_public ;;
   verify)     cmd_verify ;;
+  submit)     cmd_submit ;;
   drop-repos) cmd_drop_repos ;;
   *) sed -n '2,20p' "$0"; exit 1 ;;
 esac
