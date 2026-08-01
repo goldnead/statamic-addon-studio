@@ -348,7 +348,11 @@ final class CpAuthorizationRule extends AbstractRule
                 continue;
             }
 
-            if (preg_match('/\$this->authorize\(|Gate::|->can\(|abort_unless|abort_if|authorizeResource/', $contents) === 1) {
+            // `authorizeOrFail` is Statamic's own guard on `Statamic\Http\Controllers\CP\Controller`,
+            // so a controller extending it authorizes correctly without ever writing `$this->authorize(`.
+            // Missing it made this rule report `statamic-leadhub`'s ExportController as unguarded while
+            // all 38 of its write routes return 403 for an unauthorized user.
+            if (preg_match('/\$this->authorize(OrFail)?\(|Gate::|->can\(|abort_unless|abort_if|authorizeResource/', $contents) === 1) {
                 continue;
             }
 
@@ -376,7 +380,8 @@ final class CpAuthorizationRule extends AbstractRule
                 ),
                 $file,
                 $writeMethods[0]['line'],
-                'Any authenticated CP user can call these routes. Add $this->authorize(...) or a can: middleware.'
+                'Any authenticated CP user can call these routes. Add $this->authorize(...), '
+                .'$this->authorizeOrFail(...) or a can: middleware.'
             );
         }
 
