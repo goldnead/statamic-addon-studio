@@ -141,8 +141,9 @@ final class StacheIsolationRule extends AbstractRule
 
     public function rationale(): string
     {
-        return 'Without `PreventSavingStacheItemsToDisk` a test run leaves content files behind, which makes '
-            .'the next run pass or fail depending on the previous one.';
+        return 'Without `PreventsSavingStacheItemsToDisk` a test run leaves content files behind, which makes '
+            .'the next run pass or fail depending on the previous one. The trait gained its `s` before '
+            .'Statamic 6; both spellings are accepted so the rule still reads a v5-era suite correctly.';
     }
 
     public function appliesTo(AddonContext $addon): bool
@@ -156,12 +157,12 @@ final class StacheIsolationRule extends AbstractRule
     {
         $tests = array_values(array_filter($addon->phpFiles(), fn (string $f) => str_starts_with($f, 'tests/')));
 
-        if ($addon->contains('/PreventSavingStacheItemsToDisk/', $tests)) {
+        if ($addon->contains('/Prevents?SavingStacheItemsToDisk/', $tests)) {
             return [];
         }
 
         return [$this->fail(
-            'Tests create Stache-backed content but never use PreventSavingStacheItemsToDisk.',
+            'Tests create Stache-backed content but never use PreventsSavingStacheItemsToDisk.',
             'tests/TestCase.php'
         )];
     }
