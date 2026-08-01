@@ -164,11 +164,54 @@ cmd_submit() {
   done
 }
 
+# Packagist liest ein Repository nur auf einen Anstoss hin neu. Ohne den existiert ein
+# neuer Tag auf GitHub und fuer Composer nicht -- am 01.08.2026 an v1.10.1 von
+# webhook-manager belegt: gepusht, und Packagist meldete weiter v1.10.0.
+#
+# Dauerhaft loest das die Packagist-GitHub-App, einmalig auf dem Konto installiert.
+# Bis dahin: nach jedem Tag-Push `release-family.sh update` laufen lassen. Das ist der
+# Grund, warum es hier steht und nicht als Workflow in zwoelf Repos -- ein
+# Packagist-Token als Secret in zwoelf Repos zu verteilen waere der schlechtere Tausch.
+cmd_update() {
+  local envfile="$HOME/GoldnerOS/.env"
+  if [ -z "${PACKAGIST_API_TOKEN:-}" ] && [ -f "$envfile" ]; then
+    PACKAGIST_USERNAME=$(grep -m1 '^PACKAGIST_USERNAME=' "$envfile" | cut -d= -f2-)
+    PACKAGIST_API_TOKEN=$(grep -m1 '^PACKAGIST_API_TOKEN=' "$envfile" | cut -d= -f2-)
+  fi
+  [ -n "${PACKAGIST_API_TOKEN:-}" ] || { echo "Kein PACKAGIST_API_TOKEN. Siehe: $0 submit"; return 1; }
+
+  local targets=("${ALL[@]}")
+  [ $# -gt 0 ] && targets=("$@")
+
+  for p in "${targets[@]}"; do
+    local local_tag
+    local_tag=$(git -C "$WEBDEV/statamic-$p" describe --tags --abbrev=0 2>/dev/null)
+    php -r '
+      $u = "https://packagist.org/api/update-package?username=".urlencode($argv[1])
+         . "&apiToken=".urlencode($argv[2]);
+      $c = curl_init($u);
+      curl_setopt_array($c, [
+        CURLOPT_POST => true,
+        CURLOPT_POSTFIELDS => json_encode(["repository" => ["url" => "https://github.com/goldnead/statamic-".$argv[3]]]),
+        CURLOPT_HTTPHEADER => ["Content-Type: application/json"],
+        CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 30,
+      ]);
+      $r = curl_exec($c);
+      $code = curl_getinfo($c, CURLINFO_HTTP_CODE);
+      printf("%-22s lokal %-10s -> %s %s\n", $argv[3], $argv[4],
+             $code, $code == 202 ? "" : substr((string) $r, 0, 120));
+    ' "$PACKAGIST_USERNAME" "$PACKAGIST_API_TOKEN" "$p" "${local_tag:--}"
+  done
+  echo
+  echo "Packagist arbeitet die Jobs asynchron ab. Mit '$0 check' nachsehen."
+}
+
 case "${1:-}" in
   check)      cmd_check ;;
   public)     cmd_public ;;
   verify)     cmd_verify ;;
   submit)     cmd_submit ;;
+  update)     shift; cmd_update "$@" ;;
   drop-repos) cmd_drop_repos ;;
   *) sed -n '2,20p' "$0"; exit 1 ;;
 esac
