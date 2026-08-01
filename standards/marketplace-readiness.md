@@ -345,6 +345,15 @@ vite.config.js      export-ignore
   source *and* not shipping the build, which installs an addon with no CP assets at all.
 - **Never export-ignore `LICENSE.md`, `README.md`, `config/`, `lang/`, `resources/blueprints/`,
   `resources/views/` or `database/`.**
+- **Adding this breaks any CI job that runs a *sibling's* test suite out of `vendor/`.** Learned the
+  hard way on 2026-08-01: rolling `.gitattributes` out across all twelve addons was right for the
+  tarball and immediately turned leadhub's "Webhook Manager integration" job and marketing's
+  "Cross-addon integration" job red with
+  `Pest\Exceptions\FatalException: The test directory [...] does not exist.` A package installed from
+  **dist** no longer carries `tests/`. If a job needs a sibling's tests, it must take the sibling from
+  source — `composer require … --prefer-source`, or a second `actions/checkout` — and `--prefer-source`
+  is the better of the two because it installs the version Composer would have resolved anyway. The
+  addon under test is unaffected: CI checks it out, so its own `tests/` is always there.
 - Verify with `git archive --format=tar HEAD | tar -t` before the first tag.
 
 **Checkable:** `structure.gitattributes`; `git archive` listing contains no `tests/` and does contain
