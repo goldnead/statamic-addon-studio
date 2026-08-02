@@ -8,10 +8,22 @@ set -uo pipefail
 
 export PATH="$HOME/.local/studio-bin:$PATH"
 STUDIO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-WEBDEV="$HOME/Documents/WebDev"
+# Wurzel, unter der die Addon-Repos liegen. Ueberschreibbar, weil sie nicht immer
+# unter ~/Documents/WebDev stehen — auf dem Laptop ist das seit dem 31.07. wegen einer
+# offenen macOS-Dateiberechtigung unlesbar und jeder Zugriff dorthin blockiert.
+# Fallback auf den Ausweichordner, wenn WebDev nicht lesbar ist.
+if [ -n "${ADDON_ROOT:-}" ]; then
+  WEBDEV="$ADDON_ROOT"
+elif ls "$HOME/Documents/WebDev" >/dev/null 2>&1; then
+  WEBDEV="$HOME/Documents/WebDev"
+else
+  WEBDEV="$HOME/projects-tcc-workaround"
+  echo "== ~/Documents/WebDev nicht lesbar, nutze $WEBDEV"
+fi
 
-ALL=(activity automations brand-context email-templates identity-contracts leadhub
-     marketing notifications preference-center suppression toc webhook-manager)
+ALL=(activity automations brand-context email-templates events identity-contracts
+     lead-magnets leadhub marketing notifications preference-center suppression
+     toc webhook-manager)
 
 if [ "${1:-}" = "--all" ]; then set -- "${ALL[@]}"; fi
 [ $# -gt 0 ] || { echo "usage: verify-gate.sh <addon>... | --all"; exit 1; }
