@@ -58,8 +58,11 @@ composer create-project statamic/statamic playground --no-interaction --quiet ||
   echo "!! create-project fehlgeschlagen"; exit 1; }
 
 cd "$STUDIO/playground" || exit 1
-php please make:user --no-interaction \
-  --email=studio@local --password=studio-local-password --super 2>/dev/null \
-  || echo "!! Superuser bitte manuell anlegen: php please make:user"
+php artisan migrate --force --no-interaction >/dev/null 2>&1 \
+  || echo "!! migrate fehlgeschlagen"
+# Statamic 6.26: die Mail ist ein Argument, keine --email-Option.
+php please make:user studio@local --no-interaction \
+  --password=studio-local-password --super 2>/dev/null \
+  || echo "!! Superuser bitte manuell anlegen: php please make:user <mail> --super"
 
 echo "== fertig. Start: cd $STUDIO/playground && php artisan serve --port=8099"
