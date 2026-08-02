@@ -50,8 +50,11 @@ for p in "$@"; do
   [ -x vendor/bin/pint ] && { vendor/bin/pint --test >/dev/null 2>&1 && pint="ok" || pint="ROT"; }
 
   stan="fehlt"
+  # --memory-limit ist Pflicht: PHPStan bricht sonst bei 128M ab und der Abbruch
+  # sieht wie ein Analysefehler aus. Das hat marketing und entitlements faelschlich
+  # als ROT gemeldet, obwohl beide sauber sind.
   [ -x vendor/bin/phpstan ] && {
-    vendor/bin/phpstan analyse --no-progress --error-format=raw >/dev/null 2>&1 \
+    vendor/bin/phpstan analyse --no-progress --memory-limit=1G --error-format=raw >/dev/null 2>&1 \
       && stan="ok" || stan="ROT"; }
 
   lint=$(php "$STUDIO/tools/addon-lint/bin/addon-lint" . --format=json --fail-on=never 2>/dev/null \
