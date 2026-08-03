@@ -37,11 +37,14 @@ for p in "$@"; do
   # Testrunner: die Familie nutzt beides, Pest und PHPUnit.
   # Pest faerbt seine Ausgabe auch ohne TTY; ohne das sed ist die Spalte unlesbar.
   strip_ansi() { sed -E $'s/\x1b\\[[0-9;]*[a-zA-Z]//g'; }
+  # -d memory_limit ist Pflicht: marketings Suite sprengt die 128M des CLI-Defaults
+  # und stirbt mit einer FatalException, die wie ein Testfehler aussieht.
   tests="kein vendor/"
   if [ -x vendor/bin/pest ]; then
-    tests=$(vendor/bin/pest --colors=never 2>&1 | strip_ansi | grep -oE 'Tests: .*' | head -1)
+    tests=$(php -d memory_limit=2G vendor/bin/pest --colors=never 2>&1 | strip_ansi \
+      | grep -oE 'Tests: .*' | head -1)
   elif [ -x vendor/bin/phpunit ]; then
-    tests=$(vendor/bin/phpunit 2>&1 | strip_ansi \
+    tests=$(php -d memory_limit=2G vendor/bin/phpunit 2>&1 | strip_ansi \
       | grep -oE 'OK \(.*\)|FAILURES.*|ERRORS.*' | head -1)
   fi
   [ -n "$tests" ] || tests="?"
