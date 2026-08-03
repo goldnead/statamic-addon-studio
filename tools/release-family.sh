@@ -15,19 +15,29 @@
 set -uo pipefail
 
 export PATH="$HOME/.local/studio-bin:$PATH"
-WEBDEV="$HOME/Documents/WebDev"
+# Wurzel der Addon-Repos. Ueberschreibbar, weil ~/Documents/WebDev auf dem Laptop
+# seit dem 31.07. wegen einer offenen macOS-Dateiberechtigung nicht lesbar ist und
+# jeder Zugriff dorthin blockiert statt zu scheitern.
+if [ -n "${ADDON_ROOT:-}" ]; then
+  WEBDEV="$ADDON_ROOT"
+elif ls "$HOME/Documents/WebDev" >/dev/null 2>&1; then
+  WEBDEV="$HOME/Documents/WebDev"
+else
+  WEBDEV="$HOME/projects-tcc-workaround"
+fi
 
 # Veroeffentlichungsreihenfolge = Abhaengigkeitsreihenfolge, Fundament zuerst.
 # Stufe 0: keine Geschwister-Abhaengigkeit
 # Stufe 1: nur brand-context
 # Stufe 2: brand-context + Stufe-1-Pakete
 LEVEL0=(brand-context identity-contracts email-templates toc)
-LEVEL1=(suppression leadhub automations webhook-manager)
+LEVEL1=(suppression leadhub automations webhook-manager events entitlements lead-magnets)
 LEVEL2=(marketing activity notifications preference-center)
 ALL=("${LEVEL0[@]}" "${LEVEL1[@]}" "${LEVEL2[@]}")
 
-# Heute privat. Werden fuer Packagist zwingend oeffentlich gebraucht.
-PRIVATE=(activity identity-contracts notifications preference-center suppression)
+# Stand 03.08.2026: alle oeffentlich. Die Liste bleibt als Beleg, welche fuenf
+# Pakete fuer Packagist eigens von privat umgestellt werden mussten.
+PRIVATE=()
 
 packagist_status() {
   local pkg="$1"
