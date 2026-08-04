@@ -143,6 +143,25 @@ $report = lint($linter, [
 check('non-themeable colour is reported', fires($report, 'ui.themeable-colors'));
 check('custom width container is reported', fires($report, 'ui.page-width'));
 
+// ui-vocabulary §2.3: the narrow detail width is core's own, but only with the opt-in attribute.
+$report = lint($linter, [
+    'composer.json' => $goodComposer,
+    'resources/js/pages/Show.vue' => "<template><div class=\"max-w-5xl 3xl:max-w-6xl mx-auto\" data-max-width-wrapper></div></template>\n",
+]);
+check('the narrow detail container is accepted', ! fires($report, 'ui.page-width'));
+
+$report = lint($linter, [
+    'composer.json' => $goodComposer,
+    'resources/js/pages/Show.vue' => "<template><div class=\"max-w-5xl 3xl:max-w-6xl mx-auto\"></div></template>\n",
+]);
+check('the narrow detail container without data-max-width-wrapper is reported', fires($report, 'ui.page-width'));
+
+$report = lint($linter, [
+    'composer.json' => $goodComposer,
+    'resources/js/pages/Show.vue' => "<template><div class=\"max-w-5xl mx-auto\" data-max-width-wrapper></div></template>\n",
+]);
+check('a lone max-w-5xl is still reported', fires($report, 'ui.page-width'));
+
 $scriptSetupFieldtype = <<<'VUE'
 <template><ui-input :read-only="isReadOnly" :model-value="value" @update:model-value="update" /></template>
 <script setup>

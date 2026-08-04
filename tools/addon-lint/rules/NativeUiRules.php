@@ -301,7 +301,7 @@ final class PageWidthRule extends AbstractRule
 
     public function title(): string
     {
-        return 'Constrain page content with `max-w-page`';
+        return 'Constrain page content with a core width container';
     }
 
     public function category(): string
@@ -318,7 +318,10 @@ final class PageWidthRule extends AbstractRule
     {
         return 'ui-vocabulary §9.15: the token is `--max-width-page: 85rem` and the header\'s '
             .'MaxWidthButton lets the user toggle full width. A custom container ignores that toggle and '
-            .'sits at a different width than every core screen.';
+            .'sits at a different width than every core screen. §2.3 documents a second legitimate '
+            .'width for detail and settings screens, `max-w-5xl 3xl:max-w-6xl mx-auto` with '
+            .'`data-max-width-wrapper` — the attribute is what keeps the toggle working, so the narrow '
+            .'variant only counts as native when it carries it.';
     }
 
     public function appliesTo(AddonContext $addon): bool
@@ -332,15 +335,32 @@ final class PageWidthRule extends AbstractRule
         $findings = [];
 
         foreach ($addon->grep('/(?<![\w-])(max-w-(?:7xl|6xl|5xl|screen-\w+)|container mx-auto)(?![\w-])/', $files) as $hit) {
+            if ($this->isNarrowDetailContainer($hit['text'])) {
+                continue;
+            }
+
             $findings[] = $this->fail(
                 sprintf('Custom width container `%s`.', $hit['match'][1]),
                 $hit['file'],
                 $hit['line'],
-                'Use max-w-page.'
+                'Use max-w-page, or the narrow detail variant `max-w-5xl 3xl:max-w-6xl mx-auto` with data-max-width-wrapper.'
             );
         }
 
         return $findings;
+    }
+
+    /**
+     * ui-vocabulary §2.3 sanctions a narrow container for detail and settings screens, the one
+     * core uses on pages/forms/Show.vue and pages/preferences/Edit.vue. Both width classes and
+     * the opt-in attribute have to be present: without `data-max-width-wrapper` the wrapper
+     * ignores the header's expand-layout toggle, which is the defect this rule exists to catch.
+     */
+    private function isNarrowDetailContainer(string $line): bool
+    {
+        return preg_match('/(?<![\w-])max-w-5xl(?![\w-])/', $line) === 1
+            && preg_match('/(?<![\w-])3xl:max-w-6xl(?![\w-])/', $line) === 1
+            && str_contains($line, 'data-max-width-wrapper');
     }
 }
 
