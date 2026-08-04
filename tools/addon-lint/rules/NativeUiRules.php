@@ -364,6 +364,71 @@ final class PageWidthRule extends AbstractRule
     }
 }
 
+final class BareSingleColumnGridRule extends AbstractRule
+{
+    public function id(): string
+    {
+        return 'ui.bare-single-column-grid';
+    }
+
+    public function title(): string
+    {
+        return 'Do not ship the breakpoint-less single-column grid utility';
+    }
+
+    public function category(): string
+    {
+        return 'ui';
+    }
+
+    public function severity(): string
+    {
+        return Severity::MINOR;
+    }
+
+    public function rationale(): string
+    {
+        return 'Every addon ships its own Tailwind build and all of them land in the same '
+            .'`addon-utilities` layer. Media queries add no specificity, so a breakpoint-less '
+            .'`grid-cols-1` from the stylesheet that happens to load last wins against an earlier '
+            .'addon\'s `sm:`/`lg:` variant and pins that addon\'s grid to one column at every '
+            .'width. A grid falls back to one column on its own, so the class buys nothing and '
+            .'costs a cross-addon collision that is invisible when an addon is checked alone. '
+            .'Replace the utility\'s `minmax(0,1fr)` track with `*:min-w-0` on the container.';
+    }
+
+    public function appliesTo(AddonContext $addon): bool
+    {
+        return $addon->cpViews() !== [] || $addon->vueFiles() !== [];
+    }
+
+    public function check(AddonContext $addon): array
+    {
+        $files = array_merge($addon->cpViews(), $addon->vueFiles());
+        $findings = [];
+
+        // No variant prefix: `sm:grid-cols-1` is media-query scoped and cannot
+        // out-order another addon's variant, so it is not the problem.
+        //
+        // Comments are matched on purpose, and are the reason this rule exists
+        // as a scan rather than a review note: Tailwind treats comment text as
+        // candidates, so a comment explaining why the class was removed emits
+        // the class. statamic-activity shipped exactly that — a correct fix
+        // whose own annotation kept the rule in the bundle.
+        foreach ($addon->grep('/(?<![\w:-])grid-cols-1(?![\w-])/', $files) as $hit) {
+            $findings[] = $this->fail(
+                'Breakpoint-less single-column grid utility.'
+                    .(str_contains($hit['text'], '<!--') || str_contains($hit['text'], '*') ? ' Naming it in a comment emits it too.' : ''),
+                $hit['file'],
+                $hit['line'],
+                'Drop the class and put *:min-w-0 on the grid container. Do not name the class in a comment.'
+            );
+        }
+
+        return $findings;
+    }
+}
+
 final class InlineSvgIconRule extends AbstractRule
 {
     public function id(): string

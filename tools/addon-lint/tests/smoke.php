@@ -162,6 +162,33 @@ $report = lint($linter, [
 ]);
 check('a lone max-w-5xl is still reported', fires($report, 'ui.page-width'));
 
+// The breakpoint-less single-column grid utility: a cross-addon collision that
+// is invisible when one addon is checked alone, and one that a comment naming
+// the class re-creates all by itself.
+$report = lint($linter, [
+    'composer.json' => $goodComposer,
+    'resources/js/pages/Index.vue' => "<template><div class=\"grid grid-cols-1 sm:grid-cols-2\"></div></template>\n",
+]);
+check('the bare single-column grid utility is reported', fires($report, 'ui.bare-single-column-grid'));
+
+$report = lint($linter, [
+    'composer.json' => $goodComposer,
+    'resources/js/pages/Index.vue' => "<template><!-- deliberately no grid-cols-1 here --><div class=\"grid sm:grid-cols-2\"></div></template>\n",
+]);
+check('naming the class in a comment is reported too', fires($report, 'ui.bare-single-column-grid'));
+
+$report = lint($linter, [
+    'composer.json' => $goodComposer,
+    'resources/js/pages/Index.vue' => "<template><div class=\"grid sm:grid-cols-2 lg:grid-cols-3 *:min-w-0\"></div></template>\n",
+]);
+check('a grid without the bare utility is accepted', ! fires($report, 'ui.bare-single-column-grid'));
+
+$report = lint($linter, [
+    'composer.json' => $goodComposer,
+    'resources/js/pages/Index.vue' => "<template><div class=\"grid sm:grid-cols-1 lg:grid-cols-12\"></div></template>\n",
+]);
+check('a variant-prefixed single-column grid is accepted', ! fires($report, 'ui.bare-single-column-grid'));
+
 $scriptSetupFieldtype = <<<'VUE'
 <template><ui-input :read-only="isReadOnly" :model-value="value" @update:model-value="update" /></template>
 <script setup>

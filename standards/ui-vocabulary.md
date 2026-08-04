@@ -281,6 +281,33 @@ Adding `data-max-width-wrapper` opts your wrapper into the user's global "expand
 
 **Never hard-code `max-w-7xl`, `container mx-auto`, or a pixel width.**
 
+### 2.3a Never ship a breakpoint-less grid-column utility
+
+Every addon ships its own Tailwind build, and `@statamic/cms/tailwind.css` routes all of them
+into the same `addon-utilities` layer. Media queries add no specificity, so a breakpoint-less
+single-column rule from whichever addon stylesheet loads **last** wins against an earlier
+addon's `sm:`/`lg:` variant and pins that addon's grid to one column at every width.
+
+The failure is invisible when an addon is checked alone. It only appears once two addons of the
+family are installed together, which is the normal case on a real site.
+
+Write `grid sm:grid-cols-2` and leave the one-column case to the default: a grid falls back to
+one column on its own.
+
+The utility's track was `minmax(0,1fr)`, and the implicit column is `auto`, so long unbroken
+content (a URL, a JSON blob, a long handle) can now push past the container. Restore the guard:
+
+| Addon ships a stylesheet | Guard |
+|---|---|
+| Yes | `*:min-w-0` on the grid container — one place, cannot be forgotten when a child is added |
+| No (JS-only build) | `min-w-0` on each child — core emits `min-w-0` but **not** its child variant, so `*:min-w-0` would be dead markup |
+
+**Do not name the class in a comment either.** Tailwind scans comment text as candidates, so a
+comment explaining why the class was removed re-emits it. `statamic-activity` shipped exactly
+that: a correct fix whose own annotation kept the rule in the bundle, so the fix did nothing
+until it was reworded. `addon-lint` enforces this as `ui.bare-single-column-grid`, comments
+included.
+
 ### 2.4 Breadcrumbs are server-side
 
 Not declared in Vue. `src/CP/Breadcrumbs/Breadcrumbs.php:23-82` derives them from the **active nav
