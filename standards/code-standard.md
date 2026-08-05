@@ -7,9 +7,12 @@ Architecture and PHP/JS standard for an addon built by the Statamic Addon Studio
 and does not restate it. Release and Marketplace gates live in
 [`marketplace-readiness.md`](./marketplace-readiness.md).
 
-**Evidence.** Every rule below traces to one of: a file in an addon under `reference/`, a numbered
-transferable rule in `findings/reference/*.md`, a section of `ui-vocabulary.md`, or the current
-behaviour of `statamic/cms` 6.x (`reference/statamic__cms/`). Citations are inline.
+**Evidence.** Every rule below traces to one of: a published Statamic addon we read, cited inline
+by package name as `observed in vendor/package`; a section of `ui-vocabulary.md`; or the current
+behaviour of `statamic/cms` 6.x. The working analyses behind the package citations are internal
+and not part of this repository — they name and assess other maintainers' packages, and that is
+not something to publish. The rule, its reasoning and its origin are here; the source it was read
+from is public and you can check it yourself.
 
 **How to read a section.** Each section ends with a **Checkable** list. Items in `code font` are
 `addon-lint` rule ids — run `php tools/addon-lint/bin/addon-lint <path>` to check them. Items marked
@@ -74,7 +77,7 @@ README.md  CHANGELOG.md  LICENSE.md
 Non-negotiables, each with a failure it prevents:
 
 - **`"type": "statamic-addon"`.** Statamic discovers addons by package type. `bard-texstyle` omits it
-  (`findings/reference/jacksleight-statamic-bard-texstyle.md` §10.8) — harmless until tooling keys off it.
+  (observed in `jacksleight/statamic-bard-texstyle`) — harmless until tooling keys off it.
 - **Exactly one PSR-4 prefix mapping to `src`.** All 15 reference addons do this. Two prefixes break
   `AddonServiceProvider`'s `shouldBootRootItems()` check
   (`reference/statamic__cms/src/Providers/AddonServiceProvider.php:896-903`), which silently disables
@@ -102,7 +105,7 @@ Pin `statamic/cms` to **the minor that introduced the APIs you call**, not the b
 `^6.25`, not `^6.0`. This is the majority position and it is load-bearing:
 `collaboration` pins `^6.15.0` for the `pushComponent` seam, `seo-pro` `^6.25` for
 `@statamic/cms/save-pipeline`, `importer` `^6.25`, `runway` `^6.26`, `eloquent-driver` `^6.10`
-(`findings/reference/statamic-collaboration.md` R21, `statamic-seo-pro.md` R27). `bard-texstyle` and
+(observed in `statamic/collaboration`, `statamic/seo-pro`). `bard-texstyle` and
 `tabs` use `^6.0` and are the minority. A `^6.0` floor combined with `@statamic/cms` linked from
 `vendor/` means the JS API and the PHP API can disagree at install time.
 
@@ -177,7 +180,7 @@ class SyncOnSave
 ```
 
 No `$listen` array. `runway` declares one provider property; `advanced-seo` declares three
-(`findings/reference/aerni-advanced-seo.md` R9, `statamic-rad-pack-mailchimp.md` R1). An explicit
+(observed in `aerni/statamic-advanced-seo`, `statamic-rad-pack/mailchimp`). An explicit
 array goes stale the moment somebody adds a class, and surfaces as "my fieldtype doesn't show up".
 
 ### Properties you may still declare
@@ -191,7 +194,7 @@ lives somewhere non-standard, `$publishables`, `$middlewareGroups`, `$viewNamesp
 `$scripts` and `$stylesheets` are legacy: they publish pre-built files and skip the Vite manifest, so
 there is no hot reload and no cache-busting. Use `$vite`. The only defensible `$scripts` case is a
 dependency-free, browser-native file with no `import`
-(`findings/reference/aryehraber-statamic-logbook.md` R18).
+(observed in `aryehraber/statamic-logbook`).
 
 ### Never fork core
 
@@ -200,7 +203,7 @@ Every UI-drift incident in the reference set traces back to a copied core file:
 `simple-commerce`'s `GatewayFieldtype.vue` reproduces relationship-item chrome that core *exports* as
 `RelatedItem`; `runway`'s `PublishActions.vue` and `Revision.vue` both open with "mostly the same as
 the one in Statamic Core", and its CHANGELOG shows that drift being paid down in patch releases
-(`findings/reference/statamic-rad-pack-runway.md` §10.5). If the extension point does not exist, open
+(observed in `statamic-rad-pack/runway`). If the extension point does not exist, open
 a core PR — do not copy the file.
 
 **Checkable**
@@ -232,8 +235,7 @@ protected function bootPermissions(): self
 ```
 
 A fluent chain of single-purpose `boot*(): self` methods. `runway`, `advanced-seo`, `seo-pro` and
-`bard-texstyle` all converge on this shape (`findings/reference/statamic-seo-pro.md` R5,
-`aerni-advanced-seo.md` R8, `jacksleight-statamic-bard-texstyle.md` R23). Keep `bootAddon()` itself to
+`bard-texstyle` all converge on this shape (observed in `statamic/seo-pro`, `aerni/statamic-advanced-seo`, `jacksleight/statamic-bard-texstyle`). Keep `bootAddon()` itself to
 the chain — no `if`, no work — and each `boot*()` under ~40 lines.
 
 Rules for what goes where:
@@ -241,16 +243,15 @@ Rules for what goes where:
 - **`register()`** — container bindings, `registerSerializableClasses()`, and nothing that reads
   config that `bootConfig()` has not merged yet. `eloquent-driver` merges its config in `boot()` while
   `register()` reads it; Laravel runs every `register()` before any `boot()`, so the merge arrives too
-  late (`findings/reference/statamic-eloquent-driver.md` §10.2). If you must merge manually, merge in
+  late (observed in `statamic/eloquent-driver`). If you must merge manually, merge in
   `register()`.
 - **`bootAddon()`** — everything that touches a Statamic facade: `Nav::`, `Permission::`, `Form::`,
   `Utility::`, `Addon::`, `Augmentor::`, `*::appendConfigFields()`. These are only guaranteed inside
-  core's `Statamic::booted()` chain (`findings/reference/statamic-rad-pack-mailchimp.md` R3,
-  `aryehraber-statamic-logbook.md` R1).
+  core's `Statamic::booted()` chain (observed in `statamic-rad-pack/mailchimp`, `aryehraber/statamic-logbook`).
 - **Never `public function boot()`** on an `AddonServiceProvider` subclass — you would override the
   26-step chain.
 - **No `Route::get|post|patch|delete` in the provider.** Route *definitions* go in `routes/cp.php`;
-  only `Route::bind()` belongs in the provider (`findings/reference/aerni-advanced-seo.md` R11).
+  only `Route::bind()` belongs in the provider (observed in `aerni/statamic-advanced-seo`).
 - **No filesystem mutation at boot.** `mailchimp` runs two config migrations inside `bootAddon()` on
   *every request*, doing `File::exists()` and potentially `ConfigWriter` writes
   (`reference/statamic-rad-pack__mailchimp/src/ServiceProvider.php:32-33`). That is what
@@ -292,17 +293,17 @@ Rules:
   `publishes(..., '<slug>-config')`.
 - **The merge key must be the exact prefix every `config()` call reads.** `eloquent-driver` merges into
   `statamic-eloquent-driver` while all 133 reads use `statamic.eloquent-driver`; the merge is dead code
-  (`findings/reference/statamic-eloquent-driver.md` §10.1).
+  (observed in `statamic/eloquent-driver`).
 - **Every `publishes()` takes a tag.** `ssg` omits it
   (`reference/statamic__ssg/src/ServiceProvider.php:30`), forcing users into an untagged
   `vendor:publish` picker.
 - **Every config read has an inert default:** `config('thing.driver', 'file')`. An unpublished,
   unmerged config must leave the addon completely inactive
-  (`findings/reference/statamic-eloquent-driver.md` R3).
+  (observed in `statamic/eloquent-driver`).
 - **Secrets come from `env()` in the config file, never from a settings blueprint field**
-  (`findings/reference/statamic-rad-pack-mailchimp.md` R8).
+  (observed in `statamic-rad-pack/mailchimp`).
 - **Never hand a whole config array to the frontend.** `Statamic::provideToScript()` takes named keys
-  you have chosen, not `config('thing')` (`findings/reference/jacksleight-statamic-bard-texstyle.md` R9).
+  you have chosen, not `config('thing')` (observed in `jacksleight/statamic-bard-texstyle`).
 
 **Disagreement — config namespace.** `ssg`, `seo-pro` and `spatie/responsive-images` publish to
 `config/statamic/<slug>.php` and merge under `statamic.<slug>`, which requires `$config = false` plus
@@ -331,7 +332,7 @@ a **facade** over a container singleton.
 ```
 
 Rules, from `eloquent-driver` — the reference for swappable storage
-(`findings/reference/statamic-eloquent-driver.md` R1–R17):
+(observed in `statamic/eloquent-driver`):
 
 - **Swap through `Statamic::repository($contract, $impl)`**, not `$this->app->bind($contract, …)`.
   Core's own facade/resolution machinery hangs off the former.
@@ -346,23 +347,23 @@ Rules, from `eloquent-driver` — the reference for swappable storage
 - **Disable the store you replace at the same moment you swap:** every `Statamic::repository()` call
   that shadows a Stache store sits in the same method as `Stache::exclude('<store>')`.
 - **Expose every swappable behaviour as an interface bound in the container**, so a test can replace it
-  with one `$this->mock()` line (`findings/reference/spatie-statamic-responsive-images.md` R12).
+  with one `$this->mock()` line (observed in `spatie/statamic-responsive-images`).
 - **A package must not assume the host app's namespace.** `eloquent-driver`'s `EntryModel::author()`
   returns `$this->belongsTo(\App\Models\User::class, …)`
   (`reference/statamic__eloquent-driver/src/Entries/EntryModel.php:23-26`). Read
   `config('auth.providers.users.model')`.
 - **Facades.** A facade over a `singleton()` binding is the right way to expose a programmatic API that
   a host app's `boot()` can register into before your command runs
-  (`findings/reference/statamic-ssg.md` R18). If you hand-maintain `@method` docblocks on it, pin them
+  (observed in `statamic/ssg`). If you hand-maintain `@method` docblocks on it, pin them
   with a test — `mailchimp`'s facade docblock has drifted from its driver by three methods
-  (`findings/reference/statamic-rad-pack-mailchimp.md` §10.13).
+  (observed in `statamic-rad-pack/mailchimp`).
 - **Never reach into another package's private state.** `runway` ships `spatie/invade` as a production
   dependency; `eloquent-driver` reads `BlueprintRepository::$fallbacks` by reflection. Both are
   couplings no Composer constraint can express. If unavoidable, pin the behaviour with a test.
 - **Caching.** Every negative lookup you cache must be evicted immediately, and every write must
-  invalidate its keys (`findings/reference/statamic-eloquent-driver.md` R15). Use `Blink` for
+  invalidate its keys (observed in `statamic/eloquent-driver`). Use `Blink` for
   request-scoped memoisation; do not use `Cache::forever` as a coordination log between queue workers
-  (`findings/reference/statamic-importer.md` §10.10 — a lost-update race by construction).
+  (observed in `statamic/importer`).
 - **Never `env()` at runtime.** It returns `null` once `config:cache` has run
   (`reference/statamic__importer/src/Importer.php:26`).
 
@@ -395,7 +396,7 @@ class SendWelcome
 - Methods named `handle<Something>` register under `Class@handleSomething`, so one class can consume
   several events (`AddonServiceProvider.php:286`).
 - **Convention-based wiring has no compile-time safety net.** Add a test per listener that dispatches
-  the real event and asserts the effect (`findings/reference/statamic-rad-pack-mailchimp.md` R18).
+  the real event and asserts the effect (observed in `statamic-rad-pack/mailchimp`).
 - **Never do synchronous third-party HTTP inside a listener on the request thread.** `mailchimp`'s
   `AddFromSubmission` listener performs a live Mailchimp `PUT` during form submission, with
   `Log::error()` as its entire failure handling
@@ -405,7 +406,7 @@ class SendWelcome
 **Extending core screens via events.** To add fields to somebody else's publish form, mutate the
 blueprint in a `*BlueprintFound` listener, scope it by route-name pattern, and **hide** rather than
 remove fields when the user is not authorised
-(`findings/reference/aerni-advanced-seo.md` R16). Do not `array_replace_recursive` a foreign blueprint
+(observed in `aerni/statamic-advanced-seo`). Do not `array_replace_recursive` a foreign blueprint
 array: it is order-dependent and silently clobbers a user's field with the same handle
 (`reference/aerni__advanced-seo/src/Listeners/HandleContentSeoBlueprint.php:55-58`). Guard handle
 collisions explicitly.
@@ -425,10 +426,10 @@ Anything that talks to a third party, processes a file, or loops over content go
 - Jobs live in `src/Jobs/` and implement `ShouldQueue`.
 - **Register serialisable domain objects.** Any Statamic object a job holds must be listed in
   `registerSerializableClasses([...])` inside `register()`, or it will not survive the queue round-trip
-  (`findings/reference/statamic-seo-pro.md` R22).
+  (observed in `statamic/seo-pro`).
 - **Give every job a public accessor for its payload** (`getParams()`), so tests can write
   `Queue::pushed(Job::class)->filter(...)` instead of counting blindly
-  (`findings/reference/spatie-statamic-responsive-images.md` R13).
+  (observed in `spatie/statamic-responsive-images`).
 - **Do not coordinate between workers through the cache.** `importer`'s `ImportItemJob` does
   read-modify-write on a `Cache::forever` key from concurrent workers
   (`reference/statamic__importer/src/Jobs/ImportItemJob.php:110-115`). Use batches, a database row, or
@@ -437,7 +438,7 @@ Anything that talks to a third party, processes a file, or loops over content go
   on `sync`, say so in the README and detect it, rather than assuming a worker exists.
 - **Restore global state in a `finally`.** Loops that mutate `Site::setCurrent()`, `app()->setLocale()`
   or `Date::setToStringFormat()` must restore them and flush `Blink`
-  (`findings/reference/statamic-ssg.md` R20).
+  (observed in `statamic/ssg`).
 
 **Checkable**
 - Every class dispatched to a queue appears in `registerSerializableClasses` — *(manual)*
@@ -467,18 +468,18 @@ Permission::extend(function () {
 ```
 
 - **Always a named `Permission::group()`.** Ungrouped permissions land in a miscellaneous bucket in the
-  role editor (`findings/reference/statamic-rad-pack-runway.md` R10).
+  role editor (observed in `statamic-rad-pack/runway`).
 - **Hierarchy, not a flat list:** `view` → `edit` → `create`/`delete`
-  (`findings/reference/duncanmcclean-simple-commerce.md` R9).
+  (observed in `duncanmcclean/simple-commerce`).
 - **`label()` and `description()` from `lang/` keys**, never bare English
-  (`findings/reference/aerni-advanced-seo.md` R15).
+  (observed in `aerni/statamic-advanced-seo`).
 - **Register only permissions that apply to the configured feature set**, and gate routes, nav items,
   permissions and stores on the *same* expression so they cannot disagree
-  (`findings/reference/duncanmcclean-simple-commerce.md` R11).
+  (observed in `duncanmcclean/simple-commerce`).
 - **A settings blueprint gives you `edit {package} settings` for free**
   (`reference/statamic__cms/src/Auth/CorePermissions.php:230`). A registered Utility gives you
   `access {handle} utility` for free, plus the middleware
-  (`findings/reference/aryehraber-statamic-logbook.md` R2, R4). Do not re-register either.
+  (observed in `aryehraber/statamic-logbook`). Do not re-register either.
 
 ### Authorization is server-side or it does not exist
 
@@ -491,11 +492,11 @@ returns exactly one hit. `CouponController::store/update`, three `destroy` actio
 `ResendNotificationsController::__invoke` are reachable by any authenticated CP user — the last one
 re-sends customer email on demand — while the Blade views dutifully gate the buttons and
 `Permission::register('delete tax rates')` exists and is decorative
-(`findings/reference/duncanmcclean-simple-commerce.md` §10.A1).
+(observed in `duncanmcclean/simple-commerce`).
 
 Preferred shape: one `FormRequest` per verb under `src/Http/Requests/CP/`, containing `authorize()`
 and nothing else — validation belongs to the blueprint (§10 below and
-`findings/reference/statamic-rad-pack-runway.md` R11).
+observed in `statamic-rad-pack/runway`).
 
 And every authorized route gets a **403 test** (§13).
 
@@ -519,22 +520,22 @@ shortcut, then one method per ability
 
 Do not build one. Name a blueprint `resources/blueprints/settings.yaml` and `bootSettingsBlueprint()`
 (`AddonServiceProvider.php:825-836`) gives you the screen, the Tools nav entry and the
-`edit {package} settings` permission (`findings/reference/statamic-rad-pack-mailchimp.md` R4, R5).
+`edit {package} settings` permission (observed in `statamic-rad-pack/mailchimp`).
 
 `mailchimp` still carries `resources/views/cp/config.blade.php` — a hand-rolled `<publish-form>` in
 Blade posting to a route that does not exist, referenced by nothing
-(`findings/reference/statamic-rad-pack-mailchimp.md` §10.1). It is exactly the page the settings
+(observed in `statamic-rad-pack/mailchimp`). It is exactly the page the settings
 blueprint replaced.
 
 To add configuration to an *existing* core screen, use `Form::appendConfigFields()` /
 `Fieldtype::appendConfigFields()` in `bootAddon()` rather than adding a page
-(`findings/reference/jacksleight-statamic-bard-texstyle.md` R16).
+(observed in `jacksleight/statamic-bard-texstyle`).
 
 **Checkable**
 - Blueprint named exactly `settings.yaml`; no `registerSettingsBlueprint(` call beside it — *(manual)*
 - No CP route rendering a view whose blueprint is the settings blueprint — *(manual)*
 - No orphan views: every file under `resources/views/` is referenced by a controller or `view()` call
-  (`findings/reference/statamic-rad-pack-mailchimp.md` R16) — *(manual)*
+  (observed in `statamic-rad-pack/mailchimp`) — *(manual)*
 
 ---
 
@@ -544,28 +545,26 @@ The UI half of this is `ui-vocabulary.md` §2 (page shells), §3 (listings), §4
 server contract:
 
 - **Extend core controllers**: `Statamic\Http\Controllers\CP\CpController`, `ActionController`,
-  `PreviewController` (`findings/reference/statamic-rad-pack-runway.md` R13).
+  `PreviewController` (observed in `statamic-rad-pack/runway`).
 - **Validate through the blueprint, not the request.**
   `$blueprint->fields()->addValues($request->all())->validator()->validate()`, then
   `->process()->values()`. Zero `$request->validate([` in a blueprint-driven CP controller
-  (`findings/reference/aerni-advanced-seo.md` R7, `statamic-importer.md` R13,
-  `statamic-rad-pack-runway.md` R11). Non-blueprint endpoints — utilities, one-off actions — use a
-  `FormRequest`; **never nothing** (`findings/reference/aryehraber-statamic-logbook.md` R15).
+  (observed in `aerni/statamic-advanced-seo`, `statamic/importer`, `statamic-rad-pack/runway`). Non-blueprint endpoints — utilities, one-off actions — use a
+  `FormRequest`; **never nothing** (observed in `aryehraber/statamic-logbook`).
 - **Row-dependent validation belongs in the fieldtype's `extraRules()`**, not the controller
-  (`findings/reference/statamic-importer.md` R14).
+  (observed in `statamic/importer`).
 - **Never build CP URLs by hand.** `cp_route()` / `cp_url()` in PHP; pass URLs to Vue as props. Vue must
-  not concatenate `/cp/…` (`findings/reference/aryehraber-statamic-logbook.md` R3,
-  `statamic-rad-pack-runway.md` R12).
+  not concatenate `/cp/…` (observed in `aryehraber/statamic-logbook`, `statamic-rad-pack/runway`).
 - **Bind domain objects with `Route::bind()`** in the provider, guarded with `Statamic::isCpRoute()`,
   throwing `Statamic\Exceptions\NotFoundHttpException` for unknown handles
-  (`findings/reference/statamic-seo-pro.md` R23, `statamic-rad-pack-runway.md` R15).
+  (observed in `statamic/seo-pro`, `statamic-rad-pack/runway`).
 - **Resolve permissions server-side into boolean props.** No `can(` in Vue
-  (`findings/reference/statamic-seo-pro.md` R8).
+  (observed in `statamic/seo-pro`).
 - **Index and its JSON come from the same route**, branched on `$request->wantsJson()`, so the
-  `<Listing>` `:url` and the page are never out of sync (`findings/reference/statamic-seo-pro.md` R9).
+  `<Listing>` `:url` and the page are never out of sync (observed in `statamic/seo-pro`).
 - **Format listing cells server-side** through the blueprint's index fieldtypes:
   `$field->setValue($v)->setParent($item)->preProcessIndex()->value()` in a JsonResource — not in Vue
-  (`findings/reference/duncanmcclean-simple-commerce.md` R6, `statamic-seo-pro.md` R11).
+  (observed in `duncanmcclean/simple-commerce`, `statamic/seo-pro`).
 - **A GET must never mutate.** `importer`'s edit page calls `Artisan::call('migrate')` while rendering
   (`reference/statamic__importer/src/Http/Controllers/ImportController.php:220-247`).
 
@@ -574,7 +573,7 @@ screens as Blade views extending `statamic::layout` with `<ui-*>` elements. `adv
 `seo-pro` and `importer` build them as Inertia pages. **The studio picks Inertia pages.** Reasons: core
 has no Blade CP pages left (`ui-vocabulary.md` §9.7, §2.10); Blade-in-Vue re-parses the DOM, which
 already costs `logbook` two live bugs (self-closing `<ui-header/>` swallowing the page, camelCase props
-never binding — `findings/reference/aryehraber-statamic-logbook.md` §10.1–10.2); and `logbook`'s own
+never binding — observed in `aryehraber/statamic-logbook`); and `logbook`'s own
 analysis concedes it is "outside the path core itself uses". `ui.legacy-blade-shell` enforces this.
 
 **Checkable**
@@ -594,13 +593,13 @@ Silence here is a bug report later. Decide explicitly and write it in the README
   repository needs a site filter, and the CP needs the localisation switcher
   (`ui-vocabulary.md` §4.6).
 - **`Site::setCurrent()` inside a loop must be restored in a `finally`, with `Blink::flush()`**
-  (`findings/reference/statamic-ssg.md` R20).
+  (observed in `statamic/ssg`).
 - **Test both.** A single-site test suite proves nothing about the multi-site path. `advanced-seo`'s
   site-scoped SEO sets and `ssg`'s `tests/Localized/GenerateTest.php` (a subclass overriding
-  `$siteFixture`, `findings/reference/statamic-ssg.md` R21) are the two workable patterns.
+  `$siteFixture`, observed in `statamic/ssg`) are the two workable patterns.
 - **Do not derive context from the browser URL.** `mailchimp`'s `FormFieldsFieldtype.vue:48` reads
   `StatamicConfig.urlPath.split('/')[1]` to discover which form it is on
-  (`findings/reference/statamic-rad-pack-mailchimp.md` §10.6). Pass it through `preload()`.
+  (observed in `statamic-rad-pack/mailchimp`). Pass it through `preload()`.
 - **RTL is part of multi-site.** Logical spacing utilities (`ms-`/`me-`/`ps-`/`pe-`/`start-`/`end-`),
   never `ml-`/`mr-`/`left-`/`right-` — core sets `dir` from `Statamic::cpDirection()`
   (`ui-vocabulary.md` §7).
@@ -640,7 +639,7 @@ Design rules:
   Read them with `$this->params->get('limit', 5)` — always with a default.
 - **Return arrays/collections, not HTML.** Let the user's template do layout. If the tag must render,
   render a **publishable** view so the user can override it, and document that path as public API
-  (`findings/reference/spatie-statamic-responsive-images.md` R25).
+  (observed in `spatie/statamic-responsive-images`).
 - **Augment what you return.** Raw values in an Antlers context are a bug (dates, assets, Bard).
 - **Pair every tag with a documented signature in the README/`DOCUMENTATION.md` and a test per
   documented parameter** (§13).
@@ -651,7 +650,7 @@ Design rules:
 ### Console commands
 
 Autoloaded from `src/Commands/` (console only). Follow `ssg`, which is the reference
-(`findings/reference/statamic-ssg.md` R11–R17):
+(observed in `statamic/ssg`):
 
 - Signature `statamic:<handle>:<verb>` plus `use Statamic\Console\RunsInPlease;` so the command works
   under `php please` as well as `php artisan`.
@@ -665,7 +664,7 @@ Autoloaded from `src/Commands/` (console only). Follow `ssg`, which is the refer
 - Multi-part import/export commands get `--force` plus one `--only-<part>` per part, with matching
   flag names on both legs — `eloquent-driver`'s import and export flags disagree for the same domain,
   which breaks an operator's round-trip script
-  (`findings/reference/statamic-eloquent-driver.md` §10.12).
+  (observed in `statamic/eloquent-driver`).
 - No hand-written ANSI escapes for progress (`reference/statamic__ssg/src/Generator.php:243`). Use
   `withProgressBar()` or `$this->components->task()`.
 
@@ -684,29 +683,29 @@ fail with a 500 where they should fail with a 404 or a validation message.
 
 - **Never `catch` into silence.** `mailchimp` returns `[]` from `MailchimpField::callApi()` when the API
   key is missing, and every SFC does `.catch(() => { this.fields = [] })` — a missing key renders as an
-  empty dropdown with no explanation (`findings/reference/statamic-rad-pack-mailchimp.md` §10.8). Show
+  empty dropdown with no explanation (observed in `statamic-rad-pack/mailchimp`). Show
   an alert or an error state.
 - **`match` on untrusted input needs a `default`.** `importer` matches on `Storage::mimeType()` in four
   places with no default: an unexpected type is an `UnhandledMatchError` → 500 instead of a validation
-  message (`findings/reference/statamic-importer.md` §10.4).
+  message (observed in `statamic/importer`).
 - **Decryption and decoding of user input is wrapped**, returning 404/422 rather than 500
-  (`findings/reference/aryehraber-statamic-logbook.md` R14).
+  (observed in `aryehraber/statamic-logbook`).
 - **404, consistently.** `seo-pro`'s `show()` uses `throw_unless(…, NotFoundHttpException::class)` while
   its `destroy()` returns a raw boolean from `Report::find($id)->delete()`
-  (`findings/reference/statamic-seo-pro.md` §10.11). Pick the guard and apply it to every action,
+  (observed in `statamic/seo-pro`). Pick the guard and apply it to every action,
   especially destructive ones.
 - **Index and preview rendering must be total.** Catch domain exceptions in `preProcessIndex()` and
   return a valid empty shape with the same keys as the success path — a listing must never 500 because
-  one row is broken (`findings/reference/spatie-statamic-responsive-images.md` R23).
+  one row is broken (observed in `spatie/statamic-responsive-images`).
 - **Public APIs do not silently no-op.** `eloquent-driver`'s `with()` returns `$this` and discards the
-  eager-load request (`findings/reference/statamic-eloquent-driver.md` §10.8). Throw, or implement.
+  eager-load request (observed in `statamic/eloquent-driver`). Throw, or implement.
 - **Ship no debug statements.** `dd()`, `dump()`, `ray()`, `console.log` reach a customer's production
   response. Gate verbose logging behind a config key — `collaboration`'s unconditional `debug()` wrapper
   spams every collaborator's console on every keystroke in a Bard field
-  (`findings/reference/statamic-collaboration.md` §10.12).
+  (observed in `statamic/collaboration`).
 - **Sandbox any iframe rendering user-authored content** (`ui.unsandboxed-iframe`), and **confirm every
   destructive action** through core's confirmation modal, not `window.confirm`
-  (`ui-vocabulary.md` §6; `findings/reference/aryehraber-statamic-logbook.md` R20).
+  (`ui-vocabulary.md` §6; observed in `aryehraber/statamic-logbook`).
 
 **Checkable**
 - `code.debug-leftovers`, `ui.unsandboxed-iframe`, `ui.confirm-destructive`
@@ -733,7 +732,7 @@ class MigrateConfigKeys extends \Statamic\UpdateScripts\UpdateScript
 }
 ```
 
-Rules from `eloquent-driver` (`findings/reference/statamic-eloquent-driver.md` R23–R25) and
+Rules from `eloquent-driver` (observed in `statamic/eloquent-driver`) and
 `simple-commerce` (R25):
 
 - **`shouldUpdate()` combines a version gate with a live probe** (`Schema::hasTable/hasColumn`,
@@ -743,14 +742,14 @@ Rules from `eloquent-driver` (`findings/reference/statamic-eloquent-driver.md` R
 - **Stubs that alter an existing table repeat the probe internally.**
 - **Every class in `src/UpdateScripts/` runs, and every class listed in `$updateScripts` exists.**
   `eloquent-driver` ships an orphaned `MoveConfig.php` that is referenced nowhere and will never run
-  (`findings/reference/statamic-eloquent-driver.md` §10.3).
+  (observed in `statamic/eloquent-driver`).
 - **Automate everything automatable, and the upgrade guide describes only what is left.** That is
   `simple-commerce`'s model: four update scripts rewrite the user's config with Proteus, and the guide
   covers the remainder.
 - **Never run a migration from `bootAddon()`** — see §3.
 - **Deprecations need an owner and a deadline.** `eloquent-driver` carries five parallel legacy-config
   branches whose comments say "lets remove this when we hit 3.0.0" while the repo is on 5.x
-  (`findings/reference/statamic-eloquent-driver.md` §10.6).
+  (observed in `statamic/eloquent-driver`).
 
 **Checkable**
 - `ls src/UpdateScripts/*.php` basenames ⊆ classes that actually register — *(manual)*
@@ -798,8 +797,7 @@ That is the entire bootstrap. `AddonTestCase`
 
 **Never hand-roll `getPackageProviders()`.** `grep -c 'getPackageProviders(' tests/` must be 0.
 Hand-rolled Testbench bootstraps drift with every Statamic major; `AddonTestCase` does not
-(`findings/reference/spatie-statamic-responsive-images.md` R1–R2, and R17/R21/R22/R23/R25 across five
-more references).
+(observed in `spatie/statamic-responsive-images`).
 
 ### Framework
 
@@ -807,14 +805,14 @@ more references).
 way. **Pest is permitted** if `tests/Pest.php` contains exactly `uses(TestCase::class)->in('.');`.
 `bard-texstyle` ships Pest without that binding, so its tests run against plain
 `PHPUnit\Framework\TestCase` and its carefully written Testbench bootstrap is dead code
-(`findings/reference/jacksleight-statamic-bard-texstyle.md` §10.2). Do not keep a `phpunit.xml`
+(observed in `jacksleight/statamic-bard-texstyle`). Do not keep a `phpunit.xml`
 claiming a PHPUnit 9.3 schema under a Pest 4 project
-(`findings/reference/aerni-advanced-seo.md` §10.11).
+(observed in `aerni/statamic-advanced-seo`).
 
 ### `phpunit.xml`
 
 Pin the environment in the file so no `.env.testing` is needed, and turn the strict flags on
-(`findings/reference/spatie-statamic-responsive-images.md` R6–R7, `statamic-ssg.md` R24):
+(observed in `spatie/statamic-responsive-images`, `statamic/ssg`):
 
 ```xml
 <phpunit executionOrder="random"
@@ -835,9 +833,9 @@ Pin the environment in the file so no `.env.testing` is needed, and turn the str
 ```
 
 Scope `<source>` to `./src` — `mailchimp` points coverage at `./app`, a Laravel-app path that does not
-exist in a package (`findings/reference/statamic-rad-pack-mailchimp.md` §10.10). Watch the
+exist in a package (observed in `statamic-rad-pack/mailchimp`). Watch the
 `suffix="Test.php"` trap: `runway` has a controller test file without the suffix, so restore-revision
-is silently untested (`findings/reference/statamic-rad-pack-runway.md` §10.10).
+is silently untested (observed in `statamic-rad-pack/runway`).
 
 ### What must be covered, in order of value
 
@@ -845,8 +843,7 @@ is silently untested (`findings/reference/statamic-rad-pack-runway.md` §10.10).
    a permitted user and a 403 (or `assertRedirect('/cp')`) for a denied one. For Inertia pages, assert
    the component name and prop shape:
    `->assertInertia(fn (Assert $p) => $p->component('thing::Index')->has('items'))`
-   (`findings/reference/statamic-importer.md` R25, `statamic-seo-pro.md` R25,
-   `duncanmcclean-simple-commerce.md` R23). This is the gap in *every* reference addon — `advanced-seo`
+   (observed in `statamic/importer`, `statamic/seo-pro`, `duncanmcclean/simple-commerce`). This is the gap in *every* reference addon — `advanced-seo`
    has ~130 test files and one CP controller test.
 2. **Every promise the README makes.** If the README says it does X, a test asserts X. That is what
    "reliably solves the function it promises" means operationally.
@@ -857,7 +854,7 @@ is silently untested (`findings/reference/statamic-rad-pack-runway.md` §10.10).
 5. **Permissions**: each registered permission actually gates something.
 6. **Listeners**: dispatch the real event, assert the effect (§6).
 7. **Commands**: `$this->artisan(Cmd::class)->expectsOutput(…)->assertExitCode(0)`, including the
-   precondition-not-met path (`findings/reference/spatie-statamic-responsive-images.md` R14).
+   precondition-not-met path (observed in `spatie/statamic-responsive-images`).
 8. **Pure client-side logic** — diffing, debouncing, chunking, value transformation — with Vitest.
    Nine of thirteen reference addons ship zero JS tests while shipping 300–1,900 lines of Vue.
 
@@ -866,14 +863,14 @@ is silently untested (`findings/reference/statamic-rad-pack-runway.md` §10.10).
 - Fixtures live in `tests/__fixtures__/` — the path `AddonTestCase` already points the Stache at.
 - Copy binary fixtures into a temp dir in `setUp()`, delete and recreate that dir in **both** `setUp()`
   and `tearDown()`, and expose them through named accessors rather than hard-coded path strings
-  (`findings/reference/spatie-statamic-responsive-images.md` R10–R11).
+  (observed in `spatie/statamic-responsive-images`).
 - Load the addon's **real** config file rather than restating defaults:
   `$app['config']->set('thing', require __DIR__.'/../config/thing.php');` (R3).
 - Snapshot for *shape*; use `expect()->toBe()` for any value that is the thing under test. Strip
   non-deterministic fragments through one named helper, defined once (R8–R9, §10.14).
 - Fake every outbound HTTP call. Never inject a live API key into CI — `mailchimp` does, and the suite
   only passes because nothing exercises the network
-  (`findings/reference/statamic-rad-pack-mailchimp.md` R19, §10.12).
+  (observed in `statamic-rad-pack/mailchimp`).
 - Annotate regression tests with the issue URL they close (R15).
 
 **Checkable**
@@ -892,7 +889,7 @@ is silently untested (`findings/reference/statamic-rad-pack-runway.md` §10.10).
 One workflow, `.github/workflows/tests.yml`, triggered on `push` to `main`/`*.x` **and on
 `pull_request`**. `collaboration` has no PR-triggered workflow at all, so a PR that breaks the Vue
 build is caught only when someone tags a release
-(`findings/reference/statamic-collaboration.md` §10.2).
+(observed in `statamic/collaboration`).
 
 The matrix must actually test what `composer.json` promises — three axes:
 
@@ -907,27 +904,26 @@ strategy:
 
 - **`prefer-lowest` is not optional.** Without it the declared floor (`statamic/cms: ^6.25`) is never
   verified. `spatie/responsive-images` runs only `--prefer-stable`
-  (`findings/reference/spatie-statamic-responsive-images.md` §10.2).
+  (observed in `spatie/statamic-responsive-images`).
 - **The PHP floor in the matrix must equal the `require.php` lower bound**
-  (`findings/reference/statamic-rad-pack-mailchimp.md` R22).
+  (observed in `statamic-rad-pack/mailchimp`).
 - **Pin the Laravel version before resolving:**
   `composer require "illuminate/contracts:${{ matrix.laravel }}" --no-update`, then `composer update`
-  (`findings/reference/statamic-ssg.md` R26).
+  (observed in `statamic/ssg`).
 - **Declare every PHP extension the tests need** in `setup-php` — snapshot output depends on them
-  (`findings/reference/spatie-statamic-responsive-images.md` R18).
+  (observed in `spatie/statamic-responsive-images`).
 - **`composer install` runs before `npm ci`**, because `@statamic/cms` resolves from
   `file:./vendor/statamic/cms/resources/dist-package`
-  (`findings/reference/statamic-importer.md` R23).
+  (observed in `statamic/importer`).
 - **Every npm script a workflow calls must exist in `package.json`.**
   `spatie/responsive-images`' `build-assets.yml` runs `yarn run production`, which is not defined — so
   its committed `dist/` is maintained by hand, silently
-  (`findings/reference/spatie-statamic-responsive-images.md` R19, §10.3).
+  (observed in `spatie/statamic-responsive-images`).
 - **If `dist/` is committed, CI rebuilds it and fails on a diff:**
   `npm ci && npm run build && git diff --exit-code dist`. Otherwise a source change ships green while
-  users load a stale bundle (`findings/reference/eminos-statamic-tabs.md` R21,
-  `jacksleight-statamic-bard-texstyle.md` §10.1).
+  users load a stale bundle (observed in `eminos/statamic-tabs`, `jacksleight/statamic-bard-texstyle`).
 - A nightly `schedule:` run catches upstream breakage between PRs
-  (`findings/reference/statamic-ssg.md` R26).
+  (observed in `statamic/ssg`).
 
 ### Workflow hardening
 
@@ -941,7 +937,7 @@ Non-negotiable, and consistent across `collaboration`, `runway`, `simple-commerc
 - a `zizmor` job linting the workflows;
 - Dependabot on `github-actions` **and** `composer` **and** `npm` — `collaboration` watches only
   Actions despite a committed `package-lock.json`
-  (`findings/reference/statamic-collaboration.md` §10.13).
+  (observed in `statamic/collaboration`).
 
 **Checkable**
 - `testing.ci`, `testing.dist-verification`
@@ -957,7 +953,7 @@ Non-negotiable, and consistent across `collaboration`, `runway`, `simple-commerc
 
 Not present in a single reference addon. `spatie/responsive-images` calls its absence "the biggest
 missing safety net" for a package doing heavy array-shape juggling
-(`findings/reference/spatie-statamic-responsive-images.md` §10.5). The studio adopts it as a default
+(observed in `spatie/statamic-responsive-images`). The studio adopts it as a default
 rather than inheriting the ecosystem's gap.
 
 - **PHPStan + Larastan at level 5**, `phpstan.neon` scoping `paths: [src]`, with a committed
@@ -967,16 +963,15 @@ rather than inheriting the ecosystem's gap.
 - **Types on the public surface.** Every method in `src/Contracts/`, `src/Facades/` and every
   controller action carries parameter and return types. Docblock return types must be honest —
   `@return array` on a method returning `null` is a lie the tooling will believe
-  (`findings/reference/eminos-statamic-tabs.md` R24).
+  (observed in `eminos/statamic-tabs`).
 - **Delete no-op overrides.** A `preProcess()` whose body is `return $data;` is noise (R24).
 - **`class_exists()` guards on every optional integration.** Any reference to a class from a
   `require-dev` or `suggest` package must be inside such a branch, or an absent dev dependency fatals
-  a production site (`findings/reference/duncanmcclean-simple-commerce.md` R12,
-  `statamic-ssg.md` R6). Optional integrations belong in `require-dev` + `suggest`, never `require`
-  (`findings/reference/aerni-advanced-seo.md` R24).
+  a production site (observed in `duncanmcclean/simple-commerce`, `statamic/ssg`). Optional integrations belong in `require-dev` + `suggest`, never `require`
+  (observed in `aerni/statamic-advanced-seo`).
 - **Depend on what you import.** `ssg` imports `wilderborn/partyline` in five files and does not
   require it — it resolves only because `statamic/cms` happens to pull it in transitively
-  (`findings/reference/statamic-ssg.md` §10.3).
+  (observed in `statamic/ssg`).
 - **JS**: ESLint is optional; Vitest coverage of pure logic (§15) matters more.
 
 **Checkable**
@@ -994,24 +989,23 @@ rather than inheriting the ecosystem's gap.
 ```
 
 `pint.json` at the package root, `"preset": "laravel"`, and **at most five deliberate rule overrides**
-(`findings/reference/statamic-ssg.md` R29). Matching core's formatting means a diff between your addon
+(observed in `statamic/ssg`). Matching core's formatting means a diff between your addon
 and core is a diff of substance.
 
 - Scope Pint to the **whole package**, not just `src/`. `spatie/responsive-images` scopes its
   formatter to `src` only, leaving 2,000 lines of inconsistently formatted tests
-  (`findings/reference/spatie-statamic-responsive-images.md` §10.6).
+  (observed in `spatie/statamic-responsive-images`).
 - **CI runs `pint --test` (or the action's `testMode: true`) and fails the build.**
 
 **Disagreement — auto-fix vs check-and-fail.** `advanced-seo` and `spatie/responsive-images` run a
 formatter on every push and push a "Fix styling" commit back to the branch
-(`findings/reference/aerni-advanced-seo.md` §10.10,
-`spatie-statamic-responsive-images.md` §10.4). `ssg` runs Pint in `testMode` on PRs with no commit step
-(`findings/reference/statamic-ssg.md` R28). **The studio picks check-and-fail.** Auto-fix rewrites
+(observed in `aerni/statamic-advanced-seo`, `spatie/statamic-responsive-images`). `ssg` runs Pint in `testMode` on PRs with no commit step
+(observed in `statamic/ssg`). **The studio picks check-and-fail.** Auto-fix rewrites
 contributors' branches, can race with a local push, produces noise commits, and — decisively — means
 the repo never actually enforces "formatted before merge", it only repairs afterwards.
 
 - **Pin the Pint version identically** in `composer.json` `require-dev` and in the lint workflow
-  (`findings/reference/statamic-seo-pro.md` R26).
+  (observed in `statamic/seo-pro`).
 - Ship `.editorconfig` alongside it.
 
 **Checkable**
@@ -1029,25 +1023,25 @@ all: it looks finished and is not.
 
 - **Ship `lang/en/*.php`.** Namespaced keys without a `lang/` directory render the raw key in the CP.
   `spatie/responsive-images` wraps every string in `__()` and ships no `lang/` at all, so the wrapping
-  buys a host app nothing (`findings/reference/spatie-statamic-responsive-images.md` §10.10);
+  buys a host app nothing (observed in `spatie/statamic-responsive-images`);
   `logbook` and `collaboration` do the same.
 - **`lang/`, not `resources/lang/`.** Core checks `lang/` first
   (`AddonServiceProvider.php:490-517`). Exactly one lang root — `seo-pro` ships a byte-identical
   duplicate under a directory it never loads
-  (`findings/reference/statamic-seo-pro.md` §10.3).
+  (observed in `statamic/seo-pro`).
 - **Namespaced keys for addon copy** (`__('thing::messages.saved')`), **bare core keys for verbs core
   already translates** (`__('Save')`, `__('Edit')`, `__('Delete')`). A namespaced key whose English
-  value duplicates a core value is a bug (`findings/reference/aerni-advanced-seo.md` R20).
+  value duplicates a core value is a bug (observed in `aerni/statamic-advanced-seo`).
 - **Wrap everything, including the strings that are easy to forget**: empty states, flash messages,
   toast bodies built in plain `.js` files, confirmation text, validation messages, permission labels
   and descriptions, `configFieldItems()` `display`/`instructions`, and JSON error responses.
   `collaboration` localises its SFCs and leaves every toast in `Workspace.js` as a raw English template
-  literal (`findings/reference/statamic-collaboration.md` §10.5); `seo-pro` `__()`-wraps everything
-  except one error message rendered directly in a modal (`findings/reference/statamic-seo-pro.md` §10.12).
+  literal (observed in `statamic/collaboration`); `seo-pro` `__()`-wraps everything
+  except one error message rendered directly in a modal (observed in `statamic/seo-pro`).
 - **Validation closures translate:** `$fail('thing::validation.key')->translate()`
-  (`findings/reference/statamic-importer.md` R20).
+  (observed in `statamic/importer`).
 - **Utility `->title()`/`->description()` must be `__()`-wrapped**, because those exact strings become
-  the permission label and description (`findings/reference/aryehraber-statamic-logbook.md` R5).
+  the permission label and description (observed in `aryehraber/statamic-logbook`).
 - English is the source language and lives in the repo. Translations are contributions, not a
   prerequisite for release.
 

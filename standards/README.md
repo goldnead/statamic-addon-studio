@@ -10,6 +10,23 @@ The Statamic Addon Studio's written standards. Three documents, no overlap.
 
 ---
 
+## How to read a citation
+
+Two forms appear throughout these documents, and both point at code you can open yourself.
+
+**`observed in vendor/package`** — the rule was derived by reading that published addon. The
+working analyses behind these are internal and not part of this repository: they name and assess
+other maintainers' packages, and that is not something to publish. The rule, its reasoning and
+its origin are here; the source is public.
+
+**`reference/<vendor>__<package>/path/to/File.php:123`** — a file and line in a checkout of that
+package. `reference/` is a local working directory, not part of this repository: `__` separates
+vendor from package, so `reference/statamic__cms/src/Providers/AddonServiceProvider.php:896` means
+`src/Providers/AddonServiceProvider.php` line 896 in `statamic/cms`. Clone the packages into a
+`reference/` directory next to this one and every such citation resolves.
+
+---
+
 ## There is no `ui-standard.md`
 
 Deliberately. `ui-vocabulary.md` already fills that role.
@@ -62,12 +79,10 @@ One known inconsistency: `addon-lint`'s finding hints and `findings/lint/baselin
 Three layers over one body of evidence.
 
 ```
-findings/reference/*.md        13 deep analyses of real addons — the evidence
-findings/existing/*.md         12 analyses of the studio's own addons — the backlog
-reference/                     the addons themselves, checked out
+13 published Statamic addons, read in full   the evidence (analyses kept internal)
         │
         ▼
-standards/                     the written rules, with citations back to the evidence
+standards/                     the written rules, each cited back to the package it came from
         │
         ├──────────────► skills/          the decision layer an agent loads
         │

@@ -8,8 +8,11 @@ command or a file path behind it.
 leave the building. An addon can be perfectly linted and still fail this gate — most of what follows
 is about what the *buyer* receives.
 
-**Evidence.** Reference addons under `reference/`, their analyses in `findings/reference/*.md`, and
-`addon-lint` rule ids in `tools/addon-lint/rules/`. Cited inline.
+**Evidence.** Every rule here was derived by reading real, published Statamic addons. Each is
+cited inline by package name — `observed in vendor/package` — so you can check the claim
+against the same source we did. The working analyses behind those citations are internal and not
+part of this repository: they name and assess other maintainers' packages, and that is not
+something to publish. What is published is the rule, its reasoning, and where it came from.
 
 ---
 
@@ -41,7 +44,7 @@ Hard requirements:
 
 | Key | Why |
 |---|---|
-| `type: statamic-addon` | Discovery. Missing in `bard-texstyle` (`findings/reference/jacksleight-statamic-bard-texstyle.md` §10.8). |
+| `type: statamic-addon` | Discovery. Missing in `bard-texstyle` (observed in `jacksleight/statamic-bard-texstyle`). |
 | `extra.statamic.name` + `description` | The two strings the CP and Marketplace render. Nothing else supplies them. |
 | `extra.laravel.providers` | Package discovery. Declared-but-missing is a fatal on install. |
 | `license` + a matching `LICENSE.md` | See §2. |
@@ -59,12 +62,12 @@ Must **not** be present:
   the install works on your machine and nowhere else (`release.resolvable-dependencies`, BLOCKER).
 - Dead `config.allow-plugins` entries. `ssg` allow-lists `pixelfear/composer-dist-plugin` without
   requiring it or declaring `extra.download-dist`
-  (`findings/reference/statamic-ssg.md` §10.4); `logbook` does the same
-  (`findings/reference/aryehraber-statamic-logbook.md` R24).
+  (observed in `statamic/ssg`); `logbook` does the same
+  (observed in `aryehraber/statamic-logbook`).
 - Optional integrations in `require`. They belong in `require-dev` + `suggest`, guarded by
-  `class_exists()` (`findings/reference/aerni-advanced-seo.md` R24, `statamic-ssg.md` R6).
+  `class_exists()` (observed in `aerni/statamic-advanced-seo`, `statamic/ssg`).
 - Imported-but-undeclared dependencies. `ssg` imports `wilderborn/partyline` in five files and never
-  requires it (`findings/reference/statamic-ssg.md` §10.3).
+  requires it (observed in `statamic/ssg`).
 
 **Checkable:** `structure.composer-type`, `structure.statamic-metadata`, `structure.service-provider`,
 `structure.constraints`, `structure.psr4-src`, `code.no-composer-lock`, `code.stability`,
@@ -77,18 +80,18 @@ Must **not** be present:
 ### Free addon
 
 `"license": "MIT"` in `composer.json` **and** a `LICENSE.md` file. Both, always — `ssg` has neither
-(`findings/reference/statamic-ssg.md` §10.1), which makes a public package legally ambiguous.
+(observed in `statamic/ssg`), which makes a public package legally ambiguous.
 
 ### Paid addon
 
 `"license": "proprietary"` **and** a `LICENSE.md` containing the actual EULA.
 `collaboration` declares `proprietary` and ships no licence file, so the terms are undiscoverable in a
-checkout (`findings/reference/statamic-collaboration.md` §10.4). `simple-commerce` does it correctly:
+checkout (observed in `statamic/collaboration`). `simple-commerce` does it correctly:
 `LICENSE.md` is a proprietary EULA.
 
 **Entitlement is enforced by the Statamic Marketplace, not by your code.** There is no licence-check
 class in `seo-pro`, `collaboration`, `simple-commerce` or `runway`
-(`findings/reference/statamic-seo-pro.md` §8). Do not build licence-key plumbing.
+(observed in `statamic/seo-pro`). Do not build licence-key plumbing.
 
 ### Editions
 
@@ -104,10 +107,10 @@ Addon::get('vendor/statamic-thing')->edition();
 ```
 
 - `bard-texstyle` gates its entire paid tier on one `->edition()` call
-  (`findings/reference/jacksleight-statamic-bard-texstyle.md` R21). `advanced-seo` centralises it in
+  (observed in `jacksleight/statamic-bard-texstyle`). `advanced-seo` centralises it in
   `AdvancedSeo::pro()` and pushes the result to the UI through `Inertia::share()`, so edition state is
   available to every page without threading it through controllers
-  (`findings/reference/aerni-advanced-seo.md` R25) — the better pattern for a CP-heavy addon.
+  (observed in `aerni/statamic-advanced-seo`) — the better pattern for a CP-heavy addon.
 - **Decide free-vs-paid before the first tag.** Editions are hard to add retroactively without
   breaking installs.
 - If there are no tiers, do not declare `editions`.
@@ -136,7 +139,7 @@ What is semver-major for an addon, beyond the obvious:
 - a config key (unless an `UpdateScript` migrates it);
 - a facade method signature or an event constructor signature;
 - a published view path — published Blade templates are public API
-  (`findings/reference/spatie-statamic-responsive-images.md` R25);
+  (observed in `spatie/statamic-responsive-images`);
 - a permission string that already exists in a customer's roles;
 - raising the `statamic/cms` floor across a major boundary.
 
@@ -146,7 +149,7 @@ correct move when you start consuming a newer core API — see `code-standard.md
 **Version-bump mechanics.** Either hand-tagged, or derived from PR labels. `mailchimp` maps branch
 prefixes (`feature/*`, `fix/*`, `chore/*`) to labels via `.github/pr-labeler.yml` and resolves them to
 major/minor/patch in `.github/release-drafter.yml` with `default: patch`
-(`findings/reference/statamic-rad-pack-mailchimp.md` R23). Either is acceptable; **the studio default
+(observed in `statamic-rad-pack/mailchimp`). Either is acceptable; **the studio default
 is hand-tagged with a generated changelog** (§5), because label-driven bumps silently downgrade a
 breaking change that nobody labelled.
 
@@ -192,20 +195,19 @@ Rules:
 - **Wrap the title/logo block in `<!-- statamic:hide -->` … `<!-- /statamic:hide -->`** so the
   Marketplace listing does not duplicate the heading it already renders. Used by `ssg`,
   `collaboration`, `runway`, `simple-commerce`, `eloquent-driver`, `spatie/responsive-images` and
-  `importer` (`findings/reference/statamic-ssg.md` R30,
-  `statamic-collaboration.md` R23).
+  `importer` (observed in `statamic/ssg`, `statamic/collaboration`).
 - **Requirements, installation and usage are mandatory sections** (`release.readme`, BLOCKER). A
   version-compatibility table is the one thing every short README in the set is missing
-  (`findings/reference/aryehraber-statamic-logbook.md` §8).
+  (observed in `aryehraber/statamic-logbook`).
 - **Prefer `php please install:<handle>`** as the install line when the addon has a publish step —
-  that is the Statamic-native path (`findings/reference/statamic-ssg.md` R30).
+  that is the Statamic-native path (observed in `statamic/ssg`).
 - **Every file the README links to must exist.** `mailchimp` links `CONTRIBUTING.md` and `SECURITY.md`;
-  neither is in the repo (`findings/reference/statamic-rad-pack-mailchimp.md` R25, §10.15).
+  neither is in the repo (observed in `statamic-rad-pack/mailchimp`).
 - **No stale badges.** `spatie/responsive-images` advertises "Statamic 4.0+" while requiring `^6.0`
-  (`findings/reference/spatie-statamic-responsive-images.md` §10.12). If a badge states a version,
+  (observed in `spatie/statamic-responsive-images`). If a badge states a version,
   generate it from the constraint or delete it.
 - **Document the exit path.** `eloquent-driver` documents exporting back to flat files as prominently
-  as importing (`findings/reference/statamic-eloquent-driver.md` §8). An uninstall/rollback section
+  as importing (observed in `statamic/eloquent-driver`). An uninstall/rollback section
   materially reduces support load.
 
 ### Where the long documentation lives
@@ -225,7 +227,7 @@ instructions at all.
 **Also ship:** `SECURITY.md` (how to report a vulnerability privately), and
 `.github/ISSUE_TEMPLATE/config.yml` with `blank_issues_enabled: false` plus a contact link routing
 core bugs to `statamic/cms` — used by `ssg`, `collaboration` and `spatie`
-(`findings/reference/statamic-ssg.md` R31). A structured bug form requiring the output of
+(observed in `statamic/ssg`). A structured bug form requiring the output of
 `php please support:details` pays for itself on the first support ticket.
 
 **Checkable:** `release.readme` (BLOCKER); README links all resolve — *(manual)*; no stale version
@@ -240,7 +242,7 @@ the thirteen reference addons ship one; `ssg`, `advanced-seo`, `eloquent-driver`
 in each case the only upgrade documentation is "diff the tags".
 
 The Statamic-house format, consumed by `statamic/changelog-action` during release — so it is
-load-bearing, not decorative (`findings/reference/statamic-collaboration.md` §8):
+load-bearing, not decorative (observed in `statamic/collaboration`):
 
 ```md
 ## 2.1.0 (2026-07-20)
@@ -262,7 +264,7 @@ load-bearing, not decorative (`findings/reference/statamic-collaboration.md` §8
   fine at its scale but does not survive contributors.
 - **A paid addon without a CHANGELOG is a support ticket generator.** `advanced-seo` gates a Pro tier
   and runs config-renaming update scripts, and the only record of them is GitHub Releases
-  (`findings/reference/aerni-advanced-seo.md` §10.12).
+  (observed in `aerni/statamic-advanced-seo`).
 
 **Checkable:** `release.changelog`; first `##` heading matches `\d+\.\d+\.\d+` — *(manual)*.
 
@@ -341,7 +343,7 @@ vite.config.js      export-ignore
 - **`resources/js` and `vite.config.js` are only safe to export-ignore when the built bundle ships
   another way** (§9). `advanced-seo` ships its entire uncompiled frontend to every install even though
   `resources/dist/` is what actually loads
-  (`findings/reference/aerni-advanced-seo.md` §10.13) — the opposite mistake is export-ignoring the
+  (observed in `aerni/statamic-advanced-seo`) — the opposite mistake is export-ignoring the
   source *and* not shipping the build, which installs an addon with no CP assets at all.
 - **Never export-ignore `LICENSE.md`, `README.md`, `config/`, `lang/`, `resources/blueprints/`,
   `resources/views/` or `database/`.**
@@ -393,9 +395,9 @@ conflicts.
 
 **The CI job is not optional.** Committing build output *without* a rebuild-and-diff check is the
 dangerous half of the pattern: `bard-texstyle` has no CI at all, so nothing verifies its committed
-`dist/` matches its sources (`findings/reference/jacksleight-statamic-bard-texstyle.md` §10.1), and
+`dist/` matches its sources (observed in `jacksleight/statamic-bard-texstyle`), and
 `spatie/responsive-images`' build workflow calls an npm script that does not exist, so its `dist/` is
-maintained by hand, silently (`findings/reference/spatie-statamic-responsive-images.md` §10.3).
+maintained by hand, silently (observed in `spatie/statamic-responsive-images`).
 
 ### Option B — `extra.download-dist` (approved alternative)
 
@@ -429,16 +431,15 @@ enough that its diffs are a real cost. Then it is strictly better.
 - The `$vite` array in the provider is **byte-identical** to the `laravel()` plugin options in
   `vite.config.js` for `input`, `publicDirectory` and `hotFile`. `runway` has three different names for
   the hot file across `vite.config.js`, the provider and `.gitignore`
-  (`findings/reference/statamic-rad-pack-runway.md` §10.13); `collaboration` shipped a patch release
+  (observed in `statamic-rad-pack/runway`); `collaboration` shipped a patch release
   purely to fix a `base` that did not match the package name
-  (`findings/reference/statamic-collaboration.md` §10.7).
+  (observed in `statamic/collaboration`).
 - **Never both.** `simple-commerce` publishes `dist → public/vendor/simple-commerce` from the provider
   while core's `registerVite()` publishes to `public/vendor/duncanmcclean/simple-commerce/build` — two
   destinations, one of them permanently stale
-  (`findings/reference/duncanmcclean-simple-commerce.md` §10.A8).
+  (observed in `duncanmcclean/simple-commerce`).
 - **The `dist` decision must be made explicitly.** Silence means the addon installs with no CP assets.
-- Harden `.npmrc` with `ignore-scripts=true` (`findings/reference/statamic-collaboration.md` R25,
-  `statamic-seo-pro.md` R28).
+- Harden `.npmrc` with `ignore-scripts=true` (observed in `statamic/collaboration`, `statamic/seo-pro`).
 
 **Checkable:** `ui.vite-config` (BLOCKER), `ui.vite-property`, `ui.statamic-cms-package`,
 `ui.hot-file-ignored`, `testing.dist-verification`; `$vite` matches `vite.config.js` — *(manual)*;
@@ -455,16 +456,16 @@ which a reference addon failed.
    `can:` middleware. Hiding the button is not authorization. `simple-commerce` leaves
    `store`/`update`/three `destroy` actions and a "resend customer notifications" endpoint open to any
    authenticated CP user, with the permissions registered and decorative
-   (`findings/reference/duncanmcclean-simple-commerce.md` §10.A1). **This is a release blocker**
+   (observed in `duncanmcclean/simple-commerce`). **This is a release blocker**
    (`bootstrap.cp-authorization`).
 
 2. **Every write route has a 403 test.** Without it, item 1 regresses invisibly.
-   (`findings/reference/duncanmcclean-simple-commerce.md` R23.)
+   (observed in `duncanmcclean/simple-commerce`)
 
 3. **No server-side identifier reaches the DOM unencrypted, and every decrypt is guarded.** `logbook`
    encrypts filesystem paths correctly but wraps no `Crypt::decrypt()` in a `try`, turning a tampered
    value into a 500 and an error oracle
-   (`findings/reference/aryehraber-statamic-logbook.md` R13–R14).
+   (observed in `aryehraber/statamic-logbook`).
 
 4. **Input is validated before use** — blueprint validator for blueprint-driven screens, `FormRequest`
    otherwise (`code-standard.md` §10). Never `File::delete()` straight off request input.
@@ -472,7 +473,7 @@ which a reference addon failed.
 5. **No secrets leave the server.** `Statamic::provideToScript()` takes named keys you chose, never a
    whole config array (`code.secrets-to-frontend`, BLOCKER). No API key in a CI test step —
    `mailchimp` injects a live one, and the suite only passes because nothing exercises the network
-   (`findings/reference/statamic-rad-pack-mailchimp.md` §10.12). Fake all outbound HTTP in tests.
+   (observed in `statamic-rad-pack/mailchimp`). Fake all outbound HTTP in tests.
 
 Plus the supply-chain hygiene from §16 of `code-standard.md`: workflow `permissions: {}`, actions
 pinned to SHAs, `persist-credentials: false`, untrusted text through `env:`, a `zizmor` lint job,
@@ -481,7 +482,7 @@ pinned to SHAs, `persist-credentials: false`, untrusted text through `env:`, a `
 
 Also: **sandbox any iframe rendering user-authored content** (`ui.unsandboxed-iframe`), and **escape
 `{{`/`}}` in any user- or file-sourced string** rendered into a CP template, because that markup is
-compiled as a Vue template at runtime (`findings/reference/aryehraber-statamic-logbook.md` R16).
+compiled as a Vue template at runtime (observed in `aryehraber/statamic-logbook`).
 
 **Checkable:** `bootstrap.cp-authorization` (BLOCKER), `code.secrets-to-frontend` (BLOCKER),
 `ui.unsandboxed-iframe` (BLOCKER), `ui.confirm-destructive`; 403 test per write route — *(manual)*;
@@ -508,7 +509,7 @@ Related obligations that do apply to ordinary addons:
   qualifies.
 - **Do not log personal data.** `collaboration`'s unconditional `debug()` wrapper logs every remembered
   value change to every collaborator's console
-  (`findings/reference/statamic-collaboration.md` §10.12) — which is content, on other people's
+  (observed in `statamic/collaboration`) — which is content, on other people's
   screens.
 - **Third-party integrations are disclosed:** which vendor, which endpoint, what leaves the site.
 
@@ -521,8 +522,7 @@ personal-data storage documented in README — *(manual)*.
 
 One per major, in-repo, at `docs/upgrade-guides/vN-to-vM.md`, linked from the CHANGELOG entry for that
 major. `runway` and `simple-commerce` have the best template
-(`findings/reference/statamic-rad-pack-runway.md` R24,
-`duncanmcclean-simple-commerce.md` R25):
+(observed in `statamic-rad-pack/runway`, `duncanmcclean/simple-commerce`):
 
 ```md
 # Upgrading from v1 to v2
@@ -551,10 +551,10 @@ Rules:
   with Proteus so the guide does not have to describe it.
 - **Link the GitHub compare view** for the full diff.
 - If the upgrade requires `php artisan migrate`, that line is the *first* thing in the guide, not a
-  footnote in the README (`findings/reference/statamic-eloquent-driver.md` §8).
+  footnote in the README (observed in `statamic/eloquent-driver`).
 - **Published views and config are part of the upgrade surface.** Name every published file that
   changed, and link its commit history as the diff source — `spatie/responsive-images`' `UPGRADE.md` is
-  the model (`findings/reference/spatie-statamic-responsive-images.md` R25).
+  the model (observed in `spatie/statamic-responsive-images`).
 
 **Checkable:** each `## vN.0.0` CHANGELOG heading has a matching upgrade guide — *(manual)*; every
 `$updateScripts`-automatable change is automated rather than documented — *(manual)*.
