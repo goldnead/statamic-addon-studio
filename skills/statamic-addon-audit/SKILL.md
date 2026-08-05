@@ -15,8 +15,12 @@ Studio root: `/Users/adriangoldner/Documents/WebDev/statamic-addon-studio/`
 ```bash
 php <studio>/tools/addon-lint/bin/addon-lint <addon-path> -v --fail-on=never
 php <studio>/tools/addon-lint/bin/addon-lint <addon-path> --format=markdown \
-    --output=<studio>/findings/lint/<addon>.md --fail-on=never
+    --output=<findings>/lint/<addon>.md --fail-on=never
 ```
+
+`<findings>` is wherever you keep audit output — it is deliberately not a path inside this
+repository. Reports name and rank an addon's defects, which is working material, not something a
+repository of standards should carry. Set it once and use it for both files below.
 
 It covers structure, bootstrap, ui, code, testing and release. `--list-rules` shows the catalogue.
 `addon-lint.json` in the addon root can disable a rule or change its severity — but a suppression
@@ -56,7 +60,7 @@ two years? They are semver-locked from the first release.
 
 ## 3. Write the verdict
 
-Write to `<studio>/findings/audits/<addon>-<YYYY-MM-DD>.md`:
+Write to `<findings>/audits/<addon>-<YYYY-MM-DD>.md`:
 
 - **Verdict:** ship / fix first / rework, in one sentence with the reason.
 - **Blockers** — must fix before release. Each: `file:line`, what breaks, one-line fix.

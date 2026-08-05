@@ -40,10 +40,6 @@ So: **for any question about how a CP surface should look or behave, `ui-vocabul
 authority.** `code-standard.md` links into it (§2 page shells, §3 listings, §4 publish forms,
 §5 fieldtypes, §7 tokens, §8 nav & permissions, §9 antipatterns) rather than repeating it.
 
-One known inconsistency: `addon-lint`'s finding hints and `findings/lint/baseline.json` still point at
-`standards/ui-standard.md`. Read that as `standards/ui-vocabulary.md`. The hint strings in
-`tools/addon-lint/rules/` need updating; the rules themselves are correct.
-
 ---
 
 ## Which one to read for which task
@@ -124,9 +120,10 @@ for a new rule.**
 The linter does not have opinions the standards do not. If you want to change what the linter enforces,
 change the standard first, then the rule.
 
-Twelve `ui.*` rules — `legacy-cp-api`, `legacy-class-names`, `themeable-colors`, `tailwind-tokens`,
+Fourteen `ui.*` rules — `legacy-cp-api`, `legacy-class-names`, `themeable-colors`, `tailwind-tokens`,
 `dark-mode`, `native-components`, `no-dom-piercing`, `hand-rolled-overlay`, `page-width`,
-`inline-svg-icons`, `dirty-state`, `command-palette` — appear in no Checkable list here. That is
+`bare-single-column-grid`, `inline-svg-icons`, `fieldtype-contract`, `dirty-state`,
+`command-palette` — appear in no Checkable list here. That is
 intentional: their authority is `ui-vocabulary.md`, and each rule's `rationale()` cites the section it
 enforces (`ui-vocabulary §9.7`, `§9.3`, `§9.15`, …). Read the rationale, then the cited section.
 
@@ -138,9 +135,10 @@ Per-addon suppression lives in `addon-lint.json` at the addon root:
 
 A suppression needs a reason recorded there. A silent entry is a lie about the addon's state.
 
-**The score is a trend indicator; the findings are the truth.** `findings/lint/baseline.json` holds the
-current state of the twelve in-house addons (scores 0–93). It exists to be driven up, not to be
-admired.
+**The score is a trend indicator; the findings are the truth.** Keep a baseline file of the scores
+you have measured, and treat it as something to drive up rather than admire. `addon-lint`'s
+`--format=json` output is the input for it. The studio's own baseline lives outside this
+repository, with the rest of the audit material.
 
 ---
 
