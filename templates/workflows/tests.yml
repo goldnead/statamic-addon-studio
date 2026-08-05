@@ -80,7 +80,6 @@ jobs:
         with:
           repository: goldnead/statamic-addon-studio
           path: studio
-          token: ${{ secrets.STUDIO_TOKEN }}
 
       - uses: shivammathur/setup-php@v2
         with:
