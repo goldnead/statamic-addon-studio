@@ -79,8 +79,9 @@ Must **not** be present:
 
 ### Free addon
 
-`"license": "MIT"` in `composer.json` **and** a `LICENSE.md` file. Both, always — `ssg` has neither
-(observed in `statamic/ssg`), which makes a public package legally ambiguous.
+`"license": "MIT"` in `composer.json` **and** a `LICENSE.md` file. Both, always. Shipping the
+declaration without the file is common (observed in `statamic/ssg`) and leaves a consumer with no
+licence text in their vendor directory, which is the one place they will look for it.
 
 ### Paid addon
 

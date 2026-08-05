@@ -94,8 +94,8 @@ Non-negotiables, each with a failure it prevents:
   such repository configured, so the install fails on their machine and nowhere else.
 - **`minimum-stability` absent, or `stable`.** `tabs` and `logbook` ship `dev`
   (`reference/eminos__statamic-tabs/composer.json:10`). Composer only honours the root package's
-  value so it does not actually leak, but it is a reliable marker of a package that was never
-  release-checked. Studio arbitration: **absent.** `seo-pro` and `eloquent-driver` deliberately keep
+  value so it does not actually leak, and it costs a consumer nothing. It is still a setting with no
+  effect in a library, which is reason enough not to carry it. Studio arbitration: **absent.** `seo-pro` and `eloquent-driver` deliberately keep
   `dev` + `prefer-stable: true` to test against CMS betas — permitted only with `prefer-stable: true`
   *and* a recorded reason in `addon-lint.json`.
 
