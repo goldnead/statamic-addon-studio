@@ -1,11 +1,25 @@
 # Statamic Addon Studio
 
-The place where Adrian's Statamic addons are built, measured and released.
+The standard the `goldnead` Statamic addons are built and measured against, and the tool that
+checks it.
 
 Its single question: **would a user notice this addon was not built by Statamic?**
-Everything here exists to answer that with evidence instead of impressions.
+Everything here exists to answer that with evidence instead of impressions. The rules were derived
+by reading real, published Statamic addons — every one is cited back to the package it came from.
 
 Established July 2026 against Statamic 6.26 / Laravel 13 / PHP 8.5.
+
+## What this is, and what it is not
+
+It is published because it is more useful in the open than closed, and because the addon
+repositories' CI checks against it. Use it, copy from it, disagree with it.
+
+It is **not** a supported product. There is no release schedule, no versioning, no roadmap, and no
+promise that anything here stays where it is. Issues are read; they are not a support channel. If
+you need it to hold still, vendor a copy.
+
+The audit material behind it — the analyses of individual addons, our own and other people's — is
+deliberately not part of this repository. See `standards/README.md`, "How to read a citation".
 
 ---
 
@@ -18,11 +32,7 @@ Established July 2026 against Statamic 6.26 / Laravel 13 / PHP 8.5.
 | `tools/addon-lint/` | The automated checker | yes |
 | `templates/` | Drop-in CI workflow and `.gitattributes` | yes |
 | `docs/` | How to maintain the studio, and how to publish an addon | yes |
-| `findings/reference/` | Deep analyses of 13 official and third-party addons | yes |
-| `findings/existing/` | Audit of the 12 in-house addons (July 2026 baseline) | yes |
-| `findings/lint/` | Machine + markdown lint reports | yes |
-| `findings/audits/` | Per-addon release verdicts | yes |
-| `reference/` | Cloned upstream repos, read-only | no (gitignored) |
+| `reference/` | Cloned upstream repos, read-only — what the citations point at | no (gitignored) |
 | `playground/` | A real Statamic 6 site for live comparison | no (gitignored) |
 
 ---
@@ -43,11 +53,11 @@ you need; do not guess a component's props.
 | `statamic-addon-audit` | Reviewing an addon, deciding whether it may ship |
 | `statamic-addon-scaffold` | Starting a new addon, or migrating one from v5 |
 
-**3. `tools/addon-lint`** — 55 rules across structure, bootstrap, ui, code, testing and release.
+**3. `tools/addon-lint`** — 56 rules across structure, bootstrap, ui, code, testing and release.
 
 ```bash
 php tools/addon-lint/bin/addon-lint ../statamic-toc -v
-php tools/addon-lint/bin/addon-lint ../statamic-* --format=markdown --output=findings/lint/baseline.md
+php tools/addon-lint/bin/addon-lint ../statamic-* --format=markdown --output=lint-baseline.md
 php tools/addon-lint/bin/addon-lint --list-rules
 ```
 
@@ -96,15 +106,16 @@ for d in reference/*/; do git -C "$d" pull --ff-only; done
 
 ---
 
-## The July 2026 baseline
+## Where the rules came from
 
-The working hypothesis going in was that the in-house addons were below native CP quality. The audit
-found that is true for two of them and wrong for the rest: 79 of 81 Vue components already import
-`@statamic/cms/ui`. `statamic-activity` and `statamic-notifications` are the exceptions — they have no
-Vite build, so they hand-rolled Blade plus substitute CSS.
+Thirteen published Statamic addons were read in full — official ones, widely used third-party ones,
+free and paid — plus `statamic/cms` 6.x itself. Every rule in `standards/` traces back to something
+observed in one of them, cited by package name.
 
-The actual release blocker turned out to be distribution, not UI: 11 of 12 packages do not resolve on
-Packagist, and nine reach their siblings through a `repositories` block that Composer ignores in a
-dependency — so every README install command is currently untrue.
-
-Full detail: `findings/existing/_OVERVIEW.md`. Current lint state: `findings/lint/baseline.md`.
+The one finding worth stating up front, because it shaped the whole standard: **the hard part is
+not making a Control Panel screen look native.** Most addons that ship a Vite build already import
+`@statamic/cms/ui` and get that for free. The hard part is distribution — resolvable dependencies,
+a licence file that matches the declared licence, a constraint floor that names the minor you
+actually depend on, and a committed build output that CI proves is current. That is why
+`marketplace-readiness.md` exists as a document of its own, and why the `release.*` lint rules are
+the ones that fail most often.
