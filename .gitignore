@@ -38,8 +38,11 @@ playground/public/*
 # entsteht, ist Wegwerfstand.
 playground/database/*
 !playground/database/migrations/
-playground/storage/**/*
-!playground/storage/**/.gitignore
+playground/storage/**
+# Die Verzeichnisse muessen einzeln zurueck: git schaut nicht in ein
+# ausgeschlossenes Verzeichnis hinein, also wuerde ein !.gitkeep darunter nie
+# gefunden.
+!playground/storage/**/
 !playground/storage/**/.gitkeep
 
 # config/ gehoert dazu, und das war eine Luecke.
