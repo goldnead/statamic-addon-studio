@@ -11,6 +11,7 @@ use App\Demo\SeedsEmailTemplates;
 use App\Demo\SeedsEvents;
 use App\Demo\SeedsFunnels;
 use App\Demo\SeedsIdentity;
+use App\Demo\SeedsProof;
 use App\Demo\SeedsTeam;
 use App\Demo\SeedsWebhooks;
 use Illuminate\Console\Command;
@@ -59,6 +60,15 @@ class DemoSeed extends Command
             return true;
         });
 
+        // Vor den Leuten: SeedsCrm weist Kontakte an CP-Konten zu, und in einem
+        // frischen Klon gibt es noch keins. Genau darauf ist der erste Aufbau
+        // aus einem Klon gelaufen.
+        $this->components->task('Team: fünf Konten, drei Rollen, vier Markenzuordnungen', function () {
+            $this->ergebnis = array_merge($this->ergebnis, (new SeedsTeam)->run());
+
+            return true;
+        });
+
         $this->components->task('Leute: Kontakte, Listen, Sperren, Freebies, Zugänge', function () use (&$marken) {
             $this->ergebnis = array_merge($this->ergebnis, array_filter(
                 (new SeedsCrm)->run($marken),
@@ -71,16 +81,6 @@ class DemoSeed extends Command
 
         $this->components->task('Wege: vier Funnels, einer davon absichtlich krumm', function () {
             $this->ergebnis = array_merge($this->ergebnis, (new SeedsFunnels)->run());
-
-            return true;
-        });
-
-        // Erst das Team, dann alles, was einen Akteur oder Empfänger braucht.
-        // Mit einem einzigen Superuser sieht jede Berechtigung gleich aus,
-        // nämlich erlaubt, und die Markenzugehörigkeits-Seite hat nichts zu
-        // zeigen.
-        $this->components->task('Team: fünf Konten, drei Rollen, vier Markenzuordnungen', function () {
-            $this->ergebnis = array_merge($this->ergebnis, (new SeedsTeam)->run());
 
             return true;
         });
@@ -119,6 +119,15 @@ class DemoSeed extends Command
 
         $this->components->task('Webhooks: sechs Eingänge, ein toter Empfänger', function () {
             $this->ergebnis = array_merge($this->ergebnis, (new SeedsWebhooks)->run());
+
+            return true;
+        });
+
+        // Buchungen und Einwilligungs-Nachweise. Beide gab es im gepflegten
+        // Stand, aber nur weil jemand geklickt hatte — ein Klon-Aufbau fand
+        // beide Tabellen leer.
+        $this->components->task('Belege: Termine und Einwilligungen', function () {
+            $this->ergebnis = array_merge($this->ergebnis, (new SeedsProof)->run());
 
             return true;
         });

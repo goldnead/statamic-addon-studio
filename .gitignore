@@ -45,6 +45,16 @@ playground/storage/**
 !playground/storage/**/
 !playground/storage/**/.gitkeep
 
+# Was der Seeder selbst schreibt, ist Laufzeitstand und keine Quelle.
+#
+# statamic-marketing faehrt den flat-Treiber, legt seine Listen und Kampagnen
+# also als YAML unter content/ ab. Eingecheckt heisst das: die Kampagne kommt
+# im Zustand `sent` im Klon an, der Seeder ueberspringt den Sendelauf als
+# bereits erledigt, und der Bericht mit seinen fuenf Reitern bleibt leer --
+# obwohl demo:seed sauber durchlief. Genau das hat der erste Klon-Aufbau
+# gezeigt.
+playground/content/marketing/
+
 # config/ gehoert dazu, und das war eine Luecke.
 #
 # Der Katalog von statamic-payments, die Markenzuordnung von brand-context, die
