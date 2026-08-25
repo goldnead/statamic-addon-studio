@@ -14,6 +14,41 @@
   --text:   'Space Grotesk', 'Helvetica Neue', Arial, sans-serif;
 }
 
+/* Das Einwilligungsbanner gehoert dieser Seite.
+ *
+ * Dunkel, weil die Seite dunkel ist. Das Addon macht das nicht von selbst: sein
+ * Dunkelmodus ist ausdruecklich eine Entscheidung des Wirts, keine Vermutung
+ * ueber die Systemeinstellung des Besuchers. Hier ist die Entscheidung
+ * getroffen. */
+:root {
+  --csnt-surface:            var(--hm-void-2);
+  --csnt-surface-sunken:     var(--hm-void);
+  --csnt-surface-muted:      var(--hm-smoke);
+  --csnt-surface-muted-line: #43222e;
+  --csnt-ink:                var(--hm-bone);
+  --csnt-ink-soft:           var(--hm-bone-d);
+  --csnt-muted:              #9a8a7d;
+  --csnt-faint:              #6f6259;
+  --csnt-line:               rgba(245, 236, 224, 0.14);
+  --csnt-brand:              var(--hm-blood);
+  --csnt-brand-hover:        #ff5733;
+  --csnt-brand-ink:          var(--hm-bone);
+  --csnt-brand-deep:         var(--hm-acid);
+  --csnt-radius-button:      0;
+  --csnt-btn-transform:      uppercase;
+  --csnt-btn-tracking:       0.12em;
+  --csnt-btn-weight:         700;
+  --csnt-radius-card:        0;
+  --csnt-radius-panel:       0;
+  --csnt-radius-inner:       0;
+  --csnt-font:               var(--text);
+  --csnt-font-display:       var(--plakat);
+  --csnt-font-ui:            var(--text);
+  --csnt-shadow-card:        0 0 0 1px var(--hm-blood);
+  --csnt-shadow-panel:       0 0 0 1px var(--hm-blood);
+}
+
+
 *, *::before, *::after { box-sizing: border-box; }
 
 html { -webkit-text-size-adjust: 100%; }

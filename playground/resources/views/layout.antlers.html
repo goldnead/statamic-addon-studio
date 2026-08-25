@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ if meta_title }}{{ meta_title | sanitize }}{{ else }}{{ title | sanitize }}{{ /if }}{{ if brand == 'chorwerkstatt' }} — Chorwerkstatt Nord{{ elseif brand == 'halbmond' }} — Kollektiv Halbmond{{ elseif brand == 'lindhorst' }} — Praxis Lindhorst{{ /if }}</title>
+    <title>{{ if meta_title }}{{ meta_title | sanitize }}{{ else }}{{ title | sanitize }}{{ /if }}{{ if brand == 'chorwerkstatt' }} · Chorwerkstatt Nord{{ elseif brand == 'halbmond' }} · Kollektiv Halbmond{{ elseif brand == 'lindhorst' }} · Praxis Lindhorst{{ /if }}</title>
     {{ if meta_description }}<meta name="description" content="{{ meta_description | sanitize }}">{{ /if }}
     {{ if noindex }}<meta name="robots" content="noindex">{{ /if }}
     {{ consent:head }}
@@ -27,9 +27,8 @@
           :root {
             --csnt-font: 'Inter', system-ui, sans-serif;
             --csnt-font-display: 'Outfit', system-ui, sans-serif;
-            --csnt-font-ui: 'JetBrains Mono', ui-monospace, monospace;
           }
-          body { font-family: 'Inter', system-ui, sans-serif; margin: 0; background: #FAF8F4; color: #141210; }
+          body { font-family: 'Inter', system-ui, sans-serif; margin: 0; background: #FBFBFA; color: #17171A; }
           main { max-width: 46rem; margin: 0 auto; padding: 3rem 1.5rem 14rem; }
           footer { border-top: 1px solid #e2e5ea; margin-top: 3rem; padding-top: 1rem; font-size: .875rem; }
         </style>

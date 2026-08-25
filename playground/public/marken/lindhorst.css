@@ -14,6 +14,39 @@
   --sans:  'Karla', 'Helvetica Neue', Arial, sans-serif;
 }
 
+/* Das Einwilligungsbanner gehoert dieser Seite.
+ *
+ * Leise, wie alles hier. Der Akzent ist das Salbei der Praxis, die Ecken sind
+ * weich, und die Schrift ist dieselbe wie im Text daneben. */
+:root {
+  --csnt-surface:            var(--lh-white);
+  --csnt-surface-sunken:     var(--lh-mist);
+  --csnt-surface-muted:      var(--lh-mist);
+  --csnt-surface-muted-line: var(--lh-fog);
+  --csnt-ink:                var(--lh-slate);
+  --csnt-ink-soft:           var(--lh-slate-2);
+  --csnt-muted:              #8a969b;
+  --csnt-line:               var(--lh-fog);
+  --csnt-brand:              var(--lh-sage);
+  --csnt-brand-hover:        var(--lh-sage-d);
+  --csnt-brand-ink:          var(--lh-white);
+  --csnt-brand-deep:         var(--lh-sage-d);
+  --csnt-radius-button:      var(--csnt-radius-pill);
+  --csnt-btn-transform:      none;
+  --csnt-btn-tracking:       0.01em;
+  --csnt-btn-size:           0.875rem;
+  --csnt-label-transform:    none;
+  --csnt-label-tracking:     0.01em;
+  --csnt-radius-card:        1.25rem;
+  --csnt-radius-panel:       1rem;
+  --csnt-radius-inner:       0.625rem;
+  --csnt-font:               var(--sans);
+  --csnt-font-display:       var(--serif);
+  --csnt-font-ui:            var(--sans);
+  --csnt-shadow-card:        0 18px 40px -22px rgba(54, 68, 75, 0.35);
+}
+
+
 *, *::before, *::after { box-sizing: border-box; }
 
 html { -webkit-text-size-adjust: 100%; }

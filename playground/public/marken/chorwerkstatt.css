@@ -16,6 +16,37 @@
   --grot:  'Archivo', 'Helvetica Neue', Arial, sans-serif;
 }
 
+/* Das Einwilligungsbanner gehoert dieser Seite.
+ *
+ * Das Addon liefert bewusst eine neutrale Vorgabe: es erscheint auf fremden
+ * Websites und darf keine fremde Handschrift mitbringen. Was es dafuer liefert,
+ * sind diese Variablen. Sieben Zeilen, und der Banner ist der der Werkstatt. */
+:root {
+  --csnt-surface:            var(--cw-card);
+  --csnt-surface-sunken:     var(--cw-paper);
+  --csnt-surface-muted:      #e7ece6;
+  --csnt-surface-muted-line: var(--cw-rule-2);
+  --csnt-ink:                var(--cw-ink);
+  --csnt-ink-soft:           var(--cw-ink-2);
+  --csnt-muted:              #6b7a72;
+  --csnt-line:               var(--cw-rule);
+  --csnt-brand:              var(--cw-moss);
+  --csnt-brand-hover:        var(--cw-moss-d);
+  --csnt-brand-ink:          var(--cw-card);
+  --csnt-brand-deep:         var(--cw-gold);
+  --csnt-radius-button:      0.125rem;
+  --csnt-btn-transform:      uppercase;
+  --csnt-btn-tracking:       0.08em;
+  --csnt-btn-size:           0.75rem;
+  --csnt-radius-card:        0.25rem;
+  --csnt-radius-panel:       0.25rem;
+  --csnt-radius-inner:       0.125rem;
+  --csnt-font:               var(--serif);
+  --csnt-font-display:       var(--grot);
+  --csnt-font-ui:            var(--grot);
+}
+
+
 *, *::before, *::after { box-sizing: border-box; }
 
 html { -webkit-text-size-adjust: 100%; }
