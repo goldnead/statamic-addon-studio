@@ -53,7 +53,11 @@ return [
     */
 
     'widgets' => [
-        //
+        // Der Empfang des Schauraums. Ohne ihn ist das Erste nach dem Anmelden
+        // ein leeres Dashboard auf einer Installation voller Daten — weil das
+        // Demo auf der Agenturmarke startet und die Kundendaten den Kunden
+        // gehören.
+        ['type' => 'demo_wegweiser', 'width' => 100],
     ],
 
     /*

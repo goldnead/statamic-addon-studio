@@ -1,0 +1,41 @@
+{{#
+    Statamic-Tokens statt eigener Farben: das Control Panel ist themenfähig,
+    und ein Widget mit `bg-white` ist auf einem umgestellten CP der eine
+    Kasten, der nicht mitmacht.
+#}}
+<div class="p-4 bg-content-bg border border-content-border rounded-lg shadow-sm">
+    <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-1">
+        Das Demo der Addon-Familie
+    </h2>
+    <p class="text-sm text-gray-600 dark:text-gray-400 mb-4 max-w-2xl">
+        Du bist als Agentur <strong>Nordlicht Studio</strong> angemeldet. Auf dieser Marke liegt
+        wenig, und das ist richtig so: die Daten gehören den Kunden. Oben rechts umschalten,
+        oder hier klicken.
+    </p>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+        {{ marken }}
+        <a href="{{ url }}"
+           class="block p-3 rounded-md border border-content-border hover:border-primary transition-colors no-underline">
+            <div class="font-medium text-gray-900 dark:text-gray-100">{{ name }}</div>
+            <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 mb-2">{{ was }}</div>
+            <div class="text-xs text-gray-600 dark:text-gray-400 tabular-nums">
+                {{ kontakte }} Kontakte · {{ abonnenten }} Abonnenten · {{ termine }} Termine
+            </div>
+        </a>
+        {{ /marken }}
+    </div>
+
+    <div class="flex flex-wrap gap-x-6 gap-y-1 text-xs text-gray-500 dark:text-gray-400 tabular-nums border-t border-content-border pt-3">
+        <span>Über alle Marken: <strong>{{ gesamt:kontakte }}</strong> Kontakte</span>
+        <span><strong>{{ gesamt:zahlungen }}</strong> Zahlungen</span>
+        <span><strong>{{ gesamt:spuren }}</strong> Aktivitätsspuren</span>
+        <span><strong>{{ gesamt:laeufe }}</strong> Automationsläufe</span>
+    </div>
+
+    <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
+        Zahlungen, Angebote und Abos stehen bewusst ohne Marke daneben: sie sind in dieser Familie
+        <strong>nicht</strong> markengetrennt. In einer Agentur mit mehreren Kunden ist das eine
+        Entscheidung, keine Nebensache.
+    </p>
+</div>

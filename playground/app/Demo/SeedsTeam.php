@@ -29,6 +29,12 @@ class SeedsTeam
             [
                 'email' => 'mira@nordlicht.beispiel',
                 'name' => 'Mira Andresen',
+                // Die Agenturinhaberin ist Superuser. Nicht aus Bequemlichkeit:
+                // ohne ein Konto, das der Seeder selbst anlegt, kommt niemand
+                // in ein frisch aufgebautes Demo hinein — die Zugangsdaten in
+                // README und DEMO.md zeigten auf ein handgemachtes Konto, das
+                // kein Schritt erzeugt und das nicht im Repo liegt.
+                'super' => true,
                 'roles' => ['agentur'],
                 'groups' => ['team'],
                 // Keine Zuordnung: sieht laut brand-context jede Marke. Das ist
@@ -84,6 +90,10 @@ class SeedsTeam
             }
 
             $nutzer->set('name', $person['name']);
+
+            if ($person['super'] ?? false) {
+                $nutzer->makeSuper();
+            }
             $nutzer->save();
 
             // Rollen und Gruppen erst nach dem Speichern, sonst hat der Nutzer

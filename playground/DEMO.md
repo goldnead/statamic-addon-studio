@@ -40,6 +40,11 @@ php artisan migrate --force
 php artisan demo:seed
 ```
 
+**Anmelden:** `mira@nordlicht.beispiel` / `demo-local-password`. Das Konto legt `SeedsTeam` an; es
+ist das einzige mit Superuser-Recht, die vier anderen sind absichtlich beschränkt. Bis 25.08.2026
+nannten README und diese Datei ein Konto `studio@local`, das kein Schritt erzeugt und das nicht im
+Repo liegt — wer den Klon aufbaute, kam nicht hinein.
+
 **Kein `vendor:publish --force`.** Seit die `config/` versioniert ist, würde das genau die
 Entscheidungen des Demos überschreiben, die den Aufbau tragen: den Produktkatalog, die
 Markenzuordnung, die Feature-Schalter von LeadHub, den Datei-Treiber für Nutzer. Der erste
@@ -166,6 +171,12 @@ verloren gegangen.
 
 ## Marken umschalten
 
-Oben rechts im Control Panel. Fast alles hängt an einer Marke: Kontakte, Abonnenten, Sperren,
+Oben rechts im Control Panel. Das Dashboard begrüßt einen mit einem Wegweiser, der die drei Kunden
+mit ihren echten Zahlen zeigt und direkt dorthin springt — ohne ihn ist das Erste nach dem Anmelden
+ein leeres Dashboard auf einer Installation voller Daten.
+
+**Was dabei auffällt und eine Entscheidung ist, keine Nebensache:** Kontakte, Termine, Abonnenten,
+Zugänge, Meldungen und Spuren sind markengetrennt. **Zahlungen, Angebote und Abos sind es nicht** —
+der ganze Handelsteil liegt in einem Topf, jeder mit Zahlungsrecht sieht alle Kunden. Fast alles hängt an einer Marke: Kontakte, Abonnenten, Sperren,
 Zugänge, Meldungen, Spuren, Webhooks. Auf der Agenturmarke ist deshalb wenig zu sehen, und das ist
 richtig so.
