@@ -16,6 +16,9 @@ playground/*
 !playground/routes/
 !playground/composer.json
 !playground/.env.example
+!playground/artisan
+!playground/database/
+!playground/storage/
 !playground/DEMO.md
 
 # Innerhalb der wieder hereingeholten Ordner: nur der Quellteil.
@@ -28,6 +31,16 @@ playground/resources/*
 playground/public/*
 !playground/public/marken/
 !playground/public/assets/
+!playground/public/index.php
+!playground/public/.htaccess
+
+# Das Geruest, aber nicht der Inhalt: die Datenbank und alles, was zur Laufzeit
+# entsteht, ist Wegwerfstand.
+playground/database/*
+!playground/database/migrations/
+playground/storage/**/*
+!playground/storage/**/.gitignore
+!playground/storage/**/.gitkeep
 
 # config/ gehoert dazu, und das war eine Luecke.
 #
