@@ -84,4 +84,10 @@
   'link_label': 'Mail schreiben'
   'link_url': 'mailto:post@chorwerkstatt-nord.example'
   'tone': 'leise'
+- 'id': 'b07fe7c2-a7a4-582f-8ea6-6b773e0592a6'
+  'type': 'formular'
+  'enabled': true
+  'formular': 'kursanfrage'
+  'heading': 'Zu einem Kurs anmelden'
+  'text': 'Schreib uns, welcher Kurs dich interessiert. Wir melden uns innerhalb von zwei Werktagen.'
 ---

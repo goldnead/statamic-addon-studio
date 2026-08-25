@@ -101,6 +101,15 @@
         </section>
     {{ /if }}
 
+
+    {{ if type == "formular" }}
+        {{# Das Formular kommt aus einem Partial, nicht aus drei Kopien: der
+             Honigtopf und die UTM-Felder duerfen nicht an einer von drei
+             Stellen fehlen. #}}
+        <section class="lh-block lh-col">
+            {{ partial:erfassung formular="{ formular }" ueberschrift="{ heading }" text="{ text }" }}
+        </section>
+    {{ /if }}
 {{ /sections }}
 
 {{ unless sections }}

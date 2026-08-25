@@ -315,3 +315,34 @@ h3 { font-size: 1.06rem; line-height: 1.4; margin: 0 0 .3rem; }
 .lh-toc:has(ol:empty) { display: none; }
 
 .lh-hero-leer { font-size: clamp(1.7rem, 3.6vw, 2.3rem); line-height: 1.25; margin: 0 0 1.6rem; }
+
+/* ------------------------------------------------------------- Erfassung --
+   Das Anfrageformular. Ein Stueck Markup fuer alle drei Marken, drei
+   Handschriften darauf: sonst steht auf einer durchgestalteten Seite ein
+   Formular, das aussieht, als sei die Seite noch nicht fertig.
+   Die Felder selbst kommen von Statamic ({{ field }}), deshalb wird hier auf
+   input/select/textarea gestylt und nicht auf eigene Klassen. */
+
+.erfassung { max-width: 40rem; }
+.erfassung__titel { font-family: var(--serif); font-weight: 400; font-size: clamp(1.5rem, 3vw, 2.1rem); margin: 0 0 .4rem; color: var(--lh-slate); }
+.erfassung__text  { margin: 0 0 1.6rem; color: color-mix(in srgb, var(--lh-slate) 70%, transparent); line-height: 1.6; }
+.erfassung__felder { display: grid; grid-template-columns: 1fr 1fr; gap: 1.1rem; }
+.erfassung__feld { display: flex; flex-direction: column; gap: .4rem; }
+.erfassung__feld--breit { grid-column: 1 / -1; }
+.erfassung__marke { font-family: var(--sans); font-size: .8rem; color: var(--lh-sage-d); }
+.erfassung input, .erfassung select, .erfassung textarea {
+  width: 100%; box-sizing: border-box; padding: .75rem 1rem;
+  font: inherit; color: var(--lh-slate);
+  background: var(--lh-white); border: 1px solid var(--lh-fog); border-radius: 10px;
+}
+.erfassung textarea { min-height: 7rem; resize: vertical; }
+.erfassung :is(input, select, textarea):focus-visible { outline: 2px solid var(--lh-sage); outline-offset: 1px; border-color: var(--lh-sage); }
+.erfassung__knopf {
+  margin-top: 1.6rem; padding: .8rem 1.8rem; border: 0; border-radius: 999px;
+  background: var(--lh-sage); color: var(--lh-white); cursor: pointer;
+  font-family: var(--sans); font-size: .9rem;
+}
+.erfassung__knopf:hover { background: var(--lh-sage-d); }
+.erfassung-erfolg { padding: .9rem 1.1rem; background: var(--lh-mist); border-radius: 10px; color: var(--lh-slate); }
+.erfassung-fehler { color: #9a4433; }
+@media (max-width: 34rem) { .erfassung__felder { grid-template-columns: 1fr; } }

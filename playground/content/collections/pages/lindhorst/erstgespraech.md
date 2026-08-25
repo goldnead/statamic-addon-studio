@@ -44,4 +44,10 @@
   'link_label': 'termin@praxis-lindhorst.example'
   'link_url': 'mailto:termin@praxis-lindhorst.example'
   'tone': 'normal'
+- 'id': '85337555-452a-5e2c-816d-eb16e5c2157f'
+  'type': 'formular'
+  'enabled': true
+  'formular': 'erstgespraech'
+  'heading': 'Erstgespräch anfragen'
+  'text': 'Zwanzig Minuten, kostenlos, ohne Verpflichtung. Wir schauen, ob es passt.'
 ---

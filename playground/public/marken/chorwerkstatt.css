@@ -455,3 +455,35 @@ h3 { font-size: 1.08rem; line-height: 1.3; margin: 0 0 .4rem; }
 
 /* Auch eine leere Seite braucht eine Ueberschrift. */
 .cw-hero-leer { font-size: clamp(1.75rem, 3.6vw, 2.5rem); line-height: 1.1; margin: 0 0 1.25rem; }
+
+/* ------------------------------------------------------------- Erfassung --
+   Das Anfrageformular. Ein Stueck Markup fuer alle drei Marken, drei
+   Handschriften darauf: sonst steht auf einer durchgestalteten Seite ein
+   Formular, das aussieht, als sei die Seite noch nicht fertig.
+   Die Felder selbst kommen von Statamic ({{ field }}), deshalb wird hier auf
+   input/select/textarea gestylt und nicht auf eigene Klassen. */
+
+.erfassung { max-width: 44rem; }
+.erfassung__titel { font-family: var(--serif); font-size: clamp(1.5rem, 3vw, 2rem); margin: 0 0 .35rem; color: var(--cw-ink); }
+.erfassung__text  { margin: 0 0 1.4rem; color: color-mix(in srgb, var(--cw-ink) 72%, transparent); }
+.erfassung__felder { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem 1.25rem; }
+.erfassung__feld { display: flex; flex-direction: column; gap: .35rem; }
+.erfassung__feld--breit { grid-column: 1 / -1; }
+.erfassung__marke { font-family: var(--grot); font-size: .75rem; letter-spacing: .08em; text-transform: uppercase; color: var(--cw-moss); }
+.erfassung input, .erfassung select, .erfassung textarea {
+  width: 100%; box-sizing: border-box; padding: .7rem .85rem;
+  font: inherit; color: var(--cw-ink);
+  background: var(--cw-card); border: 1px solid var(--cw-rule); border-radius: 2px;
+  transition: border-color .15s ease;
+}
+.erfassung textarea { min-height: 7rem; resize: vertical; }
+.erfassung :is(input, select, textarea):focus-visible { outline: 2px solid var(--cw-moss); outline-offset: 1px; border-color: var(--cw-moss); }
+.erfassung__knopf {
+  margin-top: 1.4rem; padding: .8rem 1.6rem; border: 0; border-radius: 2px;
+  background: var(--cw-moss); color: var(--cw-card); cursor: pointer;
+  font-family: var(--grot); font-size: .8rem; letter-spacing: .08em; text-transform: uppercase;
+}
+.erfassung__knopf:hover { background: var(--cw-moss-d); }
+.erfassung-erfolg { padding: .8rem 1rem; background: color-mix(in srgb, var(--cw-moss) 12%, transparent); border-left: 3px solid var(--cw-moss); }
+.erfassung-fehler { color: #8c2f1d; }
+@media (max-width: 34rem) { .erfassung__felder { grid-template-columns: 1fr; } }

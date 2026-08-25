@@ -65,7 +65,7 @@
     sein muss. Eine Kundeninstallation gibt jeder Marke eine Domain oder eine
     eigene Statamic-Site, und dann braucht es diesen Anhang nicht.
 #}}
-{{ form:create in="{formular}" action="/!/forms/{formular}?brand={marke ?? brand}" }}
+{{ form:create in="{formular}" action="/!/forms/{formular}?brand={marke ?? brand}" class="erfassung" }}
 
     {{ if success }}
         <p class="erfassung-erfolg" role="status">Danke. Wir melden uns.</p>
@@ -77,17 +77,21 @@
         </ul>
     {{ /if }}
 
-    {{ if ueberschrift }}<h2>{{ ueberschrift }}</h2>{{ /if }}
+    {{ if ueberschrift }}<h2 class="erfassung__titel">{{ ueberschrift }}</h2>{{ /if }}
+    {{ if text }}<p class="erfassung__text">{{ text }}</p>{{ /if }}
 
+    <div class="erfassung__felder">
     {{ fields }}
         {{ unless handle | starts_with('utm_') }}
-            <label>
-                <span>{{ display }}{{ if validate | contains('required') }} *{{ /if }}</span>
+            {{# Ein Textfeld nimmt die ganze Zeile, die kurzen teilen sie sich. #}}
+            <label class="erfassung__feld {{ if type == 'textarea' }}erfassung__feld--breit{{ /if }}">
+                <span class="erfassung__marke">{{ display }}{{ if validate | contains('required') }} *{{ /if }}</span>
                 {{ field }}
                 {{ if error }}<small class="erfassung-fehler">{{ error }}</small>{{ /if }}
             </label>
         {{ /unless }}
     {{ /fields }}
+    </div>
 
     {{ partial:utm-felder }}
 
@@ -102,6 +106,6 @@
         </label>
     </div>
 
-    <button type="submit">Absenden</button>
+    <button type="submit" class="erfassung__knopf">Absenden</button>
 
 {{ /form:create }}

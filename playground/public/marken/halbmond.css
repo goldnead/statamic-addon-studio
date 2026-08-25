@@ -429,3 +429,35 @@ h3 { font-size: 1.5rem; text-transform: uppercase; letter-spacing: .06em; }
    Ueberschrift mit 250 Zeichen den ganzen ersten Bildschirm. */
 .hm-hero h1.hm-lang { font-size: clamp(2rem, 5.5vw, 3.6rem); line-height: .95; }
 .hm-article h1.hm-lang { font-size: clamp(1.7rem, 3.6vw, 2.6rem); line-height: 1.02; }
+
+/* ------------------------------------------------------------- Erfassung --
+   Das Anfrageformular. Ein Stueck Markup fuer alle drei Marken, drei
+   Handschriften darauf: sonst steht auf einer durchgestalteten Seite ein
+   Formular, das aussieht, als sei die Seite noch nicht fertig.
+   Die Felder selbst kommen von Statamic ({{ field }}), deshalb wird hier auf
+   input/select/textarea gestylt und nicht auf eigene Klassen. */
+
+.erfassung { max-width: 46rem; }
+.erfassung__titel { font-family: var(--plakat); font-size: clamp(2rem, 6vw, 3.5rem); line-height: .95; margin: 0 0 .5rem; color: var(--hm-bone); text-transform: uppercase; }
+.erfassung__text  { margin: 0 0 1.6rem; color: var(--hm-bone-d); max-width: 34rem; }
+.erfassung__felder { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.erfassung__feld { display: flex; flex-direction: column; gap: .3rem; }
+.erfassung__feld--breit { grid-column: 1 / -1; }
+.erfassung__marke { font-family: var(--text); font-size: .7rem; letter-spacing: .14em; text-transform: uppercase; color: var(--hm-blood); }
+.erfassung input, .erfassung select, .erfassung textarea {
+  width: 100%; box-sizing: border-box; padding: .75rem .9rem;
+  font: inherit; color: var(--hm-bone);
+  background: var(--hm-smoke); border: 1px solid color-mix(in srgb, var(--hm-bone) 22%, transparent);
+  border-radius: 0;
+}
+.erfassung textarea { min-height: 7rem; resize: vertical; }
+.erfassung :is(input, select, textarea):focus-visible { outline: 2px solid var(--hm-acid); outline-offset: 0; border-color: var(--hm-acid); }
+.erfassung__knopf {
+  margin-top: 1.5rem; padding: .9rem 2rem; border: 0; border-radius: 0;
+  background: var(--hm-blood); color: var(--hm-bone); cursor: pointer;
+  font-family: var(--text); font-weight: 700; font-size: .8rem; letter-spacing: .12em; text-transform: uppercase;
+}
+.erfassung__knopf:hover { background: var(--hm-acid); color: var(--hm-void); }
+.erfassung-erfolg { padding: .9rem 1.1rem; background: var(--hm-smoke); border-left: 3px solid var(--hm-acid); color: var(--hm-bone); }
+.erfassung-fehler { color: var(--hm-blood); }
+@media (max-width: 34rem) { .erfassung__felder { grid-template-columns: 1fr; } }

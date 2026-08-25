@@ -67,4 +67,10 @@
   'link_label': 'Mail schreiben'
   'link_url': 'mailto:fanclub@halbmond.example'
   'tone': 'leise'
+- 'id': '9eec1b0c-2ff4-5115-bbd0-8fe876516045'
+  'type': 'formular'
+  'enabled': true
+  'formular': 'fanclub'
+  'heading': 'In den Fanclub'
+  'text': 'Vorverkauf zuerst, Soundcheck-Plätze, und die Platte vor allen anderen.'
 ---
