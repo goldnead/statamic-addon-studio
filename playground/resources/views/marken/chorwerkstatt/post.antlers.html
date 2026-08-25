@@ -1,0 +1,38 @@
+<article class="cw-article">
+    <header>
+        <p class="cw-label">Aus der Werkstatt</p>
+        <h1>{{ title | sanitize }}</h1>
+        <p class="cw-meta">
+            <time datetime="{{ date format='Y-m-d' }}">{{ date format="d.m.Y" }}</time>
+            {{ if author }}<span>{{ author }}</span>{{ /if }}
+            {{ unless published }}<span>Entwurf, nicht veröffentlicht</span>{{ /unless }}
+        </p>
+    </header>
+
+    {{ if standfirst }}<p class="cw-standfirst">{{ standfirst }}</p>{{ /if }}
+
+    <nav class="cw-toc" aria-label="Inhalt dieses Beitrags">
+        <p>Inhalt</p>
+        <ol>
+            {{ toc field="article" depth="4" }}
+            <li>
+                <a href="#{{ toc_id }}">{{ toc_title }}</a>
+                {{ if children }}<ol>{{ *recursive children* }}</ol>{{ /if }}
+            </li>
+            {{ /toc }}
+        </ol>
+    </nav>
+
+    <div class="cw-body">{{ article | toc }}</div>
+
+    {{ if verwandt }}
+    <section class="cw-block">
+        <h2>Weiterlesen</h2>
+        <ul class="cw-postlist">
+            {{ verwandt }}
+            <li><h3><a href="{{ url }}">{{ title | sanitize }}</a></h3></li>
+            {{ /verwandt }}
+        </ul>
+    </section>
+    {{ /if }}
+</article>

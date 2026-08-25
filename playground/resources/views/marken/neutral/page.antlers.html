@@ -1,0 +1,8 @@
+{{# Keine Marke gesetzt. Nichts erfinden, nur zeigen was da ist. #}}
+<h1>{{ title }}</h1>
+{{ sections }}
+    {{ if type == "hero" }}<p><strong>{{ heading }}</strong></p><p>{{ intro }}</p>{{ /if }}
+    {{ if type == "prose" }}{{ text | markdown }}{{ /if }}
+    {{ if type == "bullets" }}<ul>{{ items }}<li>{{ value }}</li>{{ /items }}</ul>{{ /if }}
+    {{ if no_results }}<p>Diese Seite hat noch keine Bausteine.</p>{{ /if }}
+{{ /sections }}

@@ -1,0 +1,14 @@
+<div class="lh-col">
+    <p class="lh-label">Notizen</p>
+    <h1>{{ title | sanitize }}</h1>
+    {{ sections }}{{ if type == "prose" }}<div class="lh-prose" style="margin:1.5rem 0 3.5rem">{{ text | markdown }}</div>{{ /if }}{{ /sections }}
+    <ul class="lh-postlist">
+        {{ collection:posts brand:is="lindhorst" sort="date:desc" }}
+            <li>
+                <span class="lh-when">{{ date format="d.m.Y" }}</span>
+                <h3><a href="{{ url }}">{{ title | sanitize }}</a></h3>
+                {{ if standfirst }}<p>{{ standfirst | truncate:170 }}</p>{{ /if }}
+            </li>
+        {{ /collection:posts }}
+    </ul>
+</div>

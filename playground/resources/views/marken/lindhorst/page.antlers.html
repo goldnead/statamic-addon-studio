@@ -1,0 +1,110 @@
+<div class="lh-col{{ if has_wide }} lh-col--wide{{ /if }}">
+{{ sections }}
+
+    {{ if type == "hero" }}
+        <section class="lh-block lh-hero">
+            {{ if eyebrow }}<p class="lh-label">{{ eyebrow }}</p>{{ /if }}
+            <h1>{{ heading | sanitize }}</h1>
+            {{ if intro }}<p class="lh-intro">{{ intro }}</p>{{ /if }}
+            {{ if link_label }}<p style="margin-top:2.2rem"><a class="lh-btn" href="{{ link_url }}">{{ link_label }}</a></p>{{ /if }}
+            {{ media }}<img src="{{ url }}" alt="{{ alt }}">{{ /media }}
+        </section>
+    {{ /if }}
+
+    {{ if type == "prose" }}
+        <section class="lh-block lh-prose">{{ text | markdown }}</section>
+    {{ /if }}
+
+    {{ if type == "bullets" }}
+        <section class="lh-block lh-bullets">
+            {{ if heading }}<h2>{{ heading | sanitize }}</h2>{{ /if }}
+            <ul>{{ items }}<li>{{ value }}</li>{{ /items }}</ul>
+        </section>
+    {{ /if }}
+
+    {{ if type == "quote" }}
+        <section class="lh-block lh-quote">
+            <blockquote>{{ quote }}</blockquote>
+            {{ if source }}<cite>{{ source }}</cite>{{ /if }}
+        </section>
+    {{ /if }}
+
+    {{ if type == "gallery" }}
+        <section class="lh-block">
+            {{ if heading }}<h2>{{ heading | sanitize }}</h2>{{ /if }}
+            <div class="lh-gallery">
+                {{ images }}
+                    <figure>
+                        <img src="{{ url }}" alt="{{ alt }}" loading="lazy">
+                        {{ if alt }}<figcaption>{{ alt }}</figcaption>{{ /if }}
+                    </figure>
+                {{ /images }}
+            </div>
+            {{ if caption }}<p class="lh-caption">{{ caption }}</p>{{ /if }}
+        </section>
+    {{ /if }}
+
+    {{ if type == "pricing" }}
+        <section class="lh-block">
+            {{ if heading }}<h2>{{ heading | sanitize }}</h2>{{ /if }}
+            <div class="lh-plans">
+                {{ plans }}
+                    <div class="lh-plan {{ if highlight }}lh-plan--hl{{ /if }}">
+                        <div class="lh-plan-kopf">
+                            <h3>{{ name }}</h3>
+                            <p class="lh-price">{{ price }}</p>
+                        </div>
+                        {{ if period }}<p class="lh-period">{{ period }}</p>{{ /if }}
+                        <ul>{{ features }}<li>{{ value }}</li>{{ /features }}</ul>
+                        {{ if link_label }}<a class="lh-btn" href="{{ link_url }}">{{ link_label }}</a>{{ /if }}
+                    </div>
+                {{ /plans }}
+            </div>
+            {{ if note }}<p class="lh-note">{{ note }}</p>{{ /if }}
+        </section>
+    {{ /if }}
+
+    {{ if type == "faq" }}
+        <section class="lh-block lh-faq">
+            {{ if heading }}<h2>{{ heading | sanitize }}</h2>{{ /if }}
+            <dl>
+                {{ items }}
+                    <dt>{{ question }}</dt>
+                    <dd>{{ answer | markdown }}</dd>
+                {{ /items }}
+            </dl>
+        </section>
+    {{ /if }}
+
+    {{ if type == "events" }}
+        <section class="lh-block">
+            {{ if heading }}<h2>{{ heading | sanitize }}</h2>{{ /if }}
+            <ul class="lh-events">
+                {{ items }}
+                    <li>
+                        <span class="lh-when">{{ day }}</span>
+                        <span>
+                            <span class="lh-what">{{ if link_url }}<a href="{{ link_url }}">{{ name }}</a>{{ else }}{{ name }}{{ /if }}</span>
+                            {{ if place }}<span class="lh-where">{{ place }}{{ if note }} &middot; {{ note }}{{ /if }}</span>{{ /if }}
+                        </span>
+                    </li>
+                {{ /items }}
+            </ul>
+        </section>
+    {{ /if }}
+
+    {{ if type == "cta" }}
+        <section class="lh-block lh-cta {{ if tone == 'laut' }}lh-cta--laut{{ /if }}">
+            <h2>{{ heading | sanitize }}</h2>
+            {{ if text }}<p>{{ text }}</p>{{ /if }}
+            {{ if link_label }}<a class="lh-btn" href="{{ link_url }}">{{ link_label }}</a>{{ /if }}
+        </section>
+    {{ /if }}
+
+{{ /sections }}
+
+{{ unless sections }}
+    <h1 class="lh-hero-leer">{{ title | sanitize }}</h1>
+    <p class="lh-empty">Diese Seite ist angelegt, aber noch nicht gefüllt.</p>
+{{ /unless }}
+</div>

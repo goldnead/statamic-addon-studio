@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="de">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ if meta_title }}{{ meta_title | sanitize }}{{ else }}{{ title | sanitize }}{{ /if }}{{ if brand == 'chorwerkstatt' }} — Chorwerkstatt Nord{{ elseif brand == 'halbmond' }} — Kollektiv Halbmond{{ elseif brand == 'lindhorst' }} — Praxis Lindhorst{{ /if }}</title>
+    {{ if meta_description }}<meta name="description" content="{{ meta_description | sanitize }}">{{ /if }}
+    {{ if noindex }}<meta name="robots" content="noindex">{{ /if }}
+    {{ consent:head }}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    {{ if brand == 'chorwerkstatt' }}
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+        <link rel="stylesheet" href="/marken/chorwerkstatt.css">
+    {{ elseif brand == 'halbmond' }}
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@400;500;700&display=swap">
+        <link rel="stylesheet" href="/marken/halbmond.css">
+    {{ elseif brand == 'lindhorst' }}
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Karla:wght@400;500;700&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;1,6..72,400&display=swap">
+        <link rel="stylesheet" href="/marken/lindhorst.css">
+    {{ else }}
+        {{# Nordlicht Studio selbst: die schmucklose Fläche, auf der die
+            Handels- und Funnel-Demos liegen. Bewusst unverändert. #}}
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700&family=Inter:wght@400;500&family=JetBrains+Mono:wght@500;700&display=swap">
+        <style>
+          :root {
+            --csnt-font: 'Inter', system-ui, sans-serif;
+            --csnt-font-display: 'Outfit', system-ui, sans-serif;
+            --csnt-font-ui: 'JetBrains Mono', ui-monospace, monospace;
+          }
+          body { font-family: 'Inter', system-ui, sans-serif; margin: 0; background: #FAF8F4; color: #141210; }
+          main { max-width: 46rem; margin: 0 auto; padding: 3rem 1.5rem 14rem; }
+          footer { border-top: 1px solid #e2e5ea; margin-top: 3rem; padding-top: 1rem; font-size: .875rem; }
+        </style>
+    {{ /if }}
+</head>
+<body class="{{ if brand }}marke-{{ brand }}{{ else }}marke-nordlicht{{ /if }}">
+    {{ if brand == 'chorwerkstatt' }}
+        {{ partial:marken/chorwerkstatt/chrome }}
+    {{ elseif brand == 'halbmond' }}
+        {{ partial:marken/halbmond/chrome }}
+    {{ elseif brand == 'lindhorst' }}
+        {{ partial:marken/lindhorst/chrome }}
+    {{ else }}
+        <main>
+            {{ template_content }}
+            <footer>{{ consent:settings_link }}</footer>
+        </main>
+    {{ /if }}
+    {{ consent:banner }}
+</body>
+</html>

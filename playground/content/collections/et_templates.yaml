@@ -1,0 +1,10 @@
+title: 'Email Templates'
+revisions: false
+entry_class: Goldnead\EmailTemplates\Entries\EmailTemplateEntry
+preview_targets:
+  -
+    label: Email
+    url: /email-templates/live-preview
+    refresh: true
+inject:
+  seo: false

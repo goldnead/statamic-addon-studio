@@ -1,0 +1,35 @@
+<style>
+  .angebot { border: 1px solid #e7e2d8; background: #fff; border-radius: .75rem; padding: 1.5rem; max-width: 34rem; }
+  .angebot h2 { margin: 0 0 .25rem; font-family: 'Outfit', sans-serif; }
+  .angebot .preis { font-weight: 600; }
+  .angebot label { display: flex; gap: .6rem; align-items: flex-start; margin: 1rem 0; font-size: .9rem; color: #4a443c; }
+  .angebot button { background: #141210; color: #fff; border: 0; border-radius: .5rem; padding: .8rem 1.4rem; font-weight: 600; cursor: pointer; }
+  .hinweis { color: #6b6357; font-size: .85rem; }
+</style>
+
+<h1>Danke für deine Bestellung</h1>
+
+{{ payments:offer payment="{get:payment}" product="begleit-cd" }}
+{{ if no_results }}
+  <p class="hinweis" data-kein-angebot>Für diese Bestellung gibt es kein weiteres Angebot.</p>
+{{ else }}
+  <div class="angebot" data-angebot>
+    <h2>{{ name }}</h2>
+    <p class="preis">{{ amount }} {{ currency }} inkl. MwSt.</p>
+    <p class="hinweis">Sofort nach der Bestellung im Kundenbereich verfügbar. Es gelten unsere AGB und die Widerrufsbelehrung.</p>
+
+    <form method="POST" action="{{ action }}">
+      {{ csrf_field }}
+      <input type="hidden" name="payment" value="{{ payment_id }}">
+      <input type="hidden" name="product" value="{{ product }}">
+
+      <label>
+        <input type="checkbox" name="confirmed" value="1" required>
+        <span>Ich bestelle kostenpflichtig und stimme zu, dass die Lieferung sofort beginnt. Damit erlischt mein Widerrufsrecht.</span>
+      </label>
+
+      <button type="submit">Zahlungspflichtig bestellen</button>
+    </form>
+  </div>
+{{ /if }}
+{{ /payments:offer }}

@@ -1,0 +1,50 @@
+banner_title: 'Cookies auf dieser Seite'
+services:
+  -
+    id: ERljsVUT
+    type: service
+    enabled: true
+    handle: youtube
+    name: 'Konzertmitschnitte (YouTube)'
+    category: external_media
+    policy_url: 'https://policies.google.com/privacy'
+    block_content: true
+  -
+    id: 8YyOjCK5
+    type: service
+    enabled: true
+    handle: vimeo
+    name: Vimeo
+    category: external_media
+    policy_url: 'https://vimeo.com/privacy'
+    block_content: true
+  -
+    id: llktd9UK
+    type: service
+    enabled: true
+    handle: google_maps
+    name: 'Google Maps'
+    category: external_media
+    policy_url: 'https://policies.google.com/privacy'
+    block_content: true
+categories:
+  -
+    id: txbr2PU4
+    type: category
+    enabled: true
+    handle: essential
+  -
+    id: nRSUrrMn
+    type: category
+    enabled: true
+    handle: analytics
+  -
+    id: U0fJXl0z
+    type: category
+    enabled: true
+    handle: external_media
+  -
+    id: Kc0kehN8
+    type: category
+    enabled: true
+    handle: marketing

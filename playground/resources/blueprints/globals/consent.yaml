@@ -1,0 +1,134 @@
+title: Consent
+tabs:
+  banner:
+    display: Banner
+    sections:
+      -
+        fields:
+          -
+            handle: banner_title
+            field:
+              type: text
+              display: Heading
+              localizable: true
+              instructions: 'Leave empty for the shipped text.'
+          -
+            handle: banner_description
+            field:
+              type: textarea
+              display: Text
+              localizable: true
+          -
+            handle: accept_all_label
+            field: { type: text, display: 'Button: accept all', localizable: true }
+          -
+            handle: only_necessary_label
+            field: { type: text, display: 'Button: essential only', localizable: true }
+          -
+            handle: settings_label
+            field: { type: text, display: 'Button: settings', localizable: true }
+          -
+            handle: privacy_policy_url
+            field: { type: link, display: 'Privacy policy', localizable: true }
+          -
+            handle: imprint_url
+            field: { type: link, display: Imprint, localizable: true }
+  modal:
+    display: Dialog
+    sections:
+      -
+        fields:
+          -
+            handle: modal_title
+            field: { type: text, display: Heading, localizable: true }
+          -
+            handle: modal_description
+            field: { type: textarea, display: Text, localizable: true }
+          -
+            handle: save_label
+            field: { type: text, display: 'Button: save selection', localizable: true }
+          -
+            handle: reject_all_label
+            field: { type: text, display: 'Button: reject all', localizable: true }
+  services:
+    display: Services
+    sections:
+      -
+        instructions: 'One entry per third party that receives data. The handle appears in your templates: do not change it after launch.'
+        fields:
+          -
+            handle: services
+            field:
+              type: replicator
+              display: Services
+              collapse: accordion
+              sets:
+                service:
+                  display: Service
+                  fields:
+                    -
+                      handle: handle
+                      field:
+                        type: text
+                        display: Handle
+                        instructions: 'Lowercase, e.g. youtube. Used by {{ consent:gate }}.'
+                        validate: [required]
+                    -
+                      handle: name
+                      field: { type: text, display: Name, localizable: true, validate: [required] }
+                    -
+                      handle: description
+                      field: { type: textarea, display: Description, localizable: true }
+                    -
+                      handle: category
+                      field:
+                        type: select
+                        display: Category
+                        options:
+                          essential: Essential
+                          analytics: Analytics
+                          external_media: 'External media'
+                          marketing: Marketing
+                        validate: [required]
+                    -
+                      handle: policy_url
+                      field: { type: link, display: "Provider's privacy policy" }
+                    -
+                      handle: block_content
+                      field:
+                        type: toggle
+                        display: 'Block embeds (two-click)'
+                        instructions: 'On when this service embeds content (video, map). Off for scripts.'
+                        default: true
+                    -
+                      handle: block_message
+                      field: { type: textarea, display: 'Text on the blocked placeholder', localizable: true }
+  categories:
+    display: Categories
+    sections:
+      -
+        fields:
+          -
+            handle: categories
+            field:
+              type: replicator
+              display: Categories
+              collapse: accordion
+              sets:
+                category:
+                  display: Category
+                  fields:
+                    -
+                      handle: handle
+                      field: { type: text, display: Handle, validate: [required] }
+                    -
+                      # Not required: the four shipped categories are seeded with a
+                      # handle only, so that the name comes from the translation
+                      # files and follows the visitor's language. Requiring it here
+                      # would lock the whole screen behind four fields the client
+                      # never created.
+                      handle: name
+                      field: { type: text, display: Name, localizable: true, instructions: 'Leave empty for the shipped text.' }
+                    -
+                      handle: description
+                      field: { type: textarea, display: Description, localizable: true }

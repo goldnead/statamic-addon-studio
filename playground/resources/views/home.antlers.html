@@ -1,0 +1,5 @@
+<h1>{{ title }}</h1>
+<p>Ein eingebettetes Video, das erst nach Einwilligung lädt:</p>
+{{ consent:gate service="youtube" }}
+    <iframe width="100%" height="360" src="https://www.youtube.com/embed/dQw4w9WgXcQ" frameborder="0" allowfullscreen></iframe>
+{{ /consent:gate }}

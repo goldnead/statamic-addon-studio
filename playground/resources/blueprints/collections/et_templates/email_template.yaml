@@ -1,0 +1,88 @@
+title: 'Email Template'
+tabs:
+  main:
+    display: Content
+    sections:
+      -
+        fields:
+          -
+            handle: title
+            field:
+              type: text
+              required: true
+              validate:
+                - required
+              display: Title
+              localizable: true
+          -
+            handle: subject
+            field:
+              type: text
+              display: Subject
+              instructions: 'The email subject line. Supports merge variables such as {{ contact.first_name }}.'
+              localizable: true
+          -
+            handle: preview
+            field:
+              type: text
+              display: 'Preview text'
+              instructions: 'Preheader: short preview text mail clients show next to the subject. Supports merge variables such as {{ contact.first_name }}.'
+              localizable: true
+          -
+            handle: layout
+            field:
+              type: select
+              display: Layout
+              instructions: 'Which layout wraps this email. Empty = default layout.'
+              options: {  }
+              clearable: true
+              placeholder: 'Default layout'
+              localizable: false
+          -
+            handle: body
+            field:
+              type: bard
+              display: Body
+              instructions: 'The email body, authored as rich text. Rendered to HTML for sending and preview.'
+              buttons:
+                - h2
+                - h3
+                - bold
+                - italic
+                - underline
+                - unorderedlist
+                - orderedlist
+                - quote
+                - anchor
+                - image
+                - table
+                - horizontalrule
+                - removeformat
+              save_html: false
+              localizable: true
+          -
+            handle: plain_text
+            field:
+              type: textarea
+              display: 'Plain text'
+              instructions: 'Optional plain-text alternative for clients that do not render HTML.'
+              localizable: true
+          -
+            handle: description
+            field:
+              type: textarea
+              display: Description
+              instructions: 'Internal note. Not sent to recipients.'
+          -
+            handle: brand
+            field:
+              type: select
+              display: Brand
+              instructions: 'Which brand this template belongs to. A template is only found by the brand it is filed under, so two brands can each have their own template under the same slug.'
+              options:
+                default: Default
+              required: true
+              validate:
+                - required
+              clearable: false
+              localizable: false

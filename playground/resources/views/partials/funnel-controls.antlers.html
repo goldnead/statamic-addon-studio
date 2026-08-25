@@ -1,0 +1,15 @@
+{{ if funnel:step:type == "capture" }}
+    <form method="POST" action="{{ funnel:action }}" class="funnel-form">
+        {{ csrf_field }}
+        <label><span>{{ trans key="statamic-funnels::messages.field_name" }}</span>
+            <input type="text" name="name" value="{{ funnel:visit:name }}"></label>
+        <label><span>{{ trans key="statamic-funnels::messages.field_email" }}</span>
+            <input type="email" name="email" value="{{ funnel:visit:email }}" required></label>
+        <button type="submit">{{ trans key="statamic-funnels::messages.continue" }}</button>
+    </form>
+{{ else }}
+    <form method="POST" action="{{ funnel:action }}">
+        {{ csrf_field }}
+        <button type="submit">{{ trans key="statamic-funnels::messages.continue" }}</button>
+    </form>
+{{ /if }}

@@ -1,0 +1,32 @@
+<article class="hm-article">
+    <h1{{ if title | length > 90 }} class="hm-lang"{{ /if }}>{{ title | sanitize }}</h1>
+    <p class="hm-meta">
+        <time datetime="{{ date format='Y-m-d' }}">{{ date format="d.m.Y" }}</time>
+        {{ if author }}<span>{{ author }}</span>{{ /if }}
+    </p>
+
+    {{ if standfirst }}<p class="hm-standfirst">{{ standfirst }}</p>{{ /if }}
+
+    <nav class="hm-toc" aria-label="Inhalt">
+        <p>Inhalt</p>
+        <ol>
+            {{ toc field="article" depth="4" }}
+            <li>
+                <a href="#{{ toc_id }}">{{ toc_title }}</a>
+                {{ if children }}<ol>{{ *recursive children* }}</ol>{{ /if }}
+            </li>
+            {{ /toc }}
+        </ol>
+    </nav>
+
+    <div class="hm-body">{{ article | toc }}</div>
+
+    {{ if verwandt }}
+    <section class="hm-block">
+        <h2>Auch das noch</h2>
+        <ul class="hm-postlist">
+            {{ verwandt }}<li><h3><a href="{{ url }}">{{ title | sanitize }}</a></h3></li>{{ /verwandt }}
+        </ul>
+    </section>
+    {{ /if }}
+</article>

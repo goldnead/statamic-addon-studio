@@ -1,0 +1,7 @@
+name: Probe
+subject: Betreff
+list: newsletter
+content: '<p>Gespeicherter Text</p>'
+status: draft
+archive: false
+mail_class: marketing

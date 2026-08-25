@@ -1,0 +1,40 @@
+{{# A landing page built from the site's own sections. The funnel step points at
+    this entry; everything below is the site's, not the addon's. #}}
+<article class="lp">
+    {{ sections }}
+        {{ if type == "hero" }}
+            <header class="lp-hero">
+                {{ if eyebrow }}<p class="lp-eyebrow">{{ eyebrow }}</p>{{ /if }}
+                <h1>{{ heading }}</h1>
+                {{ if intro }}<p class="lp-intro">{{ intro }}</p>{{ /if }}
+            </header>
+        {{ /if }}
+        {{ if type == "bullets" }}
+            <section class="lp-bullets">
+                {{ if heading }}<h2>{{ heading }}</h2>{{ /if }}
+                <ul>{{ items }}<li>{{ value }}</li>{{ /items }}</ul>
+            </section>
+        {{ /if }}
+        {{ if type == "prose" }}
+            <section class="lp-prose">{{ text | markdown }}</section>
+        {{ /if }}
+    {{ /sections }}
+
+    {{# What the funnel adds. Present only when this page is being shown as a
+        step, so the same entry is still a perfectly ordinary page on its own. #}}
+    {{ if funnel:action }}
+        <div class="funnel-step" data-funnel="{{ funnel:handle }}" data-step="{{ funnel:step:key }}">
+            {{ partial:funnel-controls }}
+        </div>
+    {{ /if }}
+</article>
+<style>
+  .lp-eyebrow { text-transform: uppercase; letter-spacing: .12em; font-size: .75rem; color: #8a7f70; margin: 0 0 .5rem; font-family: 'JetBrains Mono', monospace; }
+  .lp-hero h1 { font-family: 'Outfit', sans-serif; font-size: clamp(2rem, 5vw, 3rem); line-height: 1.05; margin: 0 0 1rem; }
+  .lp-intro { font-size: 1.15rem; color: #4a443c; margin: 0; }
+  .lp-bullets { margin-top: 2.5rem; }
+  .lp-bullets h2 { font-family: 'Outfit', sans-serif; font-size: 1.35rem; margin: 0 0 .75rem; }
+  .lp-bullets ul { margin: 0; padding-left: 1.1rem; display: grid; gap: .45rem; }
+  .lp-prose { margin-top: 2rem; color: #4a443c; }
+  .funnel-step { margin-top: 2.5rem; }
+</style>

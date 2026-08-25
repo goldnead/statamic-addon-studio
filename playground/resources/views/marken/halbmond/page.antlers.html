@@ -1,0 +1,114 @@
+{{ sections }}
+
+    {{ if type == "hero" }}
+        <section class="hm-hero">
+            {{ if eyebrow }}<p class="hm-kicker">{{ eyebrow }}</p>{{ /if }}
+            <h1{{ if heading | length > 60 }} class="hm-lang"{{ /if }}>{{ heading | sanitize }}</h1>
+            {{ if intro }}<p class="hm-intro">{{ intro }}</p>{{ /if }}
+            {{ if link_label }}<p style="margin-top:2rem"><a class="hm-btn" href="{{ link_url }}">{{ link_label }}</a></p>{{ /if }}
+            {{ media }}<div class="hm-hero-media"><img src="{{ url }}" alt="{{ alt }}"></div>{{ /media }}
+        </section>
+    {{ /if }}
+
+    {{ if type == "prose" }}
+        <section class="hm-block hm-prose">{{ text | markdown }}</section>
+    {{ /if }}
+
+    {{ if type == "bullets" }}
+        <section class="hm-block hm-bullets">
+            {{ if heading }}<h2>{{ heading | sanitize }}</h2>{{ /if }}
+            <ul>{{ items }}<li>{{ value }}</li>{{ /items }}</ul>
+        </section>
+    {{ /if }}
+
+    {{ if type == "quote" }}
+        <section class="hm-block">
+            <div class="hm-quote">
+                <blockquote>{{ quote }}</blockquote>
+                {{ if source }}<cite>{{ source }}</cite>{{ /if }}
+            </div>
+        </section>
+    {{ /if }}
+
+    {{ if type == "gallery" }}
+        <section class="hm-block">
+            {{ if heading }}<h2>{{ heading | sanitize }}</h2>{{ /if }}
+            <div class="hm-gallery">
+                {{ images }}
+                    <figure>
+                        <img src="{{ url }}" alt="{{ alt }}" loading="lazy">
+                        {{ if alt }}<figcaption>{{ alt }}</figcaption>{{ /if }}
+                    </figure>
+                {{ /images }}
+            </div>
+            {{ if caption }}<p class="hm-caption">{{ caption }}</p>{{ /if }}
+        </section>
+    {{ /if }}
+
+    {{ if type == "pricing" }}
+        <section class="hm-block">
+            {{ if heading }}<h2>{{ heading | sanitize }}</h2>{{ /if }}
+            <div class="hm-plans">
+                {{ plans }}
+                    <div class="hm-plan {{ if highlight }}hm-plan--hl{{ /if }}">
+                        <h3>{{ name }}</h3>
+                        <p class="hm-price">{{ price }}</p>
+                        {{ if period }}<p class="hm-period">{{ period }}</p>{{ /if }}
+                        <ul>{{ features }}<li>{{ value }}</li>{{ /features }}</ul>
+                        {{ if link_label }}<a class="hm-btn" href="{{ link_url }}">{{ link_label }}</a>{{ /if }}
+                    </div>
+                {{ /plans }}
+            </div>
+            {{ if note }}<p class="hm-caption">{{ note }}</p>{{ /if }}
+        </section>
+    {{ /if }}
+
+    {{ if type == "faq" }}
+        <section class="hm-block hm-faq">
+            {{ if heading }}<h2>{{ heading | sanitize }}</h2>{{ /if }}
+            <dl>
+                {{ items }}
+                    <dt>{{ question }}</dt>
+                    <dd>{{ answer | markdown }}</dd>
+                {{ /items }}
+            </dl>
+        </section>
+    {{ /if }}
+
+    {{ if type == "events" }}
+        <section class="hm-block">
+            {{ if heading }}<h2>{{ heading | sanitize }}</h2>{{ /if }}
+            <div class="hm-scroll">
+            <table class="hm-dates">
+                <thead><tr><th>Datum</th><th>Stadt</th><th>Laden</th><th>Status</th></tr></thead>
+                <tbody>
+                {{ items }}
+                    <tr>
+                        <td class="hm-d">{{ day }}</td>
+                        <td class="hm-w">{{ if link_url }}<a href="{{ link_url }}">{{ name }}</a>{{ else }}{{ name }}{{ /if }}</td>
+                        <td class="hm-p">{{ place }}</td>
+                        <td class="hm-n">{{ note }}</td>
+                    </tr>
+                {{ /items }}
+                </tbody>
+            </table>
+            </div>
+        </section>
+    {{ /if }}
+
+    {{ if type == "cta" }}
+        <section class="hm-block">
+            <div class="hm-cta {{ if tone == 'leise' }}hm-cta--leise{{ /if }}">
+                <h2>{{ heading | sanitize }}</h2>
+                {{ if text }}<p>{{ text }}</p>{{ /if }}
+                {{ if link_label }}<a class="hm-btn" href="{{ link_url }}">{{ link_label }}</a>{{ /if }}
+            </div>
+        </section>
+    {{ /if }}
+
+{{ /sections }}
+
+{{ unless sections }}
+    <h1 class="hm-lang">{{ title | sanitize }}</h1>
+    <p class="hm-empty">Hier steht noch nichts. Wirklich nichts.</p>
+{{ /unless }}

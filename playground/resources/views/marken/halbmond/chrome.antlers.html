@@ -1,0 +1,44 @@
+{{# Kollektiv Halbmond — Plakat. Kopfleiste klebt, Laufband darunter. #}}
+<a class="hm-skip" href="#inhalt">Zum Inhalt</a>
+<div class="hm-wrap">
+
+    <header class="hm-top">
+        <div class="hm-top-inner">
+            <a class="hm-logo" href="/halbmond">
+                <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true">
+                    <circle cx="15" cy="15" r="14" fill="#ff3b14"/>
+                    <path d="M22 4a14 14 0 1 0 0 22 15 15 0 0 1 0-22z" fill="#150a0f"/>
+                </svg>
+                Kollektiv Halbmond
+            </a>
+            <nav class="hm-nav" aria-label="Hauptbereiche">
+                {{ nav:collection:pages from="/halbmond" }}
+                    {{ unless noindex }}<a href="{{ url }}"{{ if is_current }} aria-current="page"{{ /if }}>{{ title | sanitize }}</a>{{ /unless }}
+                {{ /nav:collection:pages }}
+            </nav>
+        </div>
+        <div class="hm-ticker">Neues Album »Tiefdruck« ab 14.03.2027 &middot; Tour Herbst 2026 ausverkauft &middot; Fanclub-Vorverkauf läuft</div>
+    </header>
+
+    <main class="hm-main" id="inhalt">
+        {{ template_content }}
+    </main>
+
+    <footer class="hm-foot">
+        <div class="hm-foot-inner">
+            <div>
+                <b>Halbmond</b>
+                Fünf Leute, ein Proberaum unter der Autobahn.
+            </div>
+            <div>
+                Booking: <a href="mailto:booking@halbmond.example">booking@halbmond.example</a><br>
+                Presse: <a href="mailto:presse@halbmond.example">presse@halbmond.example</a>
+            </div>
+            <div>
+                <a href="/halbmond/impressum">Impressum</a><br>
+                {{ consent:settings_link }}
+            </div>
+        </div>
+    </footer>
+
+</div>

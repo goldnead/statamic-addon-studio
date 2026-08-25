@@ -1,0 +1,35 @@
+<div class="lh-col">
+<article class="lh-article">
+    <p class="lh-label">Notiz</p>
+    <h1>{{ title | sanitize }}</h1>
+    <p class="lh-meta">
+        <time datetime="{{ date format='Y-m-d' }}">{{ date format="d.m.Y" }}</time>
+        {{ if author }}<span>{{ author }}</span>{{ /if }}
+    </p>
+
+    {{ if standfirst }}<p class="lh-standfirst">{{ standfirst }}</p>{{ /if }}
+
+    <nav class="lh-toc" aria-label="Inhalt">
+        <p>Auf dieser Seite</p>
+        <ol>
+            {{ toc field="article" depth="4" }}
+            <li>
+                <a href="#{{ toc_id }}">{{ toc_title }}</a>
+                {{ if children }}<ol>{{ *recursive children* }}</ol>{{ /if }}
+            </li>
+            {{ /toc }}
+        </ol>
+    </nav>
+
+    <div class="lh-body">{{ article | toc }}</div>
+
+    {{ if verwandt }}
+    <section class="lh-block">
+        <h2>Dazu passt</h2>
+        <ul class="lh-postlist">
+            {{ verwandt }}<li><h3><a href="{{ url }}">{{ title | sanitize }}</a></h3></li>{{ /verwandt }}
+        </ul>
+    </section>
+    {{ /if }}
+</article>
+</div>

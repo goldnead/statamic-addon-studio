@@ -1,0 +1,34 @@
+{{# Praxis Lindhorst — eine Spalte, viel Luft, nichts drängt. #}}
+<a class="lh-skip" href="#inhalt">Zum Inhalt</a>
+
+<header class="lh-top">
+    <div class="lh-col">
+        <a class="lh-name" href="/lindhorst">
+            <b>Praxis Lindhorst</b>
+            <span>Einzelcoaching</span>
+        </a>
+        <nav class="lh-nav" aria-label="Hauptbereiche">
+            {{ nav:collection:pages from="/lindhorst" }}
+                {{ unless noindex }}<a href="{{ url }}"{{ if is_current }} aria-current="page"{{ /if }}>{{ title | sanitize }}</a>{{ /unless }}
+            {{ /nav:collection:pages }}
+        </nav>
+    </div>
+</header>
+
+<main class="lh-main" id="inhalt">
+    {{ template_content }}
+</main>
+
+<footer>
+    <div class="lh-col">
+        <div class="lh-foot">
+            <span>Praxis Lindhorst &middot; Gartenstraße 7 &middot; 20357 Hamburg</span>
+            <span><a href="mailto:termin@praxis-lindhorst.example">termin@praxis-lindhorst.example</a></span>
+            <span class="lh-legal">
+                <a href="/lindhorst/impressum">Impressum</a>
+                <a href="/lindhorst/datenschutz">Datenschutz</a>
+                {{ consent:settings_link }}
+            </span>
+        </div>
+    </div>
+</footer>

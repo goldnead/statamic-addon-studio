@@ -1,0 +1,4 @@
+{{ if brand == 'chorwerkstatt' }}{{ partial:marken/chorwerkstatt/post }}
+{{ elseif brand == 'halbmond' }}{{ partial:marken/halbmond/post }}
+{{ elseif brand == 'lindhorst' }}{{ partial:marken/lindhorst/post }}
+{{ else }}{{ partial:marken/neutral/post }}{{ /if }}

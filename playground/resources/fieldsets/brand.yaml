@@ -1,0 +1,14 @@
+title: Marke
+fields:
+  -
+    handle: brand
+    field:
+      type: select
+      display: Marke
+      instructions: 'Welcher Kunde diese Seite gehört. Leer = Nordlicht Studio selbst.'
+      clearable: true
+      placeholder: 'Nordlicht Studio (keine Kundenmarke)'
+      options:
+        chorwerkstatt: 'Chorwerkstatt Nord'
+        halbmond: 'Kollektiv Halbmond'
+        lindhorst: 'Praxis Lindhorst'

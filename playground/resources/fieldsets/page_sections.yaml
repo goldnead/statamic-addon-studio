@@ -1,0 +1,113 @@
+title: Seitenbausteine
+fields:
+  -
+    handle: sections
+    field:
+      type: replicator
+      display: Bausteine
+      instructions: 'Der Seitenbaukasten, den diese Site sowieso hat. Ein Funnel-Schritt zeigt auf eine Seite, er ersetzt sie nicht.'
+      collapse: accordion
+      sets:
+        aufmacher:
+          display: Aufmacher
+          sets:
+            hero:
+              display: Hero
+              icon: text-align-left
+              fields:
+                - { handle: eyebrow, field: { type: text, display: Kicker } }
+                - { handle: heading, field: { type: text, display: Überschrift } }
+                - { handle: intro, field: { type: textarea, display: Vorspann } }
+                - { handle: media, field: { type: assets, container: assets, max_files: 1, display: Bild } }
+                - { handle: link_label, field: { type: text, display: 'Button-Text' } }
+                - { handle: link_url, field: { type: text, display: 'Button-Ziel' } }
+            cta:
+              display: 'Call to Action'
+              icon: hyperlink
+              fields:
+                - { handle: heading, field: { type: text, display: Überschrift } }
+                - { handle: text, field: { type: textarea, display: Text } }
+                - { handle: link_label, field: { type: text, display: 'Button-Text' } }
+                - { handle: link_url, field: { type: text, display: 'Button-Ziel' } }
+                - { handle: tone, field: { type: select, display: Tonlage, default: normal, options: { normal: Normal, laut: Laut, leise: Leise } } }
+        text:
+          display: Text
+          sets:
+            prose:
+              display: Text
+              icon: text-align-left
+              fields:
+                - { handle: text, field: { type: textarea, display: Text } }
+            bullets:
+              display: Aufzählung
+              icon: list-bullet
+              fields:
+                - { handle: heading, field: { type: text, display: Überschrift } }
+                - { handle: items, field: { type: list, display: Punkte } }
+            quote:
+              display: Zitat
+              icon: quote
+              fields:
+                - { handle: quote, field: { type: textarea, display: Zitat } }
+                - { handle: source, field: { type: text, display: Quelle } }
+            faq:
+              display: Fragen
+              icon: help
+              fields:
+                - { handle: heading, field: { type: text, display: Überschrift } }
+                -
+                  handle: items
+                  field:
+                    type: grid
+                    display: 'Frage und Antwort'
+                    mode: stacked
+                    fields:
+                      - { handle: question, field: { type: text, display: Frage } }
+                      - { handle: answer, field: { type: textarea, display: Antwort } }
+        listen:
+          display: Listen
+          sets:
+            gallery:
+              display: Bildband
+              icon: assets
+              fields:
+                - { handle: heading, field: { type: text, display: Überschrift } }
+                - { handle: images, field: { type: assets, container: assets, display: Bilder, mode: grid } }
+                - { handle: caption, field: { type: text, display: Bildunterschrift } }
+            pricing:
+              display: Preistafel
+              icon: tags
+              fields:
+                - { handle: heading, field: { type: text, display: Überschrift } }
+                - { handle: note, field: { type: text, display: 'Hinweis unter der Tafel' } }
+                -
+                  handle: plans
+                  field:
+                    type: grid
+                    display: Angebote
+                    mode: stacked
+                    fields:
+                      - { handle: name, field: { type: text, display: Name } }
+                      - { handle: price, field: { type: text, display: Preis } }
+                      - { handle: period, field: { type: text, display: Zeitraum } }
+                      - { handle: features, field: { type: list, display: Enthalten } }
+                      - { handle: highlight, field: { type: toggle, display: Hervorheben } }
+                      - { handle: link_label, field: { type: text, display: 'Button-Text' } }
+                      - { handle: link_url, field: { type: text, display: 'Button-Ziel' } }
+            events:
+              display: Termine
+              icon: calendar
+              fields:
+                - { handle: heading, field: { type: text, display: Überschrift } }
+                -
+                  handle: items
+                  field:
+                    type: grid
+                    display: Termine
+                    mode: stacked
+                    fields:
+                      - { handle: day, field: { type: text, display: Datum } }
+                      - { handle: name, field: { type: text, display: Was } }
+                      - { handle: place, field: { type: text, display: Wo } }
+                      - { handle: note, field: { type: text, display: Notiz } }
+                      - { handle: link_url, field: { type: text, display: Ziel } }

@@ -1,0 +1,26 @@
+<style>
+  .termine, .leer { list-style: none; padding: 0; display: grid; gap: .5rem; }
+  .termine li, .leer li { display: flex; gap: 1rem; align-items: baseline; padding: .75rem 1rem; background: #fff; border: 1px solid #e7e2d8; border-radius: .5rem; }
+  .termine em { margin-left: auto; font-style: normal; font-size: .8rem; letter-spacing: .04em; text-transform: uppercase; color: #6b6357; }
+  .leer .hinweis { color: #6b6357; background: #f4f1ea; border-style: dashed; }
+  h2 { font-family: 'Outfit', sans-serif; font-size: 1rem; letter-spacing: .06em; text-transform: uppercase; color: #6b6357; margin-top: 2.5rem; }
+</style>
+<h1>{{ title }}</h1>
+
+<h2>Nächste Termine</h2>
+<ul class="termine">
+{{ bookings endpoint="beratung" limit="10" }}
+    <li>
+        <strong>{{ scheduled_at format="d.m.Y, H:i" }} Uhr</strong>
+        <span>{{ duration_minutes }} Minuten</span>
+        <em>{{ status }}</em>
+    </li>
+{{ /bookings }}
+</ul>
+
+<h2>Leerer Endpunkt</h2>
+<ul class="leer">
+{{ bookings endpoint="gibtesnicht" }}
+{{ if no_results }}<li class="hinweis">Zurzeit sind keine Termine eingetragen.</li>{{ else }}<li>{{ scheduled_at }}</li>{{ /if }}
+{{ /bookings }}
+</ul>

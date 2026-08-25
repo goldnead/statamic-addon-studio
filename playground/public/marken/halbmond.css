@@ -1,0 +1,396 @@
+/* Kollektiv Halbmond — Band. Laut, dunkel, bildstark.
+   Oxblood statt Schwarz, zwei Signalfarben, Bebas als Plakatschrift,
+   asymmetrisches Raster, harte Kanten, keine Rundungen. */
+
+:root {
+  --hm-void:   #150a0f;
+  --hm-void-2: #200f16;
+  --hm-smoke:  #2d1720;
+  --hm-bone:   #f5ece0;
+  --hm-bone-d: #b7a596;
+  --hm-blood:  #ff3b14;
+  --hm-acid:   #ece34a;
+  --plakat: 'Bebas Neue', 'Arial Narrow', Impact, sans-serif;
+  --text:   'Space Grotesk', 'Helvetica Neue', Arial, sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--hm-void);
+  color: var(--hm-bone);
+  font-family: var(--text);
+  font-size: 17px;
+  line-height: 1.55;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: .5;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(255,255,255,.035) 0 1px, transparent 1px 3px);
+}
+
+a { color: var(--hm-acid); text-decoration: none; }
+a:hover { color: var(--hm-blood); }
+
+img { max-width: 100%; height: auto; display: block; }
+
+.hm-wrap { position: relative; z-index: 1; }
+
+/* ---------- Kopf ---------- */
+
+.hm-top {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--hm-void);
+  border-bottom: 2px solid var(--hm-blood);
+}
+.hm-top-inner {
+  max-width: 84rem;
+  margin: 0 auto;
+  padding: .5rem 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  flex-wrap: wrap;
+}
+.hm-logo {
+  font-family: var(--plakat);
+  font-size: clamp(1.6rem, 4vw, 2.3rem);
+  line-height: 1;
+  letter-spacing: .04em;
+  color: var(--hm-bone);
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+.hm-logo:hover { color: var(--hm-bone); }
+.hm-logo svg { flex: none; }
+.hm-nav { margin-left: auto; display: flex; gap: 1.1rem; flex-wrap: wrap; }
+.hm-nav a {
+  font-family: var(--plakat);
+  font-size: 1.05rem;
+  letter-spacing: .1em;
+  color: var(--hm-bone-d);
+}
+.hm-nav a:hover, .hm-nav a[aria-current] { color: var(--hm-blood); }
+
+.hm-ticker {
+  background: var(--hm-blood);
+  color: var(--hm-void);
+  font-family: var(--plakat);
+  font-size: .95rem;
+  letter-spacing: .22em;
+  padding: .3rem 1.1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---------- Fläche ---------- */
+
+.hm-main { max-width: 84rem; margin: 0 auto; padding: 0 1.1rem 6rem; }
+
+.hm-block { padding: 3.5rem 0; border-bottom: 1px solid var(--hm-smoke); }
+.hm-block:last-of-type { border-bottom: 0; }
+
+.hm-kicker {
+  font-family: var(--plakat);
+  font-size: 1rem;
+  letter-spacing: .34em;
+  color: var(--hm-acid);
+  margin: 0 0 .9rem;
+}
+
+h1, h2, h3 { font-family: var(--plakat); font-weight: 400; letter-spacing: .01em; margin: 0; }
+
+/* Hero: übergroß, links gerissen */
+.hm-hero { padding: 2.5rem 0 3.5rem; }
+.hm-hero h1 {
+  font-size: clamp(3.4rem, 13vw, 10rem);
+  line-height: .82;
+  text-transform: uppercase;
+  margin: 0 0 1.4rem;
+  color: var(--hm-bone);
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+.hm-hero h1 em { font-style: normal; color: var(--hm-blood); display: block; }
+.hm-hero .hm-intro {
+  font-size: clamp(1.05rem, 2vw, 1.35rem);
+  max-width: 34rem;
+  color: var(--hm-bone-d);
+  margin: 0;
+  border-left: 3px solid var(--hm-acid);
+  padding-left: 1.1rem;
+}
+.hm-hero-media { margin-top: 2.5rem; position: relative; }
+.hm-hero-media img { width: 100%; aspect-ratio: 21 / 9; object-fit: cover; filter: contrast(1.15) saturate(.75); }
+.hm-hero-media::after {
+  content: "";
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(21,10,15,0) 40%, rgba(21,10,15,.85) 100%);
+  pointer-events: none;
+}
+
+h2 { font-size: clamp(2rem, 5.5vw, 3.4rem); line-height: .95; text-transform: uppercase; margin-bottom: 1.2rem; }
+h3 { font-size: 1.5rem; text-transform: uppercase; letter-spacing: .06em; }
+
+/* Text */
+.hm-prose { max-width: 40rem; font-size: 1.05rem; color: var(--hm-bone-d); }
+.hm-prose p { margin: 0 0 1.15rem; }
+.hm-prose p:first-child::first-letter {
+  font-family: var(--plakat);
+  float: left;
+  font-size: 3.6rem;
+  line-height: .78;
+  padding: .1em .18em 0 0;
+  color: var(--hm-blood);
+}
+.hm-prose strong { color: var(--hm-bone); font-weight: 700; }
+
+/* Aufzählung als Plakatliste */
+.hm-bullets ul { list-style: none; margin: 0; padding: 0; counter-reset: hmb; }
+.hm-bullets li {
+  counter-increment: hmb;
+  display: flex;
+  gap: 1.2rem;
+  align-items: baseline;
+  padding: 1rem 0;
+  border-top: 1px solid var(--hm-smoke);
+  font-size: clamp(1.05rem, 2.6vw, 1.5rem);
+}
+.hm-bullets li::before {
+  content: counter(hmb, decimal-leading-zero);
+  font-family: var(--plakat);
+  font-size: 1.5rem;
+  color: var(--hm-blood);
+  flex: none;
+  width: 2.2rem;
+}
+
+/* Zitat */
+.hm-quote { background: var(--hm-acid); color: var(--hm-void); padding: 2.5rem 1.6rem; }
+.hm-quote blockquote {
+  margin: 0;
+  font-family: var(--plakat);
+  font-size: clamp(1.9rem, 6vw, 3.6rem);
+  line-height: .96;
+  text-transform: uppercase;
+  max-width: 22ch;
+}
+.hm-quote cite {
+  display: block;
+  margin-top: 1.2rem;
+  font-family: var(--text);
+  font-style: normal;
+  font-size: .8rem;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+}
+
+/* Bildband: gebrochenes Raster */
+.hm-gallery { display: grid; gap: .5rem; grid-template-columns: repeat(6, 1fr); }
+.hm-gallery figure { margin: 0; position: relative; grid-column: span 6; }
+@media (min-width: 46rem) {
+  .hm-gallery figure { grid-column: span 2; }
+  .hm-gallery figure:nth-child(3n+1) { grid-column: span 4; }
+  .hm-gallery figure:nth-child(5n) { margin-top: 2.5rem; }
+}
+.hm-gallery img { width: 100%; aspect-ratio: 1 / 1; object-fit: cover; filter: grayscale(.35) contrast(1.2); }
+.hm-gallery figure:nth-child(3n+1) img { aspect-ratio: 16 / 9; }
+.hm-gallery figcaption {
+  font-size: .72rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--hm-bone-d);
+  padding-top: .45rem;
+}
+.hm-caption { color: var(--hm-bone-d); font-size: .85rem; margin: 1rem 0 0; }
+
+/* Preistafel */
+.hm-plans { display: grid; gap: .5rem; }
+@media (min-width: 46rem) { .hm-plans { grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); } }
+.hm-plan { background: var(--hm-void-2); border: 1px solid var(--hm-smoke); padding: 1.6rem 1.4rem; display: flex; flex-direction: column; }
+.hm-plan--hl { background: var(--hm-blood); color: var(--hm-void); border-color: var(--hm-blood); }
+.hm-plan--hl a.hm-btn { background: var(--hm-void); color: var(--hm-bone); border-color: var(--hm-void); }
+.hm-plan h3 { margin-bottom: .8rem; }
+.hm-price { font-family: var(--plakat); font-size: 3.2rem; line-height: .85; color: var(--hm-acid); }
+.hm-plan--hl .hm-price { color: var(--hm-void); }
+.hm-period { font-size: .74rem; letter-spacing: .16em; text-transform: uppercase; opacity: .75; margin: .45rem 0 1.2rem; }
+.hm-plan ul { list-style: none; margin: 0 0 1.4rem; padding: 0; font-size: .92rem; }
+.hm-plan li { padding: .4rem 0; border-top: 1px dashed rgba(245,236,224,.22); }
+.hm-plan--hl li { border-top-color: rgba(21,10,15,.3); }
+.hm-plan .hm-btn { margin-top: auto; }
+
+/* Fragen */
+.hm-faq dl { margin: 0; max-width: 46rem; }
+.hm-faq dt {
+  font-family: var(--plakat);
+  font-size: 1.35rem;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--hm-acid);
+  border-top: 1px solid var(--hm-smoke);
+  padding-top: 1.1rem;
+  margin-top: 1.1rem;
+}
+.hm-faq dd { margin: .45rem 0 0; color: var(--hm-bone-d); }
+
+/* Termine: dichte Tabelle */
+.hm-dates { width: 100%; border-collapse: collapse; }
+.hm-dates th {
+  font-family: var(--text);
+  font-size: .66rem;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--hm-bone-d);
+  text-align: left;
+  font-weight: 500;
+  padding-bottom: .6rem;
+  border-bottom: 1px solid var(--hm-smoke);
+}
+.hm-dates td { padding: .95rem .7rem .95rem 0; border-bottom: 1px solid var(--hm-smoke); vertical-align: baseline; }
+.hm-dates tr:hover td { background: var(--hm-void-2); }
+.hm-dates .hm-d {
+  font-family: var(--plakat);
+  font-size: 1.5rem;
+  color: var(--hm-blood);
+  white-space: nowrap;
+  letter-spacing: .04em;
+}
+.hm-dates .hm-w { font-family: var(--plakat); font-size: 1.35rem; letter-spacing: .04em; }
+.hm-dates .hm-p { color: var(--hm-bone-d); font-size: .9rem; }
+.hm-dates .hm-n { font-size: .78rem; letter-spacing: .14em; text-transform: uppercase; color: var(--hm-acid); }
+
+/* CTA */
+.hm-cta { background: var(--hm-blood); color: var(--hm-void); padding: 3rem 1.6rem 3.2rem; }
+.hm-cta h2 { color: var(--hm-void); }
+.hm-cta p { max-width: 36rem; margin: 0 0 1.8rem; font-size: 1.05rem; }
+.hm-cta .hm-btn { background: var(--hm-void); color: var(--hm-bone); border-color: var(--hm-void); }
+.hm-cta--leise { background: var(--hm-void-2); color: var(--hm-bone); border: 1px solid var(--hm-smoke); }
+.hm-cta--leise h2 { color: var(--hm-bone); }
+.hm-cta--leise p { color: var(--hm-bone-d); }
+.hm-cta--leise .hm-btn { background: var(--hm-acid); color: var(--hm-void); border-color: var(--hm-acid); }
+
+.hm-btn {
+  display: inline-block;
+  font-family: var(--plakat);
+  font-size: 1.15rem;
+  letter-spacing: .16em;
+  padding: .55rem 1.4rem .45rem;
+  background: var(--hm-acid);
+  border: 2px solid var(--hm-acid);
+  color: var(--hm-void);
+}
+.hm-btn:hover { background: transparent; color: var(--hm-acid); }
+
+/* ---------- Blog ---------- */
+
+.hm-article { max-width: 44rem; padding: 3rem 0 4rem; }
+.hm-article h1 {
+  font-size: clamp(2.4rem, 8vw, 5rem);
+  line-height: .88;
+  text-transform: uppercase;
+  margin: 0 0 1.2rem;
+  overflow-wrap: anywhere;
+}
+.hm-meta {
+  display: flex; flex-wrap: wrap; gap: .35rem 1.2rem;
+  font-size: .72rem; letter-spacing: .2em; text-transform: uppercase;
+  color: var(--hm-bone-d);
+  border-top: 1px solid var(--hm-smoke);
+  border-bottom: 1px solid var(--hm-smoke);
+  padding: .7rem 0;
+  margin: 0 0 1.8rem;
+}
+.hm-standfirst { font-size: 1.2rem; color: var(--hm-bone); margin: 0 0 2rem; max-width: 36rem; }
+
+.hm-toc { background: var(--hm-void-2); border-left: 4px solid var(--hm-acid); padding: 1.1rem 1.3rem; margin: 0 0 2.4rem; }
+.hm-toc p { font-family: var(--plakat); font-size: 1.1rem; letter-spacing: .22em; color: var(--hm-acid); margin: 0 0 .5rem; }
+.hm-toc ol { list-style: none; margin: 0; padding: 0; font-size: .9rem; }
+.hm-toc ol ol { padding-left: 1.2rem; border-left: 1px solid var(--hm-smoke); margin-top: .2rem; }
+.hm-toc li { margin: .2rem 0; }
+.hm-toc a { color: var(--hm-bone); }
+.hm-toc a:hover { color: var(--hm-blood); }
+
+.hm-body { font-size: 1.05rem; color: var(--hm-bone-d); }
+.hm-body h2 { font-size: clamp(1.7rem, 4.5vw, 2.6rem); margin: 2.6rem 0 .9rem; color: var(--hm-bone); }
+.hm-body h3 { margin: 2rem 0 .6rem; color: var(--hm-acid); }
+.hm-body h4 {
+  font-family: var(--text); font-weight: 700; font-size: .95rem;
+  letter-spacing: .12em; text-transform: uppercase;
+  margin: 1.7rem 0 .4rem; color: var(--hm-bone);
+}
+.hm-body p { margin: 0 0 1.15rem; }
+.hm-body blockquote {
+  margin: 1.8rem 0; padding: 1rem 0 1rem 1.3rem;
+  border-left: 4px solid var(--hm-blood);
+  font-family: var(--plakat); font-size: 1.6rem; line-height: 1.1;
+  text-transform: uppercase; color: var(--hm-bone);
+}
+.hm-body ul, .hm-body ol { padding-left: 1.2rem; }
+.hm-body :target { scroll-margin-top: 5rem; }
+
+.hm-postlist { list-style: none; margin: 0; padding: 0; }
+.hm-postlist li { border-top: 1px solid var(--hm-smoke); padding: 1.4rem 0; }
+.hm-postlist h3 { font-size: clamp(1.4rem, 3.5vw, 2.1rem); margin-bottom: .3rem; }
+.hm-postlist a { color: var(--hm-bone); }
+.hm-postlist a:hover { color: var(--hm-blood); }
+.hm-postlist p { color: var(--hm-bone-d); font-size: .95rem; margin: .3rem 0 0; }
+.hm-postlist .hm-when { font-size: .7rem; letter-spacing: .2em; text-transform: uppercase; color: var(--hm-acid); }
+
+.hm-empty {
+  border: 1px dashed var(--hm-smoke);
+  color: var(--hm-bone-d);
+  padding: 1.2rem 1.3rem;
+  font-size: .85rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.hm-foot {
+  border-top: 2px solid var(--hm-blood);
+  background: var(--hm-void-2);
+  padding: 2.5rem 1.1rem 3rem;
+}
+.hm-foot-inner {
+  max-width: 84rem; margin: 0 auto;
+  display: flex; flex-wrap: wrap; gap: 1.5rem 3rem;
+  font-size: .8rem; color: var(--hm-bone-d);
+}
+.hm-foot b { font-family: var(--plakat); font-size: 1.6rem; color: var(--hm-bone); display: block; letter-spacing: .06em; }
+
+.hm-skip { position: absolute; left: -9999px; background: var(--hm-acid); color: var(--hm-void); padding: .6rem 1rem; }
+.hm-skip:focus { left: .5rem; top: .5rem; z-index: 40; }
+
+.hm-toc:has(ol:empty) { display: none; }
+
+.hm-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.hm-scroll .hm-dates { min-width: 28rem; }
+
+/* Am Telefon zaehlen Datum, Stadt und Status. Der Laden passt nicht mehr mit drauf. */
+@media (max-width: 34rem) {
+  .hm-scroll { overflow-x: visible; }
+  .hm-scroll .hm-dates { min-width: 0; }
+  .hm-dates th:nth-child(3), .hm-dates td:nth-child(3) { display: none; }
+  .hm-dates .hm-d { font-size: 1.2rem; }
+  .hm-dates .hm-w { font-size: 1.1rem; }
+  .hm-dates .hm-n { font-size: .66rem; letter-spacing: .08em; }
+  .hm-dates td { padding: .8rem .5rem .8rem 0; }
+}
+
+/* Plakatschrift bei langen Titeln herunterschalten: sonst frisst eine
+   Ueberschrift mit 250 Zeichen den ganzen ersten Bildschirm. */
+.hm-hero h1.hm-lang { font-size: clamp(2rem, 5.5vw, 3.6rem); line-height: .95; }
+.hm-article h1.hm-lang { font-size: clamp(1.7rem, 3.6vw, 2.6rem); line-height: 1.02; }

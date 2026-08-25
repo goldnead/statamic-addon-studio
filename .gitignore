@@ -1,5 +1,25 @@
 /reference/
-playground/
+# Der Playground selbst ist Wegwerfstand: vendor, node_modules, die Datenbank.
+#
+# Das **Demo-Projekt** darin ist es nicht. Es ist gleichzeitig der Schauraum und
+# die Regressionsprobe, die die ganze Familie einmal gemeinsam faehrt, und ein
+# frischer Klon soll es wiederbauen koennen. Deshalb wird hier der *Inhalt* des
+# Ordners ausgeschlossen und nicht der Ordner: git kann nichts wieder
+# hereinholen, was unterhalb eines ausgeschlossenen Verzeichnisses liegt.
+playground/*
+!playground/app/
+!playground/content/
+!playground/resources/
+!playground/public/
+!playground/DEMO.md
+
+# Innerhalb der wieder hereingeholten Ordner: nur der Quellteil.
+playground/resources/*
+!playground/resources/blueprints/
+!playground/resources/fieldsets/
+!playground/resources/views/
+playground/public/*
+!playground/public/marken/
 vendor/
 node_modules/
 .DS_Store

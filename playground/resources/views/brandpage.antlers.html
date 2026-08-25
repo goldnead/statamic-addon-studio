@@ -1,0 +1,5 @@
+{{# Ein Einstieg für alle drei Marken. Das Aussehen liegt im Marken-Ordner. #}}
+{{ if brand == 'chorwerkstatt' }}{{ partial:marken/chorwerkstatt/page }}
+{{ elseif brand == 'halbmond' }}{{ partial:marken/halbmond/page }}
+{{ elseif brand == 'lindhorst' }}{{ partial:marken/lindhorst/page }}
+{{ else }}{{ partial:marken/neutral/page }}{{ /if }}

@@ -1,0 +1,15 @@
+<div class="cw-article">
+    <p class="cw-label">Werkstattbuch</p>
+    <h1>{{ title | sanitize }}</h1>
+    {{ sections }}{{ if type == "prose" }}<div class="cw-prose cw-measure" style="margin-bottom:2.5rem">{{ text | markdown }}</div>{{ /if }}{{ /sections }}
+
+    <ul class="cw-postlist">
+        {{ collection:posts brand:is="chorwerkstatt" sort="date:desc" }}
+            <li>
+                <h3><a href="{{ url }}">{{ title | sanitize }}</a></h3>
+                <p class="cw-meta"><time datetime="{{ date format='Y-m-d' }}">{{ date format="d.m.Y" }}</time></p>
+                {{ if standfirst }}<p>{{ standfirst | truncate:180 }}</p>{{ /if }}
+            </li>
+        {{ /collection:posts }}
+    </ul>
+</div>

@@ -1,0 +1,57 @@
+title: Beitrag
+tabs:
+  main:
+    display: Main
+    sections:
+      -
+        fields:
+          -
+            handle: title
+            field:
+              type: text
+              required: true
+              display: Titel
+          -
+            import: brand
+          -
+            handle: date
+            field:
+              type: date
+              display: Datum
+              required: true
+              time_enabled: false
+          -
+            handle: author
+            field:
+              type: text
+              display: 'Geschrieben von'
+          -
+            handle: standfirst
+            field:
+              type: textarea
+              display: Vorspann
+              instructions: 'Zwei, drei Sätze über dem Text.'
+          -
+            handle: article
+            field:
+              type: bard
+              display: Text
+              save_html: false
+              always_show_set_button: false
+              buttons: [h2, h3, h4, bold, italic, unorderedlist, orderedlist, quote, anchor, link, removeformat]
+              toolbar_mode: fixed
+              container: assets
+          -
+            handle: verwandt
+            field:
+              type: entries
+              display: 'Weiterlesen'
+              collections: [posts, pages]
+              max_items: 4
+  meta:
+    display: Meta
+    sections:
+      -
+        fields:
+          -
+            import: seo

@@ -1,0 +1,9 @@
+title: Beiträge
+route: '/{brand}/journal/{slug}'
+date: true
+date_behavior:
+  past: public
+  future: public
+sort_dir: desc
+template: brandpost
+layout: layout

@@ -1,0 +1,13 @@
+<div class="hm-article">
+    <h1>{{ title | sanitize }}</h1>
+    {{ sections }}{{ if type == "prose" }}<div class="hm-prose" style="margin-bottom:2.5rem">{{ text | markdown }}</div>{{ /if }}{{ /sections }}
+    <ul class="hm-postlist">
+        {{ collection:posts brand:is="halbmond" sort="date:desc" }}
+            <li>
+                <span class="hm-when">{{ date format="d.m.Y" }}</span>
+                <h3><a href="{{ url }}">{{ title | sanitize }}</a></h3>
+                {{ if standfirst }}<p>{{ standfirst | truncate:180 }}</p>{{ /if }}
+            </li>
+        {{ /collection:posts }}
+    </ul>
+</div>

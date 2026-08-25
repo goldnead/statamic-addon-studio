@@ -1,0 +1,110 @@
+{{ sections }}
+
+    {{ if type == "hero" }}
+        <section class="cw-block cw-hero cw-block--wide">
+            {{ if eyebrow }}<p class="cw-label">{{ eyebrow }}</p>{{ /if }}
+            <h1>{{ heading | sanitize }}</h1>
+            {{ if intro }}<p class="cw-intro">{{ intro }}</p>{{ /if }}
+            {{ if link_label }}<p style="margin-top:1.75rem"><a class="cw-btn" href="{{ link_url }}">{{ link_label }}</a></p>{{ /if }}
+            {{ media }}<img src="{{ url }}" alt="{{ alt }}" width="{{ width }}" height="{{ height }}">{{ /media }}
+        </section>
+    {{ /if }}
+
+    {{ if type == "prose" }}
+        <section class="cw-block cw-prose cw-measure">{{ text | markdown }}</section>
+    {{ /if }}
+
+    {{ if type == "bullets" }}
+        <section class="cw-block cw-bullets cw-measure">
+            {{ if heading }}<h2>{{ heading | sanitize }}</h2>{{ /if }}
+            <ul>{{ items }}<li>{{ value }}</li>{{ /items }}</ul>
+        </section>
+    {{ /if }}
+
+    {{ if type == "quote" }}
+        <section class="cw-block cw-quote cw-measure">
+            <blockquote>{{ quote }}</blockquote>
+            {{ if source }}<cite>{{ source }}</cite>{{ /if }}
+        </section>
+    {{ /if }}
+
+    {{ if type == "gallery" }}
+        <section class="cw-block cw-gallery cw-block--wide">
+            {{ if heading }}<h2>{{ heading | sanitize }}</h2>{{ /if }}
+            <div class="cw-gallery-grid">
+                {{ images }}
+                    <figure>
+                        <img src="{{ url }}" alt="{{ alt }}" loading="lazy">
+                        {{ if alt }}<figcaption>{{ alt }}</figcaption>{{ /if }}
+                    </figure>
+                {{ /images }}
+            </div>
+            {{ if caption }}<p class="cw-caption">{{ caption }}</p>{{ /if }}
+        </section>
+    {{ /if }}
+
+    {{ if type == "pricing" }}
+        <section class="cw-block cw-pricing cw-block--wide">
+            {{ if heading }}<h2>{{ heading | sanitize }}</h2>{{ /if }}
+            <div class="cw-plans">
+                {{ plans }}
+                    <div class="cw-plan {{ if highlight }}cw-plan--hl{{ /if }}">
+                        <h3>{{ name }}</h3>
+                        <p class="cw-price">{{ price }}</p>
+                        {{ if period }}<p class="cw-period">{{ period }}</p>{{ /if }}
+                        <ul>{{ features }}<li>{{ value }}</li>{{ /features }}</ul>
+                        {{ if link_label }}<a class="cw-btn {{ if highlight }}{{ else }}cw-btn--ghost{{ /if }}" href="{{ link_url }}">{{ link_label }}</a>{{ /if }}
+                    </div>
+                {{ /plans }}
+            </div>
+            {{ if note }}<p class="cw-caption">{{ note }}</p>{{ /if }}
+        </section>
+    {{ /if }}
+
+    {{ if type == "faq" }}
+        <section class="cw-block cw-faq cw-measure">
+            {{ if heading }}<h2>{{ heading | sanitize }}</h2>{{ /if }}
+            <dl>
+                {{ items }}
+                    <dt>{{ question }}</dt>
+                    <dd>{{ answer | markdown }}</dd>
+                {{ /items }}
+            </dl>
+        </section>
+    {{ /if }}
+
+    {{ if type == "events" }}
+        <section class="cw-block cw-events-wrap cw-block--wide">
+            {{ if heading }}<h2>{{ heading | sanitize }}</h2>{{ /if }}
+            <div class="cw-scroll">
+            <table class="cw-events">
+                <thead><tr><th>Wann</th><th>Was</th><th>Wo</th></tr></thead>
+                <tbody>
+                {{ items }}
+                    <tr>
+                        <td>{{ day }}</td>
+                        <td>{{ if link_url }}<a href="{{ link_url }}">{{ name }}</a>{{ else }}{{ name }}{{ /if }}
+                            {{ if note }}<div class="cw-note">{{ note }}</div>{{ /if }}</td>
+                        <td>{{ place }}</td>
+                    </tr>
+                {{ /items }}
+                </tbody>
+            </table>
+            </div>
+        </section>
+    {{ /if }}
+
+    {{ if type == "cta" }}
+        <section class="cw-block cw-cta {{ if tone == 'leise' }}cw-cta--leise{{ /if }} cw-block--wide">
+            <h2>{{ heading | sanitize }}</h2>
+            {{ if text }}<p>{{ text }}</p>{{ /if }}
+            {{ if link_label }}<a class="cw-btn" href="{{ link_url }}">{{ link_label }}</a>{{ /if }}
+        </section>
+    {{ /if }}
+
+{{ /sections }}
+
+{{ unless sections }}
+    <h1 class="cw-hero-leer">{{ title | sanitize }}</h1>
+    <p class="cw-empty">Für diese Seite ist noch kein Baustein angelegt. Sie ist im Menü sichtbar, aber leer.</p>
+{{ /unless }}
