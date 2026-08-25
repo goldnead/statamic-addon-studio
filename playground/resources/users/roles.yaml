@@ -1,0 +1,49 @@
+# Eine Agentur mit Kunden hat nicht einen Superuser, sie hat ein Team mit
+# unterschiedlichem Zugriff. Genau das ist der Fall, in dem sich Markenscoping
+# und Berechtigungen entscheiden — mit einem einzigen Superuser sieht jede
+# Berechtigung gleich aus, nämlich erlaubt.
+agentur:
+  title: Agentur
+  permissions:
+    - 'access cp'
+    - 'view brands'
+    - 'manage brands'
+    - 'configure collections'
+    - 'configure forms'
+    - 'view forms'
+    - 'access payments utility'
+    - 'access subscriptions utility'
+    - 'access offers utility'
+    - 'access coupons utility'
+    - 'access funnels utility'
+    - 'access bookings utility'
+    - 'view automations'
+    - 'create automations'
+    - 'edit automations'
+    - 'enable automations'
+    - 'view automation runs'
+    - 'view webhooks'
+    - 'manage outbound webhooks'
+    - 'view activity'
+    - 'view entitlements'
+    - 'grant entitlements'
+    - 'revoke entitlements'
+    - 'view leadhub'
+    - 'manage leadhub contacts'
+
+redaktion:
+  title: Redaktion
+  permissions:
+    - 'access cp'
+    - 'view forms'
+    - 'view leadhub'
+    - 'manage leadhub contacts'
+    - 'view activity'
+
+buchhaltung:
+  title: Buchhaltung
+  permissions:
+    - 'access cp'
+    - 'access payments utility'
+    - 'access subscriptions utility'
+    - 'view entitlements'

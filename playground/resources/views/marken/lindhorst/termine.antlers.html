@@ -1,0 +1,80 @@
+{{#
+    Die Sprechstunden der Praxis Lindhorst, aus `statamic-events`.
+
+    Der interessante Fall hier ist der Termin ohne Ort. Es gibt keinen Raum, nur
+    einen Link, und das Addon lässt das ausdrücklich zu — verlangt aber, dass
+    eines von beidem da ist. Ein Termin, zu dem niemand hingehen kann, ist kein
+    Termin.
+
+    Die interne Supervision ist als `private` hinterlegt und steht deshalb
+    nirgends auf dieser Seite, auch nicht mit `listable="false"`. Nur im
+    Control Panel.
+#}}
+
+<div class="lh-col">
+
+<section class="lh-block lh-hero">
+    <p class="lh-label">Termine</p>
+    <h1>Offene Sprechstunde</h1>
+    <p class="lh-intro">
+        Einmal im Monat, eine Stunde, online. Keine Anmeldung, keine Tagesordnung.
+        Wer da ist, ist da.
+    </p>
+</section>
+
+{{ events:next }}
+    <section class="lh-block">
+        <div class="lh-cta">
+            <h2>Der nächste Termin</h2>
+            <p>
+                {{ starts_at format="d.m.Y" }}, {{ starts_at format="H:i" }} bis {{ ends_at format="H:i" }} Uhr
+                ({{ timezone }})
+            </p>
+            {{ if online }}
+                <p class="lh-note">Findet ausschließlich online statt: {{ online_url }}</p>
+            {{ /if }}
+            <a class="lh-btn" href="{{ events:ics_url occurrence="{ id }" }}">In den Kalender</a>
+        </div>
+    </section>
+{{ /events:next }}
+
+<section class="lh-block">
+    <h2>{{ events:count from="now" include_cancelled="false" }} Termine stehen fest</h2>
+    <ul class="lh-events">
+        {{ events:upcoming }}
+            <li>
+                <span class="lh-when">{{ starts_at format="d.m.Y" }}</span>
+                <span>
+                    <span class="lh-what">{{ event:title }}</span><br>
+                    <span class="lh-where">
+                        {{ if online }}Online, {{ online_url }}{{ else }}{{ location }}{{ /if }}
+                    </span>
+                </span>
+            </li>
+        {{ /events:upcoming }}
+    </ul>
+</section>
+
+<section class="lh-block">
+    <h2>Was hier nicht steht</h2>
+    <p class="lh-note">
+        Konzerte in diesem Kalender: {{ events:count type="concert" }}. Die Praxis gibt
+        keine. Ein Filter, der nichts trifft, liefert eine leere Liste und keine
+        Fehlermeldung, und genau so soll er sich anfühlen.
+    </p>
+    <p class="lh-note">
+        Die interne Supervision am 24.09. ist ein privater Termin. Sie steht im
+        Control Panel und sonst nirgends: nicht in dieser Liste, nicht im Feed, und
+        auch nicht, wenn jemand ihre Adresse errät.
+    </p>
+</section>
+
+<section class="lh-block">
+    <div class="lh-cta lh-cta--laut">
+        <h2>Kalender abonnieren</h2>
+        <p>Damit die nächste Sprechstunde von allein im Kalender auftaucht.</p>
+        <a class="lh-btn" href="{{ events:feed_url }}?brand=lindhorst">Kalender abonnieren</a>
+    </div>
+</section>
+
+</div>

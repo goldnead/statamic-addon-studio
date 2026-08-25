@@ -1,0 +1,50 @@
+{{#
+    Die versteckten Felder, aus denen LeadHub die Erstkontakt-Attribution liest.
+
+    Die Namen sind keine Erfindung dieses Playgrounds: sie stehen in
+    `config/leadhub.php` unter `attribution.fields` (Spalte => Feld-Handle) und
+    im Blueprint jedes der drei Formulare. Wer eins von beidem umbenennt, ohne
+    das andere mitzunehmen, bekommt keinen Fehler — er bekommt Kontakte ohne
+    Herkunft, und das merkt niemand, bis jemand fragt, woher die Anfragen kommen.
+
+    Gefüllt wird im Browser, aus der Adresszeile und aus `document.referrer`.
+    Das ist der Grund, warum es überhaupt versteckte Felder sein müssen: der
+    Server sieht die Kampagnenparameter nur bei genau dem einen Aufruf, mit dem
+    jemand ankommt, und das ist selten der Aufruf, bei dem er das Formular
+    abschickt.
+
+    `first-touch`: LeadHub überschreibt eine einmal erfasste Herkunft nie. Die
+    Anfrage gehört der Anzeige, die den Menschen gebracht hat, nicht der Seite,
+    auf der er zufällig zuletzt war.
+#}}
+<input type="hidden" name="utm_source" value="" data-utm="utm_source">
+<input type="hidden" name="utm_medium" value="" data-utm="utm_medium">
+<input type="hidden" name="utm_campaign" value="" data-utm="utm_campaign">
+
+<script>
+    (function () {
+        var query = new URLSearchParams(window.location.search);
+
+        document.querySelectorAll('[data-utm]').forEach(function (feld) {
+            var name = feld.getAttribute('data-utm');
+            var wert = query.get(name);
+
+            /*
+             * Der Referrer ist die Notlösung und wird deshalb nur genommen,
+             * wenn die Adresszeile schweigt: eine Kampagne, die sich selbst
+             * benennt, weiß es besser als eine Herkunft, die wir erraten.
+             */
+            if (!wert && name === 'utm_source' && document.referrer) {
+                try {
+                    wert = new URL(document.referrer).hostname;
+                } catch (e) {
+                    wert = null;
+                }
+            }
+
+            if (wert) {
+                feld.value = wert;
+            }
+        });
+    })();
+</script>

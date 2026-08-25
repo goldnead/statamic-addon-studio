@@ -1,0 +1,80 @@
+{{#
+    Halbmonds Termine, direkt aus `statamic-events`.
+
+    Nicht zu verwechseln mit `/termine`: das ist die Cal.com-Demo von
+    `statamic-booking` und zeigt Buchungsslots. Hier stehen Konzerte.
+
+    Die Tabelle zeigt bewusst `{{ events:occurrences }}` und nicht nur
+    `{{ events:upcoming }}`: der abgesagte Kölner Abend gehört auf die Seite.
+    Ein Termin, der bei der Absage verschwindet, ist der Grund, warum Leute
+    trotzdem vor der Tür stehen.
+#}}
+
+<section class="hm-hero">
+    <p class="hm-kicker">{{ events:count }} Termine, {{ events:count from="now" include_cancelled="false" }} davon spielbar</p>
+    <h1>Termine</h1>
+    <p class="hm-intro">Alles, was feststeht. Abgesagtes bleibt stehen und wird durchgestrichen, damit niemand vor einer verschlossenen Tür steht.</p>
+</section>
+
+{{# Der nächste Abend. `{{ events:next }}` lässt Abgesagtes nie „nächster" sein. #}}
+{{ events:next }}
+    <section class="hm-block">
+        <div class="hm-cta">
+            <h2>Als Nächstes: {{ event:title }}</h2>
+            <p>
+                {{ starts_at format="d.m.Y, H:i" }} Uhr ({{ timezone }})<br>
+                {{ location }}
+            </p>
+            <a class="hm-btn" href="{{ ics_url }}">In den Kalender</a>
+        </div>
+    </section>
+{{ /events:next }}
+
+<section class="hm-block">
+    <h2>Alle Termine</h2>
+    <div class="hm-scroll">
+        <table class="hm-dates">
+            <thead>
+                <tr><th>Datum</th><th>Stadt</th><th>Laden</th><th>Status</th><th></th></tr>
+            </thead>
+            <tbody>
+                {{ events:occurrences }}
+                    <tr>
+                        <td class="hm-d">
+                            {{ if cancelled }}<s>{{ starts_at format="d.m.Y, H:i" }}</s>{{ else }}{{ starts_at format="d.m.Y, H:i" }}{{ /if }}
+                        </td>
+                        <td class="hm-w">{{ venue_city }}</td>
+                        <td class="hm-p">
+                            {{ venue_name }}
+                            {{ if cancelled }}<br><span class="hm-caption">{{ cancellation_reason }}</span>{{ /if }}
+                        </td>
+                        <td class="hm-n">{{ if cancelled }}Abgesagt{{ else }}{{ timezone }}{{ /if }}</td>
+                        <td class="hm-n"><a href="{{ ics_url }}">.ics</a></td>
+                    </tr>
+                {{ /events:occurrences }}
+            </tbody>
+        </table>
+    </div>
+    <p class="hm-caption">
+        Reykjavík steht in seiner eigenen Zeitzone. 21:00 heißt dort 21:00 und nicht
+        21:00 in Bochum, und das ist der ganze Grund, warum ein Termin eine eigene
+        Zone haben darf.
+    </p>
+</section>
+
+<section class="hm-block">
+    <div class="hm-cta hm-cta--leise">
+        <h2>Kalender abonnieren</h2>
+        <p>
+            Einmal ins Telefon, danach kommen Verschiebungen und Absagen von allein an.
+        </p>
+        {{#
+            `?brand=halbmond` ist Handarbeit: `{{ events:feed_url }}` kennt nur
+            `type`, keine Marke. Auf einer Site mit einer Marke ist das richtig,
+            auf dieser hier zeigt der nackte Feed auf die Agenturmarke und ist
+            leer. Aufgelöst wird der Parameter von
+            App\Http\Middleware\MarkeAusDemPfad.
+        #}}
+        <a class="hm-btn" href="{{ events:feed_url type="concert" }}&amp;brand=halbmond">Kalender abonnieren</a>
+    </div>
+</section>

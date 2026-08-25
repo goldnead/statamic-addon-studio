@@ -1,0 +1,7 @@
+title: 'Kursanfrage'
+store: true
+email:
+  -
+    to: 'hallo@chorwerkstatt.beispiel'
+    subject: 'Neue Anfrage: Kursanfrage'
+honeypot: website

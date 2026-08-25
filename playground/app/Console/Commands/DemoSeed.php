@@ -2,10 +2,17 @@
 
 namespace App\Console\Commands;
 
+use App\Demo\SeedsAutomations;
 use App\Demo\SeedsBrands;
+use App\Demo\SeedsCampaign;
 use App\Demo\SeedsCommerce;
 use App\Demo\SeedsCrm;
+use App\Demo\SeedsEmailTemplates;
+use App\Demo\SeedsEvents;
 use App\Demo\SeedsFunnels;
+use App\Demo\SeedsIdentity;
+use App\Demo\SeedsTeam;
+use App\Demo\SeedsWebhooks;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 
@@ -64,6 +71,60 @@ class DemoSeed extends Command
 
         $this->components->task('Wege: vier Funnels, einer davon absichtlich krumm', function () {
             $this->ergebnis = array_merge($this->ergebnis, (new SeedsFunnels)->run());
+
+            return true;
+        });
+
+        // Erst das Team, dann alles, was einen Akteur oder Empfänger braucht.
+        // Mit einem einzigen Superuser sieht jede Berechtigung gleich aus,
+        // nämlich erlaubt, und die Markenzugehörigkeits-Seite hat nichts zu
+        // zeigen.
+        $this->components->task('Team: fünf Konten, drei Rollen, vier Markenzuordnungen', function () {
+            $this->ergebnis = array_merge($this->ergebnis, (new SeedsTeam)->run());
+
+            return true;
+        });
+
+        $this->components->task('Termine: Tour, Kurs, Sprechstunde', function () use (&$marken) {
+            $this->ergebnis = array_merge($this->ergebnis, array_filter(
+                (new SeedsEvents)->run($marken),
+                fn ($k) => ! str_starts_with($k, '_'),
+                ARRAY_FILTER_USE_KEY,
+            ));
+
+            return true;
+        });
+
+        $this->components->task('Mailvorlagen: vier, eine mit unbekanntem Platzhalter', function () {
+            $this->ergebnis = array_merge($this->ergebnis, (new SeedsEmailTemplates)->run());
+
+            return true;
+        });
+
+        // Muss nach SeedsCrm laufen: die Akteure sind die dortigen Kontakte.
+        $this->components->task('Identität: wer was getan hat', function () {
+            $this->ergebnis = array_merge($this->ergebnis, (new SeedsIdentity)->run());
+
+            return true;
+        });
+
+        // Reihenfolge ist bindend: die aus der Vorlage installierte Automation
+        // hängt am Auslöser `webhook_manager.outbound_failed` und muss stehen,
+        // bevor der tote Empfänger feuert.
+        $this->components->task('Automationen: sechs Rezepte, davon eines absichtlich rot', function () {
+            $this->ergebnis = array_merge($this->ergebnis, (new SeedsAutomations)->run());
+
+            return true;
+        });
+
+        $this->components->task('Webhooks: sechs Eingänge, ein toter Empfänger', function () {
+            $this->ergebnis = array_merge($this->ergebnis, (new SeedsWebhooks)->run());
+
+            return true;
+        });
+
+        $this->components->task('Kampagne: einmal wirklich senden', function () use (&$marken) {
+            $this->ergebnis = array_merge($this->ergebnis, (new SeedsCampaign)->run($marken));
 
             return true;
         });

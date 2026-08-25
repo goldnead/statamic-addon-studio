@@ -1,0 +1,7 @@
+title: 'Fanclub'
+store: true
+email:
+  -
+    to: 'crew@halbmond.beispiel'
+    subject: 'Neue Anfrage: Fanclub'
+honeypot: website

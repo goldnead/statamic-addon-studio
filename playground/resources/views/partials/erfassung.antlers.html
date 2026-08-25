@@ -1,0 +1,107 @@
+{{#
+    Ein Erfassungsformular, für alle drei Formulare dasselbe Stück.
+
+    Aufruf:  {{ partial:erfassung formular="kursanfrage" }}
+             {{ partial:erfassung formular="fanclub" ueberschrift="Fanclub" }}
+             {{ partial:erfassung formular="erstgespraech" }}
+
+    Warum eine Vorlage für drei Formulare: die drei unterscheiden sich in genau
+    einem Auswahlfeld. Drei Kopien hätten drei Stellen ergeben, an denen das
+    Honigtöpfchen fehlen kann.
+
+    Die einzelnen Eingaben werden mit `{{ field }}` ausgegeben und nicht von
+    Hand nachgebaut. Das ist in Statamic 6 der vorgesehene Weg: der
+    `RenderableField` kennt Typ, Id, Vorbelegung, `old`-Wert und bei einem
+    Auswahlfeld auch dessen Optionen. Ein selbstgebautes `<select>` hätte hier
+    genau daran gescheitert — `{{ options }}` ist ein assoziatives Feld und
+    keine Liste, eine Schleife darüber liefert eine leere Option und sonst
+    nichts. Gemessen, nicht vermutet.
+
+    Zwei Dinge macht dieses Stück, die eine reine Feldschleife nicht macht:
+
+    1. Die `utm_*`-Felder werden übersprungen und stattdessen über
+       `partial:utm-felder` gesetzt. In der Schleife wären sie leere
+       versteckte Felder — der Blueprint kennt sie, gefüllt werden müssen sie
+       aber im Browser.
+
+    2. Das Honigtöpfchen wird ausgegeben. `{{ form:create }}` liefert seinen
+       Namen in `{{ honeypot }}`, rendert es aber nicht selbst; wer die
+       Feldschleife abschreibt und das vergisst, hat ein Formular, das jeder
+       Bot bedienen darf. Es heißt hier `website` — derselbe Name, den
+       `lead-magnets.requests.honeypot` und `marketing.subscriptions.honeypot`
+       tragen, damit eine Seite nicht drei verschiedene Fallen stellt.
+
+    Was nach dem Absenden passiert, hängt an einer Zuordnung in LeadHub
+    (Formular-Handle => Felder), die `SeedsCrm::formularZuordnungen()` anlegt.
+    Ohne sie speichert Statamic die Einsendung, und sonst geschieht nichts.
+
+    ## Warum die Zieladresse `?brand=` trägt
+
+    Gemessen am 25.08.2026, beide Fälle einzeln:
+
+        POST /!/forms/kursanfrage                      302, KEIN Kontakt
+        POST /!/forms/kursanfrage?brand=chorwerkstatt  302, Kontakt mit
+                                                       source_form und UTM
+
+    Die Marke einer Web-Anfrage liest `SetBrandForSite` aus dem ersten
+    Pfadsegment (`brand-context.paths`). Die Seite selbst liegt unter
+    `/chorwerkstatt/…` und ist damit versorgt — das Formular schickt aber nicht
+    an sich selbst, sondern an Statamics eigene Adresse `/!/forms/{handle}`, und
+    die hat kein Markensegment. Ohne einen Hinweis fällt der Auflöser auf die
+    Vorgabemarke zurück, dort liegt die Formular-Zuordnung nicht, und
+    `CreateOrUpdateLeadFromSubmission` kehrt still um: die Einsendung liegt in
+    `storage/forms/`, ein Kontakt entsteht nicht. Kein Fehler, keine Zeile im
+    Protokoll, nur ein CRM, das leer bleibt.
+
+    `{{ form:create }}` nimmt dafür einen `action`-Parameter (siehe
+    `Statamic\Forms\Tags::create()`), und der bekommt hier `?brand=` angehängt.
+    Der Wert kommt aus `marke`, wenn der Aufruf ihn setzt, sonst aus `{{ brand }}`
+    der Seite. Ist beides leer, steht dort `?brand=` und es bleibt beim alten
+    Verhalten — schlechter als vorher wird es nirgends.
+
+    Dass `?brand=` auf einer öffentlichen Seite überhaupt zieht, ist eine
+    Entscheidung dieses Playgrounds: `brand-context.allow_query_override` ist
+    hier bewusst an, weil ein Schauraum ohne eigene Domain je Marke umschaltbar
+    sein muss. Eine Kundeninstallation gibt jeder Marke eine Domain oder eine
+    eigene Statamic-Site, und dann braucht es diesen Anhang nicht.
+#}}
+{{ form:create in="{formular}" action="/!/forms/{formular}?brand={marke ?? brand}" }}
+
+    {{ if success }}
+        <p class="erfassung-erfolg" role="status">Danke. Wir melden uns.</p>
+    {{ /if }}
+
+    {{ if errors }}
+        <ul class="erfassung-fehler" role="alert">
+            {{ errors }}<li>{{ value }}</li>{{ /errors }}
+        </ul>
+    {{ /if }}
+
+    {{ if ueberschrift }}<h2>{{ ueberschrift }}</h2>{{ /if }}
+
+    {{ fields }}
+        {{ unless handle | starts_with('utm_') }}
+            <label>
+                <span>{{ display }}{{ if validate | contains('required') }} *{{ /if }}</span>
+                {{ field }}
+                {{ if error }}<small class="erfassung-fehler">{{ error }}</small>{{ /if }}
+            </label>
+        {{ /unless }}
+    {{ /fields }}
+
+    {{ partial:utm-felder }}
+
+    {{#
+        Das Honigtöpfchen. Aus dem Fluss genommen statt `display:none`, weil
+        manche Ausfüllhilfen ein per CSS verstecktes Feld überspringen — und ein
+        Bot, der nichts ausfüllt, ist genau der, den diese Falle nicht fängt.
+    #}}
+    <div aria-hidden="true" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden">
+        <label>Bitte dieses Feld leer lassen
+            <input type="text" name="{{ honeypot }}" value="" tabindex="-1" autocomplete="off">
+        </label>
+    </div>
+
+    <button type="submit">Absenden</button>
+
+{{ /form:create }}

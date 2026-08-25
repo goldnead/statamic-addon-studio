@@ -1,0 +1,97 @@
+{{#
+    Die Termine der Chorwerkstatt, aus `statamic-events`.
+
+    Diese Seite zeigt zusätzlich, was `listable` bedeutet: die Werkstatt für die
+    Kantorei St. Nikolai ist ungelistet. Sie steht weiter unten in der Liste der
+    Angebote, weil diese Seite weiß, welches Ereignis sie zeigt — aber in keinem
+    Kalenderfeed. Der Entwurf und das Private tauchen hier nirgends auf, auch
+    nicht mit `listable="false"`.
+#}}
+
+<section class="cw-hero">
+    <p class="cw-label">Programm</p>
+    <h1>Termine</h1>
+    <p class="cw-standfirst">
+        Kurse, Werkstätten und Wochenenden. Was ausgebucht ist, steht trotzdem hier,
+        damit Sie sehen, was wir sonst noch machen.
+    </p>
+</section>
+
+{{ events:next }}
+    <section class="cw-block">
+        <div class="cw-cta">
+            <h2>Als Nächstes: {{ event:title }}</h2>
+            <p>
+                {{ starts_at format="d.m.Y" }}, {{ starts_at format="H:i" }} Uhr, {{ location }}
+            </p>
+            <a class="cw-btn" href="{{ ics_url }}">Termin in den Kalender</a>
+        </div>
+    </section>
+{{ /events:next }}
+
+<section class="cw-block cw-block--wide">
+    <h2>Die nächsten {{ events:count from="now" include_cancelled="false" }} Termine</h2>
+    <div class="cw-scroll">
+        <table class="cw-events">
+            <thead>
+                <tr><th>Wann</th><th>Was</th><th>Wo</th><th></th></tr>
+            </thead>
+            <tbody>
+                {{ events:upcoming }}
+                    <tr>
+                        <td>
+                            {{ if all_day }}
+                                {{ starts_at format="d.m." }} bis {{ ends_at format="d.m.Y" }}
+                            {{ else }}
+                                {{ starts_at format="d.m.Y, H:i" }}
+                            {{ /if }}
+                        </td>
+                        <td>
+                            {{ event:title }}
+                            {{ if all_day }}<span class="cw-note"><br>ganztägig, beide Tage</span>{{ /if }}
+                        </td>
+                        <td class="cw-note">{{ location }}</td>
+                        <td><a href="{{ ics_url }}">.ics</a></td>
+                    </tr>
+                {{ /events:upcoming }}
+            </tbody>
+        </table>
+    </div>
+    <p class="cw-caption">
+        Der Meisterkurs am 28.03.2027 stand ursprünglich auf 02:30. Diese Uhrzeit gibt
+        es in Mitteleuropa an diesem Tag nicht, die Uhr springt von 02:00 auf 03:00.
+        Oben steht deshalb 03:30, und das ist die richtige Antwort.
+    </p>
+</section>
+
+{{#
+    `{{ events }}` listet die Ereignisse selbst, nicht ihre Termine.
+    `listable="false"` nimmt ungelistete dazu — Entwürfe und Privates niemals.
+#}}
+<section class="cw-block">
+    <h2>Alle Angebote</h2>
+    <ul class="cw-bullets">
+        {{ events listable="false" }}
+            <li>
+                <strong>{{ title }}</strong>
+                <span class="cw-note">
+                    {{ type }}{{ if visibility != 'public' }}, {{ visibility }}{{ /if }}
+                </span>
+            </li>
+        {{ /events }}
+    </ul>
+    <p class="cw-caption">
+        „workshop" und „unlisted" stehen hier absichtlich so, wie das Addon sie
+        herausgibt. Die deutschen Bezeichnungen aus <code>config/events.php</code>
+        kennt nur das Control Panel; nach Antlers kommt der Handle. Wer sie auf der
+        Website haben will, übersetzt sie in der Vorlage.
+    </p>
+</section>
+
+<section class="cw-block">
+    <div class="cw-cta cw-cta--leise">
+        <h2>Kalender abonnieren</h2>
+        <p>Alle offenen Kurse und Werkstätten, direkt im eigenen Kalender.</p>
+        <a class="cw-btn" href="{{ events:feed_url }}?brand=chorwerkstatt">Kalender abonnieren</a>
+    </div>
+</section>

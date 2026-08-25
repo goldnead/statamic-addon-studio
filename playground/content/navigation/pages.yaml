@@ -1,0 +1,5 @@
+title: Seiten
+collections:
+  - pages
+max_depth: 2
+expects_root: false

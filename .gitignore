@@ -8,19 +8,38 @@
 # hereinholen, was unterhalb eines ausgeschlossenen Verzeichnisses liegt.
 playground/*
 !playground/app/
+!playground/bootstrap/
+!playground/config/
 !playground/content/
 !playground/resources/
 !playground/public/
+!playground/routes/
+!playground/composer.json
+!playground/.env.example
 !playground/DEMO.md
 
 # Innerhalb der wieder hereingeholten Ordner: nur der Quellteil.
 playground/resources/*
 !playground/resources/blueprints/
 !playground/resources/fieldsets/
+!playground/resources/forms/
+!playground/resources/users/
 !playground/resources/views/
 playground/public/*
 !playground/public/marken/
 !playground/public/assets/
+
+# config/ gehoert dazu, und das war eine Luecke.
+#
+# Der Katalog von statamic-payments, die Markenzuordnung von brand-context, die
+# Feature-Schalter von leadhub, die Mail-Layouts: das sind Entscheidungen des
+# Demos, keine Wegwerfwerte. Sie lagen bis 25.08.2026 unter dem Ausschluss, also
+# haette ein frischer Klon vier CP-Bildschirme mit 404 vorgefunden und eine
+# oeffentliche Seite ohne Inhalt -- genau die Zusage, die drei Zeilen weiter
+# oben steht, war nicht eingeloest.
+#
+# Die .env bleibt draussen (dort steht der Mollie-Schluessel), .env.example
+# nennt die Schalter, auf die es ankommt.
 vendor/
 node_modules/
 .DS_Store

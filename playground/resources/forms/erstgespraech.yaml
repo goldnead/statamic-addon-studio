@@ -1,0 +1,7 @@
+title: 'Erstgespräch'
+store: true
+email:
+  -
+    to: 'praxis@lindhorst.beispiel'
+    subject: 'Neue Anfrage: Erstgespräch'
+honeypot: website
