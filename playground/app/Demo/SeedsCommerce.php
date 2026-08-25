@@ -33,10 +33,15 @@ class SeedsCommerce
     {
         return [
             // ---- Chorwerkstatt Nord -------------------------------------
-            'cw-kurs' => ['name' => 'Frühlingskurs für Chorleitende', 'amount_cent' => 24900, 'grants' => 'kurs-fruehling'],
-            'cw-begleit-cd' => ['name' => 'Begleit-CD zum Mitsingen', 'amount_cent' => 900, 'grants' => 'begleit-cd'],
-            'cw-noten' => ['name' => 'Notenpaket als PDF', 'amount_cent' => 1500, 'grants' => 'noten'],
-            'cw-stimmcheck' => ['name' => 'Stimm-Check (kostenlos)', 'amount_cent' => 0, 'grants' => 'stimmcheck'],
+            // `digital` entscheidet, welcher Pflichthinweis auf der Rechnung
+            // steht: Reverse Charge, innergemeinschaftliche Lieferung, Ausfuhr
+            // oder nicht steuerbar. statamic-invoices verweigert die Rechnung,
+            // wenn ein Produkt es nicht sagt -- vier verschiedene Saetze zu
+            // raten waere schlimmer als keine Rechnung.
+            'cw-kurs' => ['name' => 'Frühlingskurs für Chorleitende', 'amount_cent' => 24900, 'grants' => 'kurs-fruehling', 'digital' => true],
+            'cw-begleit-cd' => ['name' => 'Begleit-CD zum Mitsingen', 'amount_cent' => 900, 'grants' => 'begleit-cd', 'digital' => true],
+            'cw-noten' => ['name' => 'Notenpaket als PDF', 'amount_cent' => 1500, 'grants' => 'noten', 'digital' => true],
+            'cw-stimmcheck' => ['name' => 'Stimm-Check (kostenlos)', 'amount_cent' => 0, 'grants' => 'stimmcheck', 'digital' => true],
             'cw-mitgliedschaft' => [
                 'name' => 'Mitgliedschaft Chorwerkstatt',
                 'amount_cent' => 1900,
@@ -52,22 +57,22 @@ class SeedsCommerce
                 'interval' => '1 month',
                 'times' => 3,
             ],
-            'cw-workshop' => ['name' => 'Workshop-Tag vor Ort', 'amount_cent' => 45000],
+            'cw-workshop' => ['name' => 'Workshop-Tag vor Ort', 'amount_cent' => 45000, 'digital' => true],
 
             // ---- Kollektiv Halbmond -------------------------------------
-            'hm-vinyl' => ['name' => 'Halbmond, das Album auf Vinyl', 'amount_cent' => 2900],
-            'hm-ticket' => ['name' => 'Konzertticket', 'amount_cent' => 2200],
+            'hm-vinyl' => ['name' => 'Halbmond, das Album auf Vinyl', 'amount_cent' => 2900, 'digital' => false],
+            'hm-ticket' => ['name' => 'Konzertticket', 'amount_cent' => 2200, 'digital' => false],
             'hm-fanclub' => [
                 'name' => 'Fanclub Halbmond',
                 'amount_cent' => 500,
                 'interval' => '1 month',
                 'grants' => 'fanclub',
             ],
-            'hm-shirt' => ['name' => 'Shirt „Ännchen & Söhne"', 'amount_cent' => 3200],
+            'hm-shirt' => ['name' => 'Shirt „Ännchen & Söhne"', 'amount_cent' => 3200, 'digital' => false],
 
             // ---- Praxis Lindhorst ---------------------------------------
-            'lh-erstgespraech' => ['name' => 'Erstgespräch', 'amount_cent' => 0],
-            'lh-fuenferkarte' => ['name' => 'Fünferkarte', 'amount_cent' => 45000],
+            'lh-erstgespraech' => ['name' => 'Erstgespräch', 'amount_cent' => 0, 'digital' => true],
+            'lh-fuenferkarte' => ['name' => 'Fünferkarte', 'amount_cent' => 45000, 'digital' => true],
             'lh-begleitung' => [
                 'name' => 'Begleitung, monatlich',
                 'amount_cent' => 14900,
@@ -84,13 +89,13 @@ class SeedsCommerce
             // ---- Was der Katalog ablehnen muss --------------------------
             // Each of these is a mistake somebody makes in a config file, and
             // each must be unsellable rather than cheap.
-            'kaputt-negativ' => ['name' => 'Negativ', 'amount_cent' => -500],
-            'kaputt-string' => ['name' => 'Als Text getippt', 'amount_cent' => '19,00'],
-            'kaputt-ohne-preis' => ['name' => 'Ohne Preis'],
+            'kaputt-negativ' => ['name' => 'Negativ', 'amount_cent' => -500, 'digital' => true],
+            'kaputt-string' => ['name' => 'Als Text getippt', 'amount_cent' => '19,00', 'digital' => true],
+            'kaputt-ohne-preis' => ['name' => 'Ohne Preis', 'digital' => true],
             // Legal, and a shape nobody plans for: a handle with a dot in it.
             // `Arr::get()` would walk into it as a nested key; plain array
             // access is what stops that, and this is what proves it.
-            'punkt.im.handle' => ['name' => 'Punkt im Handle', 'amount_cent' => 1234],
+            'punkt.im.handle' => ['name' => 'Punkt im Handle', 'amount_cent' => 1234, 'digital' => true],
         ];
     }
 
@@ -230,6 +235,26 @@ class SeedsCommerce
             ['cw-noten', 1500, Payment::STATUS_PAID, 'krumm@beispiel.de', 'Krummer Betrag', '-12 days', true],
         ];
 
+        // Ein Land je Zahlung, und zwar so gewaehlt, dass jeder Steuerfall
+        // einmal vorkommt: Inland, EU-Verbraucher, EU-Geschaeftskunde mit
+        // USt-IdNr. (Reverse Charge), Drittland (nicht steuerbar bzw. Ausfuhr)
+        // und einer ohne Land -- der bekommt bewusst keine Rechnung, weil ein
+        // Steuersatz nicht geraten werden darf.
+        $laender = [
+            1 => ['DE', null, "Beispielweg 3\n20095 Hamburg"],
+            2 => ['AT', null, null],
+            3 => ['FR', 'FR12345678901', "12 Rue Exemple\n75001 Paris"],
+            4 => ['DE', null, null],
+            5 => ['DE', null, null],
+            6 => ['CH', null, "Musterstrasse 5\n8001 Zuerich"],
+            7 => ['DE', null, null],
+            8 => ['NL', null, null],
+            9 => ['DE', null, null],
+            10 => ['DE', null, null],
+            // Ohne Land: der Fall, den statamic-invoices verweigert.
+            11 => [null, null, null],
+        ];
+
         $nummer = 0;
 
         foreach ($reihen as [$produkt, $cent, $status, $email, $name, $wann, $erfuellt]) {
@@ -245,6 +270,12 @@ class SeedsCommerce
                     'status' => $status,
                     'email' => $email,
                     'name' => $name,
+                    'country' => $laender[$nummer][0] ?? null,
+                    'country_source' => ($laender[$nummer][0] ?? null) ? 'checkout' : null,
+                    'meta' => array_filter([
+                        'vat_id' => $laender[$nummer][1] ?? null,
+                        'address' => $laender[$nummer][2] ?? null,
+                    ]) ?: null,
                     'discount_code' => $produkt === 'cw-noten' ? 'ZEHNEURO' : null,
                     'discount_cent' => $produkt === 'cw-noten' ? 1000 : null,
                     'paid_at' => $status === Payment::STATUS_PAID ? $zeit : null,

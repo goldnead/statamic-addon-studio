@@ -11,6 +11,7 @@ use App\Demo\SeedsEmailTemplates;
 use App\Demo\SeedsEvents;
 use App\Demo\SeedsFunnels;
 use App\Demo\SeedsIdentity;
+use App\Demo\SeedsInvoices;
 use App\Demo\SeedsProof;
 use App\Demo\SeedsTeam;
 use App\Demo\SeedsWebhooks;
@@ -132,6 +133,13 @@ class DemoSeed extends Command
             return true;
         });
 
+        // Nach den Belegen, weil die Erstattung eine Stornorechnung ausloest.
+        $this->components->task('Rechnungen: und die, die keine bekommen', function () {
+            $this->ergebnis = array_merge($this->ergebnis, (new SeedsInvoices)->run());
+
+            return true;
+        });
+
         $this->components->task('Kampagne: einmal wirklich senden', function () use (&$marken) {
             $this->ergebnis = array_merge($this->ergebnis, (new SeedsCampaign)->run($marken));
 
@@ -219,6 +227,19 @@ class DemoSeed extends Command
 
     protected function wipe(): void
     {
+        // Rechnungen zuerst und ueber den Query Builder, nicht ueber das
+        // Modell: statamic-invoices verbietet das Loeschen einer Rechnung mit
+        // Absicht, weil eine verschwundene Nummer eine Luecke in der Reihe ist.
+        // Das gilt fuer den Betrieb. Ein Demo, das sich neu aufbaut, ist der
+        // eine Fall, in dem der Riegel im Weg steht -- und der Zaehler muss
+        // mit, sonst kollidiert die naechste Nummer mit einer, die es nicht
+        // mehr gibt.
+        foreach (['invoice_items', 'invoices', 'invoice_counters'] as $tabelle) {
+            if (\Illuminate\Support\Facades\Schema::hasTable($tabelle)) {
+                \Illuminate\Support\Facades\DB::table($tabelle)->delete();
+            }
+        }
+
         foreach ([
             \Goldnead\StatamicPayments\Models\PaymentItem::class,
             \Goldnead\StatamicPayments\Models\Payment::class,

@@ -77,7 +77,6 @@ tabs:
               instructions: 'Zu welcher Marke diese Vorlage gehört. Gefunden wird sie nur von ihrer eigenen Marke, deshalb können zwei Marken je eine eigene Vorlage unter demselben Slug haben.'
               options:
                 chorwerkstatt: 'Chorwerkstatt Nord'
-                default: Default
                 halbmond: 'Kollektiv Halbmond'
                 sonderzeichen: 'Müller & Söhne <Chor> „Ännchen"'
                 nordlicht: 'Nordlicht Studio'

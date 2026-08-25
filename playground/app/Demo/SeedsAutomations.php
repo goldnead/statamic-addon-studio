@@ -56,6 +56,7 @@ class SeedsAutomations
     public function run(): array
     {
         $this->kursBezahlt();
+        $this->liegengeblieben();
         $this->platteNachfassen();
         $this->schaukasten();
         $this->uebergabeKaputt();
@@ -82,6 +83,44 @@ class SeedsAutomations
     // -----------------------------------------------------------------
     // Die Rezepte
     // -----------------------------------------------------------------
+
+    /**
+     * Liegengebliebener Checkout.
+     *
+     * Das kleinste Rezept des Demos und das mit dem direktesten Umsatzeffekt:
+     * jemand hat den Kauf begonnen und nicht zu Ende gebracht. Die Zahlungszeile
+     * liegt bereits in der Tabelle, `payments:sweep-abandoned` meldet sie einmal,
+     * und ab hier ist es eine gewöhnliche Strecke.
+     *
+     * **Warum hier keine Mail steht.** Die Adresse aus einem unfertigen Checkout
+     * wurde zum Kaufen gegeben, nicht zum Beworbenwerden. Ob eine Erinnerung
+     * rausgehen darf, ist eine Einwilligungsfrage — deshalb schreibt das Rezept
+     * eine Notiz ins CRM, wo ein Mensch entscheidet. Wer daraus eine Mailstrecke
+     * macht, setzt vorher die Sperrliste davor.
+     */
+    protected function liegengeblieben(): void
+    {
+        $this->automation('chorwerkstatt', 'checkout-liegengeblieben', 'Checkout liegengeblieben', true,
+            'Ein begonnener Kauf blieb über die Wartezeit hinaus unbezahlt: Kontakt anlegen oder ergänzen und eine Notiz für einen Menschen hinterlassen.',
+            [
+                $this->knoten('ausloeser', 'payments.checkout_abandoned', 'Checkout liegengeblieben', 0, 0, []),
+                $this->knoten('lead', 'leadhub.create_or_update_lead', 'Kontakt anlegen oder ergänzen', 260, 0, [
+                    'email' => '{{ payment.email }}',
+                    'first_name' => '{{ payment.name }}',
+                    'source' => 'checkout-abbruch',
+                ]),
+                $this->knoten('notiz', 'leadhub.add_note', 'Notiz für einen Menschen', 520, 0, [
+                    'lead_id' => '{{ lead.id }}',
+                    'body' => 'Kauf von {{ payment.product }} begonnen und nicht abgeschlossen '
+                        .'({{ payment.amount_cent }} Cent). Nachfassen nur, wenn eine Einwilligung vorliegt.',
+                ]),
+            ],
+            [
+                ['ausloeser', 'lead'],
+                ['lead', 'notiz'],
+            ],
+        );
+    }
 
     /**
      * Geld da, Mail raus, Kontakt anlegen, Etikett dran, Notiz rein.
