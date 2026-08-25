@@ -97,6 +97,20 @@ app/Console/Commands/DemoPoll.php
 Der Katalog wird in `config/statamic-payments.php` geschrieben, nicht in eine Tabelle: ein Produkt
 ist Konfiguration, und ein Zahlungs-Addon, das Preise mitliefert, wäre falsch.
 
+## Sprache
+
+`APP_LOCALE=de`. Die Addons liefern deutsche Sprachdateien mit, und ein Demo, in dem das Banner
+englisch und der Inhalt deutsch ist, sieht nach Halbfertigem aus statt nach einer Entscheidung. Für
+Screenshots im README eines Addons vorher auf `en` stellen.
+
+## Wie die Marken aussehen
+
+Jede Marke bringt ihr eigenes Stylesheet in `public/marken/` mit und setzt darin auch die
+`--csnt-*`-Tokens des Einwilligungsbanners. Das ist der Punkt: dieselbe Mechanik, drei Handschriften.
+Chorwerkstatt petrol mit fast scharfen Ecken, Halbmond signalrot und rechtwinklig, Lindhorst salbei
+mit Pillen und Satzschrift. Wenn ein Banner in allen drei Marken gleich aussieht, ist ein Token
+verloren gegangen.
+
 ## Marken umschalten
 
 Oben rechts im Control Panel. Fast alles hängt an einer Marke: Kontakte, Abonnenten, Sperren,
