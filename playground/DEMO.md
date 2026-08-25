@@ -36,7 +36,12 @@ cp .env.example .env
 touch database/database.sqlite      # SQLite legt die Datei nicht selbst an
 composer install
 php artisan key:generate
-php artisan migrate --force
+
+# CACHE_STORE=array nur fuer diesen einen Aufruf: die .env stellt den Cache auf
+# `database`, und genau die Cache-Tabelle legt diese Migration erst an. Ohne den
+# Vorsatz laeuft `migrate` in "no such table: cache".
+CACHE_STORE=array php artisan migrate --force
+
 php artisan demo:seed
 ```
 
