@@ -27,25 +27,51 @@ Zeichen trägt, die eine Mail-Kopfzeile, eine URL und ein HTML-Attribut brechen.
 
 ## Aufbauen
 
+Das Demo ist aus einem frischen Klon wiederherstellbar, und das ist geprüft, nicht behauptet.
+Voraussetzung: die Geschwister-Repos liegen daneben (`../../statamic-*`) — das Playground bindet sie
+als Pfad-Repos ein, damit eine lokale Änderung sofort hier sichtbar ist.
+
 ```bash
+cp .env.example .env
+touch database/database.sqlite      # SQLite legt die Datei nicht selbst an
 composer install
+php artisan key:generate
 php artisan migrate --force
-
-# Ohne das ist die Anmeldung ein 500er: ein Addon, dessen gebaute Dateien nicht
-# veröffentlicht sind, nimmt das ganze Control Panel mit.
-php artisan vendor:publish --provider="Goldnead\BrandContext\ServiceProvider" --force
-# ...und so für jedes Addon; die Liste steht unten.
-
 php artisan demo:seed
 ```
 
+**Kein `vendor:publish --force`.** Seit die `config/` versioniert ist, würde das genau die
+Entscheidungen des Demos überschreiben, die den Aufbau tragen: den Produktkatalog, die
+Markenzuordnung, die Feature-Schalter von LeadHub, den Datei-Treiber für Nutzer. Der erste
+Klon-Aufbau ist daran gescheitert, und der Fehler sah aus wie ein Addon-Fehler. Was ein Addon an
+gebauten Dateien braucht (`public/vendor/…`), liegt bereits im Repo.
+
 `demo:seed` ist **wiederholbar**. Der zweite Lauf ist der, der die Fehler findet: er stößt auf
-alles, was sich nicht zweimal schreiben lässt, und genau das hat beim Bauen dieses Demos drei
+alles, was sich nicht zweimal schreiben lässt, und genau das hat beim Bauen dieses Demos mehrere
 richtige Entscheidungen anderer Addons sichtbar gemacht (der Aktivitätslog lässt sich nicht ändern,
 die Statusspalte eines Zugangs ist vor Massenzuweisung geschützt, ein Schritt-Slug ist je Funnel
 eindeutig).
 
 `demo:seed --fresh` räumt die Handelsdaten vorher weg.
+
+### Die Reihenfolge ist nicht beliebig
+
+- **Team vor Leuten.** `SeedsCrm` weist Kontakte an CP-Konten zu; in einem frischen Klon gibt es
+  noch keins. Genau daran ist der erste Klon-Aufbau gestorben.
+- **Automationen vor Webhooks.** Die aus der Vorlage installierte Automation hängt am Auslöser
+  `webhook_manager.outbound_failed` und muss stehen, bevor der tote Empfänger feuert.
+- **Identität nach den Leuten.** Die Akteure der Aktivitäten sind die dortigen Kontakte.
+
+### Was der Aufbau erzeugt
+
+62 der 70 Tabellen tragen Daten. Die acht leeren sind es aus einem Grund: `marketing_*` fährt den
+flat-Treiber (die Listen liegen als YAML unter `content/marketing/`, das ist Laufzeitstand und
+gehört deshalb nicht ins Repo), `users` ist bei Statamic ein Datei-Store, und vier Tabellen sind
+Einstellungs- und Abmeldespeicher, die erst beim Benutzen entstehen.
+
+Genau ein Fehler steht danach im Log, und der ist gewollt: der Webhook-Ausgang auf `127.0.0.1:9`
+scheitert absichtlich, damit Wiederholungsplan, Fehlerklassifizierung und Sicherung etwas zu tun
+bekommen.
 
 ## Mollie
 
@@ -81,18 +107,45 @@ Nicht anfassen, das ist der Punkt:
   mittendrin, ein Slug der wie ein Addon-Pfad aussieht, und eine Beschriftung über 200 Zeichen
 - Der Funnel **`vinyl`** hat eine Frist, die schon vorbei ist
 - Ein Beitrag ohne Marke, einer mit Datum in der Zukunft, einer aus 1999, ein Entwurf
+- Ein **Webhook-Ausgang auf `127.0.0.1:9`**, der nie antwortet: er ist der einzige Fehler im Log
+  nach einem Aufbau, und er soll da sein. Ohne ihn hätten Wiederholungsplan,
+  Fehlerklassifizierung und Sicherung nichts zu tun
+- Ein **Termin in der Nacht der Zeitumstellung** (28.03.2027, 02:30 — die Stunde gibt es nicht) und
+  einer in einer anderen Zeitzone als sein Ereignis
+- Ein **Konto ohne jede Rolle** und eines, dessen Name `&`, `<` und Anführungszeichen trägt
+- Eine **Mailvorlage mit einem Platzhalter, den niemand füllt**: unbekannte Tags bleiben stehen,
+  statt still zu verschwinden
 
 ## Der Aufbau im Code
 
 ```
-app/Demo/DemoData.php       Die unangenehmen Werte, an einer Stelle
-app/Demo/SeedsBrands.php    Fünf Marken
-app/Demo/SeedsCommerce.php  Katalog, Angebote, Gutscheine, Zahlungen, Abos
-app/Demo/SeedsCrm.php       Kontakte, Listen, Sperren, Freebies, Zugänge, Meldungen, Spuren
-app/Demo/SeedsFunnels.php   Vier Wege, einer davon absichtlich krumm
+app/Demo/DemoData.php            Die unangenehmen Werte, an einer Stelle
+app/Demo/SeedsBrands.php         Fünf Marken
+app/Demo/SeedsCommerce.php       Katalog, Angebote, Gutscheine, Zahlungen, Abos
+app/Demo/SeedsTeam.php           Fünf Konten, drei Rollen, vier Markenzuordnungen
+app/Demo/SeedsCrm.php            Kontakte, Firmen, Aufgaben, Pipeline, Tags, Segmente, Sperren,
+                                 Freebies, Zugänge, Meldungen, Spuren
+app/Demo/SeedsFunnels.php        Vier Wege, einer davon absichtlich krumm
+app/Demo/SeedsEvents.php         Tour, Kurs, Sprechstunde, samt abgesagtem Termin
+app/Demo/SeedsEmailTemplates.php Vier Vorlagen, eine mit unbekanntem Platzhalter
+app/Demo/SeedsIdentity.php       Wer was getan hat: Kontakt, Anonym, CP-Konto, System
+app/Demo/SeedsAutomations.php    Sechs Rezepte, zehn der elf Logik-Knoten, ein roter Lauf
+app/Demo/SeedsWebhooks.php       Sechs Eingänge (je ein Prüfverfahren), ein toter Empfänger
+app/Demo/SeedsProof.php          Termine über den Cal.com-Weg, Einwilligungen über den echten Keks
+app/Demo/SeedsCampaign.php       Listen als YAML, eine Kampagne, ein echter Sendelauf
 app/Console/Commands/DemoSeed.php
 app/Console/Commands/DemoPoll.php
 ```
+
+**Alles geht durch die öffentlichen Fassaden der Addons, nie direkt aufs Modell.** Das ist die
+wichtigste Regel hier, und sie ist teuer gelernt: der frühere Seeder schrieb mit
+`Model::withoutGlobalScopes()->updateOrCreate()`. Dabei entstanden Werte, die die Addons gar nicht
+kennen (ein Abonnentenstatus `confirmed`, den es nicht gibt — also zeigte jedes Marketing-Dashboard
+null), falsche Skopierungen (ein hartes Bounce auf einer Marke statt global, also war ein totes
+Postfach anderswo mailbar) und halbe Aggregate (Freigaben ohne Berechtigung). Vor allem aber feuerte
+kein einziges Domain-Ereignis, weshalb `leadhub_events`, `suppression_events` und
+`lead_magnet_downloads` alle auf null standen. Ein Seeder, der die Zeile selbst schreibt, belegt
+nur, dass die Tabelle Spalten hat.
 
 Der Katalog wird in `config/statamic-payments.php` geschrieben, nicht in eine Tabelle: ein Produkt
 ist Konfiguration, und ein Zahlungs-Addon, das Preise mitliefert, wäre falsch.
