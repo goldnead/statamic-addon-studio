@@ -11,31 +11,32 @@
     ],
     "require": {
         "php": "^8.3",
+        "goldnead/statamic-activity": "*",
         "goldnead/statamic-automations": "dev-main as 2.8.0",
         "goldnead/statamic-booking": "dev-main as 1.1.0",
+        "goldnead/statamic-brand-context": "*",
         "goldnead/statamic-consent": "dev-main as 1.5.0",
+        "goldnead/statamic-email-templates": "*",
+        "goldnead/statamic-entitlements": "dev-main as 1.0.1",
+        "goldnead/statamic-events": "dev-main as 2.0.1",
+        "goldnead/statamic-flow-canvas": "dev-main as 1.1.0",
         "goldnead/statamic-funnels": "dev-main as 1.3.0",
+        "goldnead/statamic-identity-contracts": "*",
+        "goldnead/statamic-insights": "@dev",
+        "goldnead/statamic-invoices": "dev-main as 1.0.0",
+        "goldnead/statamic-lead-magnets": "dev-main as 3.1.0",
+        "goldnead/statamic-leadhub": "dev-main as 2.6.1",
         "goldnead/statamic-marketing": "dev-main as 2.16.0",
+        "goldnead/statamic-notifications": "dev-main as 1.7.0",
         "goldnead/statamic-offers": "dev-main as 1.2.0",
         "goldnead/statamic-payments": "dev-main as 1.11.0",
+        "goldnead/statamic-preference-center": "*",
+        "goldnead/statamic-suppression": "dev-main as 1.1.0",
+        "goldnead/statamic-toc": "*",
+        "goldnead/statamic-webhook-manager": "dev-main as 2.3.0",
         "laravel/framework": "^13.17",
         "laravel/tinker": "^3.0",
-        "statamic/cms": "^6.0",
-        "goldnead/statamic-brand-context": "*",
-        "goldnead/statamic-leadhub": "dev-main as 2.6.1",
-        "goldnead/statamic-suppression": "*",
-        "goldnead/statamic-activity": "*",
-        "goldnead/statamic-email-templates": "*",
-        "goldnead/statamic-entitlements": "*",
-        "goldnead/statamic-events": "*",
-        "goldnead/statamic-identity-contracts": "*",
-        "goldnead/statamic-lead-magnets": "*",
-        "goldnead/statamic-notifications": "*",
-        "goldnead/statamic-preference-center": "*",
-        "goldnead/statamic-toc": "*",
-        "goldnead/statamic-webhook-manager": "*",
-        "goldnead/statamic-flow-canvas": "dev-main as 1.1.0",
-        "goldnead/statamic-invoices": "dev-main as 1.0.0"
+        "statamic/cms": "^6.0"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
@@ -117,6 +118,41 @@
     "minimum-stability": "stable",
     "prefer-stable": true,
     "repositories": [
+        {
+            "name": "webhook-manager",
+            "type": "path",
+            "url": "../../statamic-webhook-manager"
+        },
+        {
+            "name": "suppression",
+            "type": "path",
+            "url": "../../statamic-suppression"
+        },
+        {
+            "name": "notifications",
+            "type": "path",
+            "url": "../../statamic-notifications"
+        },
+        {
+            "name": "lead-magnets",
+            "type": "path",
+            "url": "../../statamic-lead-magnets"
+        },
+        {
+            "name": "events",
+            "type": "path",
+            "url": "../../statamic-events"
+        },
+        {
+            "name": "entitlements",
+            "type": "path",
+            "url": "../../statamic-entitlements"
+        },
+        {
+            "name": "insights",
+            "type": "path",
+            "url": "../../statamic-insights"
+        },
         {
             "type": "path",
             "url": "../../statamic-funnels"
