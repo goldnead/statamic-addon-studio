@@ -29,8 +29,9 @@
         "goldnead/statamic-marketing": "dev-main as 2.16.0",
         "goldnead/statamic-notifications": "dev-main as 1.7.0",
         "goldnead/statamic-offers": "dev-main as 1.2.0",
-        "goldnead/statamic-payments": "dev-main as 1.11.0",
+        "goldnead/statamic-payments": "dev-main as 1.15.0",
         "goldnead/statamic-preference-center": "*",
+        "goldnead/statamic-products": "dev-main as 1.0.0",
         "goldnead/statamic-suppression": "dev-main as 1.1.0",
         "goldnead/statamic-toc": "*",
         "goldnead/statamic-webhook-manager": "dev-main as 2.3.0",
@@ -118,6 +119,11 @@
     "minimum-stability": "stable",
     "prefer-stable": true,
     "repositories": [
+        {
+            "name": "products",
+            "type": "path",
+            "url": "../../statamic-products"
+        },
         {
             "name": "webhook-manager",
             "type": "path",
