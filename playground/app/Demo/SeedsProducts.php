@@ -62,7 +62,7 @@ class SeedsProducts
             // hier steht nur, dass es ihn gibt und was er kostet.
             'nl-fruehlingskurs' => [
                 'name' => 'Frühlingskurs für Chorleitende',
-                'type' => Product::TYPE_ZUGANG,
+                'type' => Product::TYPE_ACCESS,
                 'ref' => '8f3a41d7-2c95-4e18-b6a3-51d09c7fe210',
                 'amount_cent' => 24900,
                 'digital' => true,
@@ -95,7 +95,7 @@ class SeedsProducts
             // sichtbar machen will, statt ihn still aufzulösen.
             'cw-kurs' => [
                 'name' => 'Frühlingskurs für Chorleitende',
-                'type' => Product::TYPE_ZUGANG,
+                'type' => Product::TYPE_ACCESS,
                 'ref' => 'c7a4b134-3c48-5107-a0c2-8be2bc6cc9e7',
                 'amount_cent' => 25900,
                 'digital' => true,
@@ -104,7 +104,7 @@ class SeedsProducts
             ],
             'cw-wochenende' => [
                 'name' => 'Wochenende in der Alten Schmiede',
-                'type' => Product::TYPE_TERMIN,
+                'type' => Product::TYPE_EVENT,
                 'ref' => $wochenende,
                 'amount_cent' => 45000,
                 // Vor Ort, mit Mittagessen: keine digitale Leistung, also ein
@@ -127,7 +127,7 @@ class SeedsProducts
             // dieser Verkäufe verstummen ließe.
             'cw-jahrgang-2024' => [
                 'name' => 'Chorleiter-Ausbildung, Jahrgang 2024',
-                'type' => Product::TYPE_KOHORTE,
+                'type' => Product::TYPE_COHORT,
                 'ref' => 'c7a4b134-3c48-5107-a0c2-8be2bc6cc9e7',
                 'amount_cent' => 39900,
                 'digital' => true,
@@ -147,7 +147,7 @@ class SeedsProducts
         return [
             'hm-tour-ticket' => [
                 'name' => 'Ticket, Tour-Auftakt',
-                'type' => Product::TYPE_TERMIN,
+                'type' => Product::TYPE_EVENT,
                 'ref' => $tour,
                 'amount_cent' => 1800,
                 'digital' => true,
@@ -156,7 +156,7 @@ class SeedsProducts
             ],
             'hm-fanclub' => [
                 'name' => 'Fanclub-Mitgliedschaft',
-                'type' => Product::TYPE_ZUGANG,
+                'type' => Product::TYPE_ACCESS,
                 'ref' => '0f6593db-7557-5a3b-ac31-6952de6a74fc',
                 'amount_cent' => 5900,
                 'digital' => true,
@@ -174,7 +174,7 @@ class SeedsProducts
         return [
             'lh-erstgespraech' => [
                 'name' => 'Erstgespräch, 30 Minuten',
-                'type' => Product::TYPE_SITZUNGEN,
+                'type' => Product::TYPE_SESSIONS,
                 'ref' => 'beratung',
                 'amount_cent' => 0,
                 'digital' => false,
@@ -183,7 +183,7 @@ class SeedsProducts
             ],
             'lh-block-von-fuenf' => [
                 'name' => 'Fünf Sprechstunden im Block',
-                'type' => Product::TYPE_SITZUNGEN,
+                'type' => Product::TYPE_SESSIONS,
                 'ref' => 'beratung',
                 'amount_cent' => 35000,
                 'digital' => false,
@@ -206,7 +206,7 @@ class SeedsProducts
             // "nicht prüfbar" — auch das ist ein Zustand, nur kein Fehler.)
             'sz-phantom' => [
                 'name' => 'Konzert, das keiner angelegt hat',
-                'type' => Product::TYPE_TERMIN,
+                'type' => Product::TYPE_EVENT,
                 'ref' => $this->uuid('sz-phantom-1'),
                 'amount_cent' => 1500,
                 'digital' => false,
