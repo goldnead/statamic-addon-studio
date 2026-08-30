@@ -12,6 +12,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Demo läuft hinter Cloudflare und Caddy; ohne Proxy-Vertrauen
+        // sieht die Anwendung http statt https. (Lokal ohne Proxy harmlos.)
+        $middleware->trustProxies(at: '*');
+
         // Welche Marke eine Website-Anfrage betrifft, beantwortet
         // brand-context selbst — seit 1.11.0 über `brand-context.paths`.
         // Vorher lag hier eine eigene Middleware, weil das Addon die
