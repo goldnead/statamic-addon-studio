@@ -19,6 +19,7 @@ playground/*
 !playground/artisan
 !playground/database/
 !playground/storage/
+!playground/deploy/
 !playground/DEMO.md
 
 # Innerhalb der wieder hereingeholten Ordner: nur der Quellteil.
