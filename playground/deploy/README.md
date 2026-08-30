@@ -19,6 +19,14 @@ docker exec -w /var/www/html statamic-demo php artisan migrate --force
 docker exec -w /var/www/html statamic-demo php artisan demo:seed --fresh
 ```
 
+Der rsync läuft als root und setzt Besitzrechte auf root zurück — ohne diesen
+Schritt schreibt die Anwendung keine Session (500 auf jeder CP-Seite) und
+spätestens beim Login keine Zeile in die Datenbank:
+
+```bash
+ssh root@157.90.224.18 "cd /opt/statamic-demo/app && chown -R 33:33 content users database config storage bootstrap/cache"
+```
+
 Danach `pristine.tar.gz` neu ziehen, sonst stellt der nächtliche Reset den
 alten Stand wieder her. Das Tar muss bei gestopptem Container laufen, sonst
 greift es mitten in einen SQLite-Schreibvorgang:
