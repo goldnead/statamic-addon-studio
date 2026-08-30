@@ -12,6 +12,7 @@ use App\Demo\SeedsEvents;
 use App\Demo\SeedsFunnels;
 use App\Demo\SeedsIdentity;
 use App\Demo\SeedsInvoices;
+use App\Demo\SeedsProducts;
 use App\Demo\SeedsProof;
 use App\Demo\SeedsTeam;
 use App\Demo\SeedsWebhooks;
@@ -96,6 +97,15 @@ class DemoSeed extends Command
             return true;
         });
 
+        // Nach den Terminen: die Hälfte der Zeiger geht auf Event-uuids, und
+        // ein Zeiger auf einen Termin, den es nicht gibt, soll als fehlend
+        // erkannt werden — vorher wäre er nur nicht prüfbar.
+        $this->components->task('Produkte: elf Zeilen, zwei absichtlich krumm', function () {
+            $this->ergebnis = array_merge($this->ergebnis, (new SeedsProducts)->run());
+
+            return true;
+        });
+
         $this->components->task('Mailvorlagen: vier, eine mit unbekanntem Platzhalter', function () {
             $this->ergebnis = array_merge($this->ergebnis, (new SeedsEmailTemplates)->run());
 
@@ -154,7 +164,7 @@ class DemoSeed extends Command
         }
 
         $this->newLine();
-        $this->components->info('Fertig. Der Katalog liegt in config/statamic-payments.php.');
+        $this->components->info('Fertig. Der Katalog liegt in config/statamic-payments.php, die Produktdaten in der Tabelle.');
 
         return self::SUCCESS;
     }
@@ -246,6 +256,7 @@ class DemoSeed extends Command
             \Goldnead\StatamicPayments\Models\Subscription::class,
             \Goldnead\StatamicOffers\Models\Coupon::class,
             \Goldnead\StatamicOffers\Models\Offer::class,
+            \Goldnead\StatamicProducts\Models\Product::class,
         ] as $modell) {
             $modell::query()->delete();
         }

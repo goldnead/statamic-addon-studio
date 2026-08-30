@@ -111,6 +111,9 @@ Nicht anfassen, das ist der Punkt:
 - **Angebote**, die auf ein Produkt zeigen, das es nicht gibt oder das der Katalog ablehnt
 - **Produkte** mit negativem Preis, einem Preis als Text, ohne Preis, und eines mit einem Punkt im
   Handle
+- Eine **Produktzeile, die die Konfiguration überschatten will** (`cw-kurs`, 259,00 statt 249,00:
+  die Konfiguration gewinnt, und der Bildschirm sagt das), und ein **Produktzeiger auf ein Konzert,
+  das nie angelegt wurde** (`sz-phantom`: markiert und über der Tabelle gezählt)
 - **Gutscheine**, die abgelaufen, noch nicht gestartet, aufgebraucht oder auf 500 % getippt sind
 - Ein **Abo**, das der Anbieter nie bestätigt hat, und eines, das er gesperrt hat
 - Der Funnel **`sackgassen`**: eine Schleife, eine Waise, eine Sackgasse, ein abgeschalteter Schritt
@@ -132,6 +135,7 @@ Nicht anfassen, das ist der Punkt:
 app/Demo/DemoData.php            Die unangenehmen Werte, an einer Stelle
 app/Demo/SeedsBrands.php         Fünf Marken
 app/Demo/SeedsCommerce.php       Katalog, Angebote, Gutscheine, Zahlungen, Abos
+app/Demo/SeedsProducts.php       Elf Produktdaten, alle sechs Arten, zwei absichtlich krumm
 app/Demo/SeedsTeam.php           Fünf Konten, drei Rollen, vier Markenzuordnungen
 app/Demo/SeedsCrm.php            Kontakte, Firmen, Aufgaben, Pipeline, Tags, Segmente, Sperren,
                                  Freebies, Zugänge, Meldungen, Spuren
@@ -158,7 +162,10 @@ kein einziges Domain-Ereignis, weshalb `leadhub_events`, `suppression_events` un
 nur, dass die Tabelle Spalten hat.
 
 Der Katalog wird in `config/statamic-payments.php` geschrieben, nicht in eine Tabelle: ein Produkt
-ist Konfiguration, und ein Zahlungs-Addon, das Preise mitliefert, wäre falsch.
+ist Konfiguration, und ein Zahlungs-Addon, das Preise mitliefert, wäre falsch. Seit
+`statamic-products` liegt der Katalog **zweimal** da — Konfiguration als der alte Wohnsitz,
+Tabelle als der neue —, und eine Zeile existiert absichtlich in beiden. Die Konfiguration gewinnt,
+und genau das zeigt der Bildschirm.
 
 ## Sprache
 
@@ -181,7 +188,8 @@ mit ihren echten Zahlen zeigt und direkt dorthin springt — ohne ihn ist das Er
 ein leeres Dashboard auf einer Installation voller Daten.
 
 **Was dabei auffällt und eine Entscheidung ist, keine Nebensache:** Kontakte, Termine, Abonnenten,
-Zugänge, Meldungen und Spuren sind markengetrennt. **Zahlungen, Angebote und Abos sind es nicht** —
+Zugänge, Meldungen, Spuren und **Produktdaten** sind markengetrennt — eine Agentur mit drei Marken
+bekommt drei Kataloge. **Zahlungen, Angebote und Abos sind es nicht** —
 der ganze Handelsteil liegt in einem Topf, jeder mit Zahlungsrecht sieht alle Kunden. Fast alles hängt an einer Marke: Kontakte, Abonnenten, Sperren,
 Zugänge, Meldungen, Spuren, Webhooks. Auf der Agenturmarke ist deshalb wenig zu sehen, und das ist
 richtig so.
