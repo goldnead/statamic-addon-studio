@@ -1,5 +1,169 @@
-<h1>{{ title }}</h1>
-<p>Ein eingebettetes Video, das erst nach Einwilligung lädt:</p>
-{{ consent:gate service="youtube" }}
-    <iframe width="100%" height="360" src="https://www.youtube.com/embed/dQw4w9WgXcQ" frameborder="0" allowfullscreen></iframe>
-{{ /consent:gate }}
+{{#
+    Die Hub-Seite der Demo: erklaert den Playground, nennt den Login, zeigt die
+    drei Kundenwebsites und linkt die Ablaeufe direkt an. Der Aufbau ist
+    bewusst eine laengere Seite statt eines Menus: Jemand, der die Demo zum
+    ersten Mal offnet, soll ohne Klick verstehen, was hier laeuft.
+    Styling: /marken/nordlicht.css (ueber das Layout geladen).
+#}}
+<div class="lp">
+
+    <header class="lp-top">
+        <div class="lp-brand">Nordlicht Studio <span class="lp-tag">Demo</span></div>
+        <nav class="lp-topnav">
+            <a href="https://docs.adriangoldner.dev/">Dokumentation</a>
+            <a class="lp-btn lp-btn--primary" href="/cp/auth/login">Ins Control Panel</a>
+        </nav>
+    </header>
+
+    <section class="lp-hero">
+        <p class="lp-eyebrow">Demo-Playground · Release-Versionen, nicht Entwicklungsstände</p>
+        <h1>Die Addon-Suite, auf einer kleinen Agentur verbaut.</h1>
+        <p class="lp-lead">
+            Dieser Playground spielt eine Agentur mit drei Kundenwebsites. Jedes Addon läuft
+            hier in der Version, die man auch von Packagist bekommt. Bezahlt wird über ein
+            Mollie-Testkonto, es bewegt sich kein echtes Geld. Und um 03:17 UTC setzt jede Nacht
+            ein Reset alles zurück: Was du ausprobierst oder kaputtmachst, ist am Morgen wieder heil.
+        </p>
+        <p class="lp-addons">Im Einsatz: <code>statamic-consent</code>, <code>statamic-funnels</code>, <code>statamic-events</code>, <code>statamic-products</code>, <code>statamic-payments</code>. Insgesamt booten 22 Addons; die übrigen arbeiten im Control Panel.</p>
+    </section>
+
+    <section class="lp-section" id="einloggen">
+        <h2>Einloggen und ausprobieren</h2>
+        <p class="lp-sectionintro">
+            Das Control Panel ist offen: Das Konto steht hier, weil eine Demo, hinter der ein
+            Formular liegt, keine Demo ist. Es hat volle Rechte. Vier weitere Konten tragen
+            bewusst eingeschränkte Rechte; sie liegen im Control Panel unter Benutzer.
+        </p>
+        <div class="lp-login">
+            <div class="lp-cred">
+                <a href="/cp/auth/login">demo.adriangoldner.dev/cp/auth/login</a>
+                <code>mira@nordlicht.beispiel</code>
+                <code>demo-local-password</code>
+            </div>
+            <p>
+                Alle Kassen laufen im Mollie-Testmodus. Die Testkarte nimmt jede Zahlung an,
+                Abos und Ratenpläne eingeschlossen:
+            </p>
+            <div class="lp-cred">
+                <code>4242 4242 4242 4242</code>
+                <span>beliebiges zukünftiges Datum, drei beliebige Ziffern als Prüfnummer</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="lp-section" id="websites">
+        <h2>Drei Kundenwebsites</h2>
+        <p class="lp-sectionintro">
+            Jede Website hat ihre eigene Handschrift und ihre eigenen Produkte. Die Kasse
+            dahinter ist immer dieselbe: statamic-payments, mit dem Produktverzeichnis aus
+            statamic-products.
+        </p>
+        <div class="lp-grid">
+            <div class="lp-card">
+                <div class="lp-cardaccent" style="background:#14504a"></div>
+                <h3 class="lp-cardname">Chorwerkstatt Nord</h3>
+                <p class="lp-cardtext">
+                    Stimmbildung für Chöre: Kurse mit Ratenzahlung, eine Mitgliedschaft,
+                    das Werkstattbuch als Download.
+                </p>
+                <div class="lp-cardlinks">
+                    <a class="lp-btn lp-btn--primary" href="/chorwerkstatt">Website ansehen</a>
+                    <a class="lp-btn lp-btn--quiet" href="/chorwerkstatt/kurse">Direkt zu den Kursen</a>
+                </div>
+            </div>
+            <div class="lp-card">
+                <div class="lp-cardaccent" style="background:#ff3b14"></div>
+                <h3 class="lp-cardname">Kollektiv Halbmond</h3>
+                <p class="lp-cardtext">
+                    Band aus Bochum: die neue Platte, Konzertkarten, ein Fanclub-Abo mit
+                    Vorausverkauf.
+                </p>
+                <div class="lp-cardlinks">
+                    <a class="lp-btn lp-btn--primary" href="/halbmond">Website ansehen</a>
+                    <a class="lp-btn lp-btn--quiet" href="/halbmond/platten">Direkt zur Platte</a>
+                </div>
+            </div>
+            <div class="lp-card">
+                <div class="lp-cardaccent" style="background:#6f8d7e"></div>
+                <h3 class="lp-cardname">Praxis Lindhorst</h3>
+                <p class="lp-cardtext">
+                    Beratung mit klaren Schritten: kostenloses Erstgespräch, eine Karte für
+                    fünf Sitzungen, ein Abo mit Testphase.
+                </p>
+                <div class="lp-cardlinks">
+                    <a class="lp-btn lp-btn--primary" href="/lindhorst">Website ansehen</a>
+                    <a class="lp-btn lp-btn--quiet" href="/lindhorst/erstgespraech">Direkt zum Erstgespräch</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="lp-section" id="ablaeufe">
+        <h2>Abläufe direkt anfahren</h2>
+        <p class="lp-sectionintro">
+            Kauf, Funnel und Kundenkonto brauchen keinen Einstieg über die Websites. Das hier
+            sind die Türen direkt hinein.
+        </p>
+        <ul class="lp-flows">
+            <li>
+                <a class="lp-flowlink" href="/fruehlingskurs">/fruehlingskurs</a>
+                <p class="lp-flowtext">
+                    Die Landingpage des Frühlingskurses (statamic-funnels), vom Versprechen
+                    bis zur Kasse. Der Kurs zahlt sich in Raten.
+                </p>
+            </li>
+            <li>
+                <a class="lp-flowlink" href="/f/fruehlingskurs">/f/fruehlingskurs</a>
+                <p class="lp-flowtext">
+                    Derselbe Kurs als reiner Funnel aus statamic-funnels: jede Stufe einzeln
+                    gebaut, ohne die Website drumherum.
+                </p>
+            </li>
+            <li>
+                <a class="lp-flowlink" href="/f/vinyl">/f/vinyl</a>
+                <p class="lp-flowtext">
+                    Der Funnel zur Halbmond-Platte (statamic-funnels), inklusive
+                    Newsletter-Anmeldung und Double-Opt-in.
+                </p>
+            </li>
+            <li>
+                <a class="lp-flowlink" href="/termine">/termine</a>
+                <p class="lp-flowtext">
+                    Buchbare Termine aller Marken aus statamic-events. Einer der Endpoints
+                    antwortet bewusst nicht: Das ist die Fehleranzeige im Live-Betrieb, kein
+                    Defekt.
+                </p>
+            </li>
+            <li>
+                <a class="lp-flowlink" href="/!/statamic-payments/konto/anmelden">/konto/anmelden</a>
+                <p class="lp-flowtext">
+                    Das Kundenkonto von statamic-payments: Bestellungen ansehen, Rechnungen
+                    laden, Abos kündigen. Gib eine Adresse aus einer Testbestellung an. Die
+                    Demo verschickt keine Mails: Der Magic-Link landet im Systemlog, im
+                    Betrieb käme er per Mail.
+                </p>
+            </li>
+        </ul>
+    </section>
+
+    <section class="lp-section" id="consent">
+        <h2>Auf dieser Seite: ein Video mit zwei Klicks</h2>
+        <p class="lp-sectionintro">
+            Das Video unten lädt erst, nachdem du YouTube erlaubst. Dieselbe
+            Einwilligungs-Mechanik läuft auf allen Kundenwebsites, jeweils im Gesicht der
+            Marke.
+        </p>
+        <div class="lp-gate">
+            {{ consent:gate service="youtube" }}
+                <iframe width="100%" height="360" src="https://www.youtube.com/embed/dQw4w9WgXcQ" frameborder="0" allowfullscreen></iframe>
+            {{ /consent:gate }}
+        </div>
+    </section>
+
+    <footer class="lp-foot">
+        <span>Dokumentation: <a href="https://docs.adriangoldner.dev/">docs.adriangoldner.dev</a></span>
+        <span>Nächtlicher Reset um 03:17 UTC.</span>
+        <span>Die fünfte Marke (Sonderzeichen) hat keine eigene Website; sie übt im Control Panel, was Sonderzeichen in Headern und URLs anrichten.</span>
+    </footer>
+
+</div>

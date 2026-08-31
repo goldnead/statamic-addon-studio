@@ -30,8 +30,11 @@
           }
           body { font-family: 'Inter', system-ui, sans-serif; margin: 0; background: #FBFBFA; color: #17171A; }
           main { max-width: 46rem; margin: 0 auto; padding: 3rem 1.5rem 14rem; }
-          footer { border-top: 1px solid #e2e5ea; margin-top: 3rem; padding-top: 1rem; font-size: .875rem; }
+          footer { border-top: 1px solid #E6E6E4; margin-top: 3rem; padding-top: 1rem; font-size: .875rem; }
         </style>
+        {{# Die Hub-Startseite traegt ihr eigenes Gesicht; sie laedt als einzige
+            Nordlicht-Seite ein Marken-Stylesheet. #}}
+        <link rel="stylesheet" href="/marken/nordlicht.css">
     {{ /if }}
 </head>
 <body class="{{ if brand }}marke-{{ brand }}{{ else }}marke-nordlicht{{ /if }}">
@@ -42,7 +45,7 @@
     {{ elseif brand == 'lindhorst' }}
         {{ partial:marken/lindhorst/chrome }}
     {{ else }}
-        <main>
+        <main{{ if url == '/' }} class="lp-main"{{ /if }}>
             {{ template_content }}
             <footer>{{ consent:settings_link }}</footer>
         </main>

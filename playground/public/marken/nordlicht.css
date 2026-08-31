@@ -1,0 +1,301 @@
+/* Nordlicht Studio — die Hub-Seite der Demo.
+ *
+ * Die drei Kundenwebsites tragen je ihre eigene Handschrift (chorwerkstatt.css,
+ * halbmond.css, lindhorst.css). Diese Datei hier ist die vierte: die der Agentur
+ * selbst. Sie uebernimmt Werte und Formen vom Consent-Addon (Naeherung: near-black
+ * auf off-white, Radius 0.5rem, Satz statt Versalien), weil das Banner auf dieser
+ * Seite sichtbar mitlaeuft und nicht wie ein Fremdkoerper aussehen soll.
+ *
+ * Gilt nur der Hub. Die schlichten Innenseiten (Funnel-Ausstieg, Danke, Termine)
+ * behalten das schmale Standardmass aus layout.antlers.html. */
+
+:root {
+  --nl-bg: #FBFBFA;
+  --nl-surface: #FFFFFF;
+  --nl-sunken: #F7F7F6;
+  --nl-muted: #F1F1F0;
+  --nl-line: #E6E6E4;
+  --nl-ink: #17171A;
+  --nl-soft: #45454B;
+  --nl-gray: #71717A;
+  --nl-faint: #A1A1AA;
+  --nl-brand: #17171A;
+  --nl-brand-hover: #34343A;
+  --nl-radius-card: 1rem;
+  --nl-radius-inner: 0.5rem;
+  --nl-shadow: 0 20px 44px -20px rgba(23, 23, 26, 0.14);
+  --nl-font-ui: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+/* Die Hub-Seite braucht mehr Breite als 46rem, die Karten sonst keinen Platz.
+ * Die Klasse setzt layout.antlers.html nur fuer die Startseite. */
+main.lp-main {
+  max-width: 64rem;
+}
+
+.lp { font-size: 1rem; }
+.lp * + * { margin-block-start: 0; } /* Abstaende setzt jede Sektion selbst. */
+
+/* ---------- Kopfteil ---------- */
+
+.lp-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-block: 0.75rem;
+  border-bottom: 1px solid var(--nl-line);
+  font-size: 0.9375rem;
+}
+
+.lp-brand {
+  font-family: 'Outfit', system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 1.0625rem;
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.lp-tag {
+  font-family: var(--nl-font-ui);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--nl-gray);
+  border: 1px solid var(--nl-line);
+  border-radius: 999px;
+  padding: 0.125rem 0.5rem;
+}
+
+.lp-topnav { display: flex; align-items: center; gap: 1rem; }
+.lp-topnav a { color: var(--nl-soft); text-decoration: none; }
+.lp-topnav a:hover { color: var(--nl-ink); text-decoration: underline; }
+
+/* ---------- Einstieg ---------- */
+
+.lp-hero { padding-block: 3.5rem 2.5rem; }
+
+.lp-eyebrow {
+  font-family: var(--nl-font-ui);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--nl-gray);
+  margin: 0 0 1rem;
+}
+
+.lp h1 {
+  font-family: 'Outfit', system-ui, sans-serif;
+  font-weight: 700;
+  font-size: clamp(2rem, 4.5vw, 2.75rem);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  margin: 0 0 1.25rem;
+  max-width: 30ch;
+}
+
+.lp-lead {
+  font-size: 1.125rem;
+  line-height: 1.65;
+  color: var(--nl-soft);
+  max-width: 58ch;
+  margin: 0;
+}
+
+/* Die Addon-Namen unter dem Einstieg: Monopills, damit sie wie technische
+ * Bezeichner lesen und nicht wie Fliesstext. */
+.lp-addons { font-size: 0.875rem; line-height: 1.8; color: var(--nl-gray); max-width: 58ch; margin: 1.25rem 0 0; }
+
+.lp-addons code {
+  font-family: var(--nl-font-ui);
+  font-size: 0.8125rem;
+  background: var(--nl-surface);
+  border: 1px solid var(--nl-line);
+  border-radius: var(--nl-radius-inner);
+  padding: 0.125rem 0.375rem;
+  color: var(--nl-soft);
+  white-space: nowrap;
+}
+
+.lp h2 {
+  font-family: 'Outfit', system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 1.375rem;
+  letter-spacing: -0.01em;
+  margin: 0 0 0.5rem;
+}
+
+.lp-section { padding-block: 2.25rem; border-top: 1px solid var(--nl-line); }
+.lp-sectionintro { color: var(--nl-soft); max-width: 58ch; margin: 0 0 1.5rem; }
+
+/* ---------- Login-Karte ---------- */
+
+.lp-login {
+  background: var(--nl-surface);
+  border: 1px solid var(--nl-line);
+  border-radius: var(--nl-radius-card);
+  box-shadow: var(--nl-shadow);
+  padding: 1.5rem;
+  display: grid;
+  gap: 1.25rem;
+}
+
+.lp-login p { margin: 0; color: var(--nl-soft); }
+
+.lp-cred {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--nl-sunken);
+  border: 1px solid var(--nl-line);
+  border-radius: var(--nl-radius-inner);
+  padding: 0.75rem;
+}
+
+.lp-cred a { font-family: var(--nl-font-ui); font-size: 0.875rem; color: var(--nl-ink); overflow-wrap: anywhere; }
+.lp-cred a:hover { text-decoration: none; }
+
+.lp-cred code {
+  font-family: var(--nl-font-ui);
+  font-size: 0.875rem;
+  background: var(--nl-surface);
+  border: 1px solid var(--nl-line);
+  border-radius: var(--nl-radius-inner);
+  padding: 0.25rem 0.5rem;
+}
+
+.lp-cred span {
+  font-size: 0.875rem;
+  color: var(--nl-gray);
+}
+
+/* ---------- Kundenwebsites ---------- */
+
+.lp-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.lp-card {
+  background: var(--nl-surface);
+  border: 1px solid var(--nl-line);
+  border-radius: var(--nl-radius-card);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.lp-cardaccent {
+  height: 0.25rem;
+  border-radius: 999px;
+  width: 3rem;
+}
+
+.lp-cardname {
+  font-family: 'Outfit', system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 1.0625rem;
+  margin: 0;
+}
+
+.lp-cardtext { font-size: 0.9375rem; line-height: 1.55; color: var(--nl-soft); margin: 0; flex-grow: 1; }
+
+.lp-cardlinks { display: flex; flex-direction: column; gap: 0.5rem; }
+
+/* ---------- Buttons ---------- */
+
+.lp-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  text-align: center;
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  border-radius: var(--nl-radius-inner);
+  padding: 0.5rem 0.875rem;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.lp-btn--primary { background: var(--nl-brand); color: #fff; }
+.lp-btn--primary:hover { background: var(--nl-brand-hover); }
+
+.lp-btn--quiet {
+  background: transparent;
+  color: var(--nl-soft);
+  border: 1px solid var(--nl-line);
+  padding: calc(0.5rem - 1px) calc(0.875rem - 1px);
+}
+.lp-btn--quiet:hover { color: var(--nl-ink); border-color: var(--nl-faint); }
+
+/* ---------- Ablaeufe ---------- */
+
+.lp-flows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+}
+
+.lp-flows li {
+  display: grid;
+  grid-template-columns: 15rem 1fr;
+  gap: 1rem;
+  align-items: baseline;
+  padding-block: 0.875rem;
+  border-bottom: 1px solid var(--nl-line);
+}
+
+.lp-flows li:last-child { border-bottom: 0; }
+
+.lp-flowlink {
+  font-family: var(--nl-font-ui);
+  font-size: 0.875rem;
+  color: var(--nl-ink);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.lp-flowlink:hover { text-decoration: underline; }
+
+.lp-flowtext { font-size: 0.9375rem; line-height: 1.55; color: var(--nl-soft); margin: 0; }
+
+/* ---------- Consent-Abschnitt ---------- */
+
+.lp-gate {
+  margin-top: 1rem;
+  max-width: 42rem;
+}
+
+/* ---------- Schluss ---------- */
+
+.lp-foot {
+  margin-top: 2.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--nl-line);
+  font-size: 0.875rem;
+  color: var(--nl-gray);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+}
+
+.lp-foot a { color: var(--nl-soft); }
+
+/* ---------- Schmal ---------- */
+
+@media (max-width: 720px) {
+  .lp-hero { padding-block: 2.5rem 1.5rem; }
+  .lp-grid { grid-template-columns: 1fr; }
+  .lp-flows li { grid-template-columns: 1fr; gap: 0.25rem; }
+  .lp-top { flex-wrap: wrap; }
+}
