@@ -1,0 +1,59 @@
+{{# Die Kasse der Fünferkarte im Gewand der Praxis Lindhorst: eine Spalte,
+    viel Luft, nichts drängt. Schrift und Salbei stammen von der Website, die
+    Kasse darunter bleibt aber eine Spur — kaufen ohne Gänge. #}}
+<!doctype html>
+<html lang="de">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ funnel:step:label }} · Praxis Lindhorst</title>
+    {{ consent:head }}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Karla:wght@400;500;700&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;1,6..72,400&display=swap">
+    <link rel="stylesheet" href="/marken/lindhorst.css">
+    <style>
+      .fn-top { display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+                padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--lh-fog); }
+      .fn-brand { text-decoration: none; color: inherit; }
+      .fn-brand b { font-family: var(--serif); font-weight: 400; font-size: 1.15rem; display: block; line-height: 1.2; }
+      .fn-brand span { font-size: .8rem; color: var(--lh-slate-2); }
+      .fn-back { font-size: .85rem; color: var(--lh-sage-d); text-decoration: none;
+                 border: 1px solid var(--lh-fog); border-radius: 2rem; padding: .45rem .9rem; white-space: nowrap; }
+      .fn-back:hover { border-color: var(--lh-sage); }
+      .fn-foot { border-top: 1px solid var(--lh-fog); margin-top: 3rem; padding: 1rem 1.5rem 3rem;
+                 display: flex; gap: 1.25rem; flex-wrap: wrap; font-size: .8rem; color: var(--lh-slate-2); }
+      .fn-foot a { color: var(--lh-sage-d); text-decoration: none; }
+
+      {{# Die fünf Farb-Variablen der Funnel-CSS auf Lindhorst-Farben. Das `body`
+          davor, weil das Stylesheet des Addons mitten im Seitenkörper lädt und
+          bei gleicher Stärke spätere Regeln gewinnt. #}}
+      body .funnel-step { --funnel-ink: var(--lh-sage-d); --funnel-muted: var(--lh-slate-2);
+                          --funnel-line: var(--lh-fog); --funnel-accent: var(--lh-sage);
+                          --funnel-surface: var(--lh-white); }
+      body .funnel-step, body .funnel-step button, body .funnel-step input { font-family: var(--sans); }
+      body .funnel-step h1, body .funnel-step h2 { font-family: var(--serif); font-weight: 400; }
+    </style>
+</head>
+<body class="marke-lindhorst">
+    <header class="fn-top">
+        <a class="fn-brand" href="/lindhorst" aria-label="Zur Praxis Lindhorst">
+            <b>Praxis Lindhorst</b>
+            <span>Einzelcoaching</span>
+        </a>
+        <a class="fn-back" href="/lindhorst/karten">Zurück zu den Karten</a>
+    </header>
+
+    <main id="inhalt">
+        {{ partial:funnel-body }}
+    </main>
+
+    <footer class="fn-foot">
+        <span>Praxis Lindhorst</span>
+        <a href="/lindhorst/impressum">Impressum</a>
+        <a href="/lindhorst/datenschutz">Datenschutz</a>
+        {{ consent:settings_link }}
+    </footer>
+    {{ consent:banner }}
+</body>
+</html>

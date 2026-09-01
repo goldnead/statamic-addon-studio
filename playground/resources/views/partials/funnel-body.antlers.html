@@ -1,0 +1,128 @@
+{{#
+    Der Schritt-Inhalt eines Funnels, wie ihn die Marken-Seiten zeigen.
+
+    Struktur und Klassen sind die des mitgelieferten Templates
+    (statamic-funnels::step), die Daten laufen aber durch die dokumentierte
+    `funnel:`-Form: Dieses Partial läuft in Site-Templates, und die flachen
+    Schlüssel würden dort mit Seitenfeldern kollidieren — genau der Fehler,
+    wegen dem der Controller alles in einen Beutel packt.
+#}}
+{{ if funnel:styles }}<link rel="stylesheet" href="{{ funnel:styles }}">{{ /if }}
+{{# Nur wo eine Uhr tickt. Eine Seite ohne Frist lädt kein Skript. #}}
+{{ if funnel:countdown && funnel:scripts }}<script src="{{ funnel:scripts }}" defer></script>{{ /if }}
+
+<div class="funnel-step" data-funnel="{{ funnel:handle }}" data-step="{{ funnel:step:key }}" data-step-type="{{ funnel:step:type }}">
+    {{ if funnel:headline }}<h1>{{ funnel:headline }}</h1>{{ /if }}
+    {{ if funnel:body }}<div class="funnel-step__body">{{ funnel:body | markdown }}</div>{{ /if }}
+
+    {{# Ein Formularschritt: Name und Adresse, mehr verlangt dieser Schritt nicht. #}}
+    {{ if funnel:step:type == "capture" }}
+        <form method="POST" action="{{ funnel:action }}" class="funnel-form">
+            {{ csrf_field }}
+            <label>
+                <span>{{ trans key="statamic-funnels::messages.field_name" }}</span>
+                <input type="text" name="name" value="{{ funnel:visit:name }}">
+            </label>
+            <label>
+                <span>{{ trans key="statamic-funnels::messages.field_email" }}</span>
+                <input type="email" name="email" value="{{ funnel:visit:email }}" required>
+            </label>
+            <button type="submit">{{ trans key="statamic-funnels::messages.continue" }}</button>
+        </form>
+    {{ /if }}
+
+    {{# Der Angebotsschritt. Der Knopf trägt seine eigene Formulierung und
+        seine eigene Bestätigung, denn die Kartendaten zu speichern heißt
+        nicht, die Einwilligung zu speichern. #}}
+    {{ if funnel:step:type == "offer" }}
+        {{ if funnel:offer }}
+            <div class="funnel-offer">
+                {{# Eine Frist, die der Server ebenfalls kennt. Die Zahl unten
+                    stimmt im Augenblick des Renderns; das Skript tickt sie
+                    weiter, weil ein eine Stunde offener Tab eine alte hat. #}}
+                {{ if funnel:countdown }}
+                    <p class="funnel-countdown" data-funnel-countdown="{{ funnel:countdown:ends_at }}"{{ if funnel:countdown:expired }} data-funnel-countdown-over{{ /if }}>
+                        {{ if funnel:countdown:expired }}
+                            {{ trans key="statamic-funnels::messages.countdown_over" }}
+                        {{ else }}
+                            <span class="funnel-countdown__label">{{ trans key="statamic-funnels::messages.countdown_remaining" }}</span>
+                            <time class="funnel-countdown__clock" datetime="{{ funnel:countdown:ends_at }}" data-funnel-clock>{{ funnel:countdown:seconds }}</time>
+                        {{ /if }}
+                    </p>
+                {{ /if }}
+                <h2>{{ funnel:offer:headline }}</h2>
+                {{ if funnel:offer:body }}<div>{{ funnel:offer:body | markdown }}</div>{{ /if }}
+                <p class="funnel-offer__price">
+                    <strong>{{ funnel:offer:amount_local }} {{ funnel:offer:currency }}</strong>
+                    {{ if funnel:offer:compare_at }}<s>{{ funnel:offer:compare_at }} {{ funnel:offer:currency }}</s>{{ /if }}
+                </p>
+
+                <form method="POST" action="{{ funnel:action }}" class="funnel-offer__accept" {{ if funnel:countdown:expired }}hidden{{ /if }}>
+                    {{ csrf_field }}
+                    <input type="hidden" name="accept" value="1">
+
+                    {{# Die Kästchen neben dem Bestellknopf. Welche es gibt,
+                        entscheidet das Angebot, nie diese Seite. #}}
+                    {{ if funnel:offer:bumps }}
+                        <fieldset class="funnel-offer__bumps">
+                            <legend>{{ trans key="statamic-funnels::messages.bumps_legend" }}</legend>
+                            {{ funnel:offer:bumps }}
+                                <label class="funnel-bump">
+                                    <input type="checkbox" name="bumps[]" value="{{ handle }}">
+                                    <span class="funnel-bump__text">
+                                        <strong>{{ headline }}</strong>
+                                        {{ if body }}<span class="funnel-bump__body">{{ body | markdown }}</span>{{ /if }}
+                                    </span>
+                                    <span class="funnel-bump__price">
+                                        +{{ amount_local }} {{ currency }}
+                                        {{ if compare_at }}<s>{{ compare_at }} {{ currency }}</s>{{ /if }}
+                                    </span>
+                                </label>
+                            {{ /funnel:offer:bumps }}
+                        </fieldset>
+                    {{ /if }}
+
+                    {{ if funnel:offer:coupons }}
+                        <label class="funnel-offer__coupon">
+                            <span>{{ trans key="statamic-funnels::messages.coupon_label" }}</span>
+                            <input type="text" name="coupon" autocomplete="off" spellcheck="false">
+                        </label>
+                    {{ /if }}
+
+                    {{# Womit abgebucht wird, unmittelbar über dem Knopf. #}}
+                    {{ if funnel:saved_card }}
+                        <p class="funnel-offer__saved-card">
+                            {{ if funnel:saved_card:last4 }}
+                                {{ trans key="statamic-funnels::messages.saved_card_named" label="{funnel:saved_card:label}" last4="{funnel:saved_card:last4}" }}
+                            {{ else }}
+                                {{ trans key="statamic-funnels::messages.saved_card_unnamed" }}
+                            {{ /if }}
+                        </p>
+                    {{ /if }}
+
+                    <label>
+                        <input type="checkbox" name="confirmed" value="1" required>
+                        <span>{{ trans key="statamic-funnels::messages.order_confirmation" }}</span>
+                    </label>
+                    <button type="submit">{{ if funnel:offer:button_label }}{{ funnel:offer:button_label }}{{ else }}{{ trans key="statamic-funnels::messages.order_button" }}{{ /if }}</button>
+                </form>
+
+                <form method="POST" action="{{ funnel:action }}" class="funnel-offer__decline">
+                    {{ csrf_field }}
+                    <input type="hidden" name="accept" value="0">
+                    <button type="submit">{{ trans key="statamic-funnels::messages.decline" }}</button>
+                </form>
+            </div>
+        {{ else }}
+            <p class="funnel-offer__missing">{{ trans key="statamic-funnels::messages.offer_unavailable" }}</p>
+        {{ /if }}
+    {{ /if }}
+
+    {{# Jeder andere Schritt trägt nur weiter. #}}
+    {{ if funnel:step:type == "entry" || funnel:step:type == "page" }}
+        <form method="POST" action="{{ funnel:action }}">
+            {{ csrf_field }}
+            <button type="submit">{{ trans key="statamic-funnels::messages.continue" }}</button>
+        </form>
+    {{ /if }}
+</div>

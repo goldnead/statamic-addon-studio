@@ -95,17 +95,26 @@ class SeedsFunnels
         // by choir year, not by month.
         $funnel = $this->funnel('mitgliedschaft', 'Mitgliedschaft', true);
 
+        // Every step names the site template that dresses it in the workshop's
+        // own clothes: the shipped `statamic-funnels::step` renders naked,
+        // without even an html skeleton, and a checkout that looks like a
+        // foreign site reads as a foreign site.
         $this->schritte($funnel, [
             ['entry_1', 'entry', null, 'Mitgliedschaft', [
+                'template' => 'funnel/chorwerkstatt',
                 'headline' => 'Ein Jahr Begleitung',
                 'body' => 'Vier Werkstatttage, Sprechstunde, Übungsarchiv. Ein Chorjahr, endet am 31. Juli.',
             ]],
             ['offer_1', 'offer', 'beitreten', 'Beitritt', [
+                'template' => 'funnel/chorwerkstatt',
                 'offer' => 'cw-mitgliedschaft-angebot',
                 'headline' => 'Mitgliedschaft Chor, ein Jahr',
                 'body' => 'Achtzehnhundert Euro, einmalig für ein Chorjahr.',
             ]],
-            ['danke_1', 'finish', 'danke', 'Danke', ['headline' => 'Willkommen.']],
+            ['danke_1', 'finish', 'danke', 'Danke', [
+                'template' => 'funnel/chorwerkstatt',
+                'headline' => 'Willkommen.',
+            ]],
         ]);
 
         $this->kanten($funnel, [
@@ -119,12 +128,16 @@ class SeedsFunnels
     {
         $funnel = $this->funnel('vinyl', 'Die Platte', true);
 
+        // Both buy paths of the band wear the band's clothes: dark ground,
+        // poster type, the red moon. Same reason as the workshop's funnel.
         $this->schritte($funnel, [
             ['entry_1', 'entry', null, 'Die Platte', [
+                'template' => 'funnel/halbmond',
                 'headline' => 'Halbmond, auf Vinyl',
                 'body' => 'Dreihundert Stück, nummeriert, von uns allen unterschrieben.',
             ]],
             ['offer_1', 'offer', 'bestellen', 'Bestellen', [
+                'template' => 'funnel/halbmond',
                 'offer' => 'hm-vinyl-angebot',
                 'headline' => 'Die Platte, signiert',
                 'body' => 'Solange sie da ist.',
@@ -135,7 +148,10 @@ class SeedsFunnels
                 'countdown' => Countdown::FIXED,
                 'countdown_until' => '2027-01-31 23:59:59',
             ]],
-            ['danke_1', 'finish', 'danke', 'Danke', ['headline' => 'Ist unterwegs.']],
+            ['danke_1', 'finish', 'danke', 'Danke', [
+                'template' => 'funnel/halbmond',
+                'headline' => 'Ist unterwegs.',
+            ]],
         ]);
 
         $this->kanten($funnel, [
@@ -150,15 +166,20 @@ class SeedsFunnels
 
         $this->schritte($funnel, [
             ['entry_1', 'entry', null, 'Fanclub', [
+                'template' => 'funnel/halbmond',
                 'headline' => 'Kein Newsletter. Fanclub.',
                 'body' => 'Vorausverkauf zwei Tage früher, Brief im Jahr, ein Jahr Laufzeit.',
             ]],
             ['offer_1', 'offer', 'mitmachen', 'Mitmachen', [
+                'template' => 'funnel/halbmond',
                 'offer' => 'hm-fanclub-angebot',
                 'headline' => 'Stufe Vollmond, ein Jahr',
                 'body' => 'Hundertacht Euro für ein Jahr Fanclub.',
             ]],
-            ['danke_1', 'finish', 'danke', 'Danke', ['headline' => 'Willkommen im Fanclub.']],
+            ['danke_1', 'finish', 'danke', 'Danke', [
+                'template' => 'funnel/halbmond',
+                'headline' => 'Willkommen im Fanclub.',
+            ]],
         ]);
 
         $this->kanten($funnel, [
@@ -194,17 +215,24 @@ class SeedsFunnels
         // The five-session card the pricing page sells, live.
         $funnel = $this->funnel('fuenferkarte', 'Fünferkarte', true);
 
+        // The practice's card, in the practice's clothes: one column, plenty
+        // of air, sage buttons. Same reason as the other two.
         $this->schritte($funnel, [
             ['entry_1', 'entry', null, 'Fünferkarte', [
+                'template' => 'funnel/lindhorst',
                 'headline' => 'Fünf Sitzungen, frei wählbar',
                 'body' => 'Zwei Jahre gültig, übertragbar, kurze Mails zwischendurch inklusive.',
             ]],
             ['offer_1', 'offer', 'kaufen', 'Kaufen', [
+                'template' => 'funnel/lindhorst',
                 'offer' => 'lh-karte-angebot',
                 'headline' => 'Die Fünferkarte',
                 'body' => 'Siebenhundert Euro, fünf Sitzungen.',
             ]],
-            ['danke_1', 'finish', 'danke', 'Danke', ['headline' => 'Bis zur ersten Sitzung.']],
+            ['danke_1', 'finish', 'danke', 'Danke', [
+                'template' => 'funnel/lindhorst',
+                'headline' => 'Bis zur ersten Sitzung.',
+            ]],
         ]);
 
         $this->kanten($funnel, [
