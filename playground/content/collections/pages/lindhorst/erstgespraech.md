@@ -41,8 +41,8 @@
   'enabled': true
   'heading': 'Termin anfragen'
   'text': 'Eine Mail mit zwei, drei Zeiten, die bei Ihnen passen. Mehr brauche ich nicht.'
-  'link_label': 'termin@praxis-lindhorst.example'
-  'link_url': 'mailto:termin@praxis-lindhorst.example'
+  'link_label': 'Direkt zum Formular'
+  'link_url': '#anfrage'
   'tone': 'normal'
 - 'id': '85337555-452a-5e2c-816d-eb16e5c2157f'
   'type': 'formular'

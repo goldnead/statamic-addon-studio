@@ -35,8 +35,8 @@
     - 'Zwei Jahre gültig'
     - 'Kurze Mails zwischendurch inklusive'
     'highlight': true
-    'link_label': 'Anfragen'
-    'link_url': 'mailto:termin@praxis-lindhorst.example'
+    'link_label': 'Fünferkarte kaufen'
+    'link_url': '/f/fuenferkarte'
   - 'id': 'b746dab9-34ec-58f0-ace8-2d16f49ed068'
     'name': 'Begleitung'
     'price': '1.900 €'

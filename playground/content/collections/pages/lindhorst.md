@@ -43,7 +43,7 @@
   'enabled': true
   'heading': 'Ein erstes Gespräch'
   'text': 'Fünfundvierzig Minuten, kostenfrei, ohne Anschluss. Danach entscheiden Sie, und wenn Sie sich nicht melden, melde ich mich auch nicht.'
-  'link_label': 'Termin anfragen'
-  'link_url': 'mailto:termin@praxis-lindhorst.example'
+  'link_label': 'Erstgespräch anfragen'
+  'link_url': '/lindhorst/erstgespraech'
   'tone': 'normal'
 ---

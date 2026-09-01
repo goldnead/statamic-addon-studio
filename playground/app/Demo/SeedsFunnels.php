@@ -11,7 +11,7 @@ use Illuminate\Support\Carbon;
 /**
  * One path per client, and one that is deliberately broken.
  *
- * The three real ones exist so the demo has something to walk. The broken one
+ * The real ones exist so the demo has something to walk. The broken one
  * exists because a funnel is a graph somebody draws by hand, and the shapes
  * they draw by accident — a step nothing leads to, a loop, a branch that stops,
  * a funnel with no way in — are the ones that decide whether the editor and the
@@ -89,9 +89,32 @@ class SeedsFunnels
             ['upsell_1', 'danke_1', 'declined'],
             ['auch-gut_1', 'danke_1', 'default'],
         ]);
+
+        // The membership year the pricing page sells, as its own short path.
+        // One payment, like every funnel checkout: the membership is priced
+        // by choir year, not by month.
+        $funnel = $this->funnel('mitgliedschaft', 'Mitgliedschaft', true);
+
+        $this->schritte($funnel, [
+            ['entry_1', 'entry', null, 'Mitgliedschaft', [
+                'headline' => 'Ein Jahr Begleitung',
+                'body' => 'Vier Werkstatttage, Sprechstunde, Übungsarchiv. Ein Chorjahr, endet am 31. Juli.',
+            ]],
+            ['offer_1', 'offer', 'beitreten', 'Beitritt', [
+                'offer' => 'cw-mitgliedschaft-angebot',
+                'headline' => 'Mitgliedschaft Chor, ein Jahr',
+                'body' => 'Achtzehnhundert Euro, einmalig für ein Chorjahr.',
+            ]],
+            ['danke_1', 'finish', 'danke', 'Danke', ['headline' => 'Willkommen.']],
+        ]);
+
+        $this->kanten($funnel, [
+            ['entry_1', 'offer_1', 'default'],
+            ['offer_1', 'danke_1', 'accepted'],
+        ]);
     }
 
-    /** A short one with a fixed deadline that has already passed. */
+    /** A short one with a fixed deadline that is still ahead. */
     protected function halbmond(): void
     {
         $funnel = $this->funnel('vinyl', 'Die Platte', true);
@@ -105,13 +128,37 @@ class SeedsFunnels
                 'offer' => 'hm-vinyl-angebot',
                 'headline' => 'Die Platte, signiert',
                 'body' => 'Solange sie da ist.',
-                // A deadline everybody shares, and it is over. The demo needs
-                // one expired offer in it: the closed state is the one nobody
-                // looks at until a customer does.
+                // A deadline everybody shares, still ahead: the plate ships on
+                // 10 March 2027, so pre-orders close while there is still time
+                // to press and number the run. The brand site's only buy
+                // button ends here, and that has to be a live path.
                 'countdown' => Countdown::FIXED,
-                'countdown_until' => Carbon::now()->subDays(3)->toDateTimeString(),
+                'countdown_until' => '2027-01-31 23:59:59',
             ]],
             ['danke_1', 'finish', 'danke', 'Danke', ['headline' => 'Ist unterwegs.']],
+        ]);
+
+        $this->kanten($funnel, [
+            ['entry_1', 'offer_1', 'default'],
+            ['offer_1', 'danke_1', 'accepted'],
+        ]);
+
+        // The fanclub year the fan page sells. One payment: the checkout the
+        // funnels have is a one-off checkout, so the site prices the club by
+        // year, not by month, and the checkout repeats exactly that.
+        $funnel = $this->funnel('fanclub', 'Fanclub', true);
+
+        $this->schritte($funnel, [
+            ['entry_1', 'entry', null, 'Fanclub', [
+                'headline' => 'Kein Newsletter. Fanclub.',
+                'body' => 'Vorausverkauf zwei Tage früher, Brief im Jahr, ein Jahr Laufzeit.',
+            ]],
+            ['offer_1', 'offer', 'mitmachen', 'Mitmachen', [
+                'offer' => 'hm-fanclub-angebot',
+                'headline' => 'Stufe Vollmond, ein Jahr',
+                'body' => 'Hundertacht Euro für ein Jahr Fanclub.',
+            ]],
+            ['danke_1', 'finish', 'danke', 'Danke', ['headline' => 'Willkommen im Fanclub.']],
         ]);
 
         $this->kanten($funnel, [
@@ -142,6 +189,27 @@ class SeedsFunnels
         $this->kanten($funnel, [
             ['entry_1', 'capture_1', 'default'],
             ['capture_1', 'danke_1', 'submitted'],
+        ]);
+
+        // The five-session card the pricing page sells, live.
+        $funnel = $this->funnel('fuenferkarte', 'Fünferkarte', true);
+
+        $this->schritte($funnel, [
+            ['entry_1', 'entry', null, 'Fünferkarte', [
+                'headline' => 'Fünf Sitzungen, frei wählbar',
+                'body' => 'Zwei Jahre gültig, übertragbar, kurze Mails zwischendurch inklusive.',
+            ]],
+            ['offer_1', 'offer', 'kaufen', 'Kaufen', [
+                'offer' => 'lh-karte-angebot',
+                'headline' => 'Die Fünferkarte',
+                'body' => 'Siebenhundert Euro, fünf Sitzungen.',
+            ]],
+            ['danke_1', 'finish', 'danke', 'Danke', ['headline' => 'Bis zur ersten Sitzung.']],
+        ]);
+
+        $this->kanten($funnel, [
+            ['entry_1', 'offer_1', 'default'],
+            ['offer_1', 'danke_1', 'accepted'],
         ]);
     }
 

@@ -33,7 +33,7 @@
   'enabled': true
   'heading': 'Vorbestellen'
   'text': 'Tiefdruck auf Vinyl, limitiert auf 500 Stück, mit Textheft. Versand ab dem 10.03.2027.'
-  'link_label': 'Zum Fanclub'
-  'link_url': '/halbmond/fanclub'
+  'link_label': 'Platte vorbestellen'
+  'link_url': '/f/vinyl'
   'tone': 'normal'
 ---

@@ -127,7 +127,13 @@ class SeedsCommerce
             'cw-upsell' => ['Die Aufnahmen aller vier Abende', 'cw-noten', 1200, Offer::SLOT_POST_PURCHASE, []],
             'hm-vinyl-angebot' => ['Die Platte, signiert', 'hm-vinyl', 3400, Offer::SLOT_STANDALONE, ['hm-shirt-bump']],
             'hm-shirt-bump' => ['Shirt dazu', 'hm-shirt', 2500, Offer::SLOT_BUMP, []],
-            'lh-karte-angebot' => ['Fünferkarte', 'lh-fuenferkarte', null, Offer::SLOT_STANDALONE, []],
+            'lh-karte-angebot' => ['Fünferkarte', 'lh-fuenferkarte', 70000, Offer::SLOT_STANDALONE, []],
+            // The year-long memberships the brand sites sell, each through
+            // its own funnel. A funnel checkout is a one-off checkout, so the
+            // sites price these by year — and the price is the one the site's
+            // pricing table names, so the checkout repeats what the page said.
+            'cw-mitgliedschaft-angebot' => ['Mitgliedschaft, ein Chorjahr', 'cw-mitgliedschaft', 180000, Offer::SLOT_STANDALONE, []],
+            'hm-fanclub-angebot' => ['Fanclub Vollmond, ein Jahr', 'hm-fanclub', 10800, Offer::SLOT_STANDALONE, []],
 
             // ---- Awkward on purpose ------------------------------------
             // Points at a product that is not in the catalogue. Must be

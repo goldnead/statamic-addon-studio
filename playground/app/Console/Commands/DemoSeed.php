@@ -81,7 +81,7 @@ class DemoSeed extends Command
             return true;
         });
 
-        $this->components->task('Wege: vier Funnels, einer davon absichtlich krumm', function () {
+        $this->components->task('Wege: Funnels, einer davon absichtlich krumm', function () {
             $this->ergebnis = array_merge($this->ergebnis, (new SeedsFunnels)->run());
 
             return true;

@@ -24,12 +24,12 @@
   'type': 'pricing'
   'enabled': true
   'heading': 'Zwei Stufen'
-  'note': 'Kündbar zum Ende des Chorjahrs, also zum 31. Juli. Keine automatische Verlängerung über zwei Jahre hinaus, ohne dass wir vorher miteinander gesprochen haben.'
+  'note': 'Jede Stufe läuft ein Chorjahr bis zum 31. Juli und verlängert sich nicht von selbst. Wer weitermacht, meldet sich kurz.'
   'plans':
   - 'id': '8f9a0888-8fdf-5fbf-8a3f-7b14486187e9'
     'name': 'Leitung'
-    'price': '45 €'
-    'period': 'monatlich, für eine Person'
+    'price': '540 €'
+    'period': 'im Jahr, für eine Person'
     'features':
     - 'Videosprechstunde monatlich'
     - 'Übungsarchiv'
@@ -39,16 +39,16 @@
     'link_url': 'mailto:post@chorwerkstatt-nord.example'
   - 'id': '4d28824b-7cf3-5cfa-9335-3d548bbeb6b8'
     'name': 'Chor'
-    'price': '180 €'
-    'period': 'monatlich, für den ganzen Chor'
+    'price': '1.800 €'
+    'period': 'ein Chorjahr, für den ganzen Chor'
     'features':
     - 'Alles aus »Leitung«'
     - 'Vier Werkstatttage'
     - 'Zwei Probenbesuche'
     - 'Archiv für alle Mitglieder'
     'highlight': true
-    'link_label': 'Anfragen'
-    'link_url': 'mailto:post@chorwerkstatt-nord.example'
+    'link_label': 'Mitglied werden'
+    'link_url': '/f/mitgliedschaft'
 - 'id': '16d436cf-e6d4-5ec2-851e-a34b097fa3ad'
   'type': 'faq'
   'enabled': true
@@ -59,5 +59,5 @@
     'answer': 'Dann läuft die Mitgliedschaft weiter und wir machen ein Übergabegespräch, kostenfrei. Ein Leitungswechsel ist der Moment, in dem eine Begleitung am meisten wert ist.'
   - 'id': '0c322bbd-49ba-5759-8e57-f77bb7de3b30'
     'question': 'Können wir pausieren?'
-    'answer': 'Drei Monate im Jahr, am Stück oder verteilt. Sagen Sie einfach Bescheid, wir stellen die Rechnung entsprechend.'
+    'answer': 'Drei Monate im Jahr, am Stück oder verteilt. Sagen Sie einfach Bescheid, das Jahr verlängert sich entsprechend.'
 ---
