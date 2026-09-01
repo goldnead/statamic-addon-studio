@@ -26,6 +26,34 @@
             <span>E-Mail-Adresse</span>
             <input type="email" name="email" value="{{ funnel:visit:email }}" required autocomplete="email">
         </label>
+
+        {{# Name und Anschrift nur, wenn der Schritt danach fragt. Ueber 250 EUR
+            entsteht ohne sie gar keine Rechnung (§ 14 UStG); darunter waeren es
+            vier Felder, die nichts als Kaeufe kosten. #}}
+        {{ if funnel:billing:name_required }}
+        <label>
+            <span>Name</span>
+            <input type="text" name="name" value="{{ funnel:visit:name }}" required autocomplete="name">
+        </label>
+        {{ /if }}
+        {{ if funnel:billing:address }}
+        <label>
+            <span>Straße und Hausnummer</span>
+            <input type="text" name="street" value="{{ funnel:billing:street }}" required autocomplete="street-address">
+        </label>
+        <label>
+            <span>Postleitzahl</span>
+            <input type="text" name="postal_code" value="{{ funnel:billing:postal_code }}" required autocomplete="postal-code">
+        </label>
+        <label>
+            <span>Ort</span>
+            <input type="text" name="city" value="{{ funnel:billing:city }}" required autocomplete="address-level2">
+        </label>
+        <label>
+            <span>Land (zwei Buchstaben, z. B. DE)</span>
+            <input type="text" name="country" value="{{ funnel:billing:country }}" maxlength="2" size="2" required autocomplete="country">
+        </label>
+        {{ /if }}
         {{ /if }}
         <button type="submit" class="cw-btn">{{ button_label ?: 'Weiter' }}</button>
     </form>

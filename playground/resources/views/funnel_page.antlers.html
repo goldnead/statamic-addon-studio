@@ -20,7 +20,22 @@
     {{ else }}
         <form method="POST" action="{{ funnel:action }}">
             {{ csrf_field }}
-            {{ if email_capture }}<input type="email" name="email" value="{{ funnel:visit:email }}" required>{{ /if }}
+            {{ if email_capture }}
+                <input type="email" name="email" value="{{ funnel:visit:email }}" required>
+
+                {{# Name und Anschrift, wenn der Schritt danach fragt. Ueber
+                    250 EUR entsteht ohne sie gar keine Rechnung (§ 14 UStG);
+                    darunter waeren es Felder, die nur Kaeufe kosten. #}}
+                {{ if funnel:billing:name_required }}
+                    <input type="text" name="name" value="{{ funnel:visit:name }}" placeholder="Name" autocomplete="name" required>
+                {{ /if }}
+                {{ if funnel:billing:address }}
+                    <input type="text" name="street" value="{{ funnel:billing:street }}" placeholder="Straße und Hausnummer" autocomplete="street-address" required>
+                    <input type="text" name="postal_code" value="{{ funnel:billing:postal_code }}" placeholder="PLZ" autocomplete="postal-code" required>
+                    <input type="text" name="city" value="{{ funnel:billing:city }}" placeholder="Ort" autocomplete="address-level2" required>
+                    <input type="text" name="country" value="{{ funnel:billing:country }}" placeholder="Land (DE)" maxlength="2" size="2" autocomplete="country" required>
+                {{ /if }}
+            {{ /if }}
             <button type="submit">{{ button_label ?: 'Weiter' }}</button>
         </form>
     {{ /if }}
