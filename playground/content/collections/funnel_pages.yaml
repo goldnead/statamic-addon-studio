@@ -1,0 +1,7 @@
+title: 'Funnel-Seiten'
+route: null
+template: funnel_page
+layout: layout
+sites:
+  - default
+propagate: false

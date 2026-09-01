@@ -1,0 +1,30 @@
+{{# Ein Funnel-Schritt als Seite des Kollektivs: Plakatschrift, breite
+    Lesespalte, der Knopf ein Void-Block. Was der Schritt erzählt, steht im
+    Entry; was der Knopf tut, sagt der Funnel. #}}
+<article class="hm-article">
+    {{ if eyebrow }}<p class="hm-kicker">{{ eyebrow | sanitize }}</p>{{ /if }}
+    <h1>{{ title | sanitize }}</h1>
+    {{ if intro }}<p class="hm-prose">{{ intro | sanitize }}</p>{{ /if }}
+
+    {{ if body }}<div class="hm-prose">{{ body | markdown }}</div>{{ /if }}
+
+    {{ if button_link }}
+    {{# Der letzte Schritt führt nirgends mehr hin: ein Link statt einem
+        Formular, das ins Leere schaltet. #}}
+    <p><a class="hm-btn" href="{{ button_link }}">{{ button_label ?: 'Weiter' }}</a></p>
+    {{ else }}
+    <form method="POST" action="{{ funnel:action }}" class="erfassung">
+        {{ csrf_field }}
+        {{ if email_capture }}
+        {{# Der Formularschritt: der Advance-Controller nimmt email/name aus
+            dem Post und merkt sich beides am Besuch. #}}
+        <label>
+            <span>E-Mail-Adresse</span>
+            <input type="email" name="email" value="{{ funnel:visit:email }}" required autocomplete="email">
+        </label>
+        {{ /if }}
+        <button type="submit" class="hm-btn">{{ button_label ?: 'Weiter' }}</button>
+    </form>
+    {{ /if }}
+    {{ if cta_note }}<p class="hm-kicker" style="margin-top: 1.2rem;">{{ cta_note | sanitize }}</p>{{ /if }}
+</article>

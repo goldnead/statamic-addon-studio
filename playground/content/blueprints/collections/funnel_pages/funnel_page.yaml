@@ -1,0 +1,78 @@
+{{# Die Seiten, auf die ein Funnel-Schritt zeigt. Der Inhalt ist redaktionell:
+    Wer die Funnel im Control Panel baut, schreibt hier Texte und stellt den
+    Knopf ein — der Funnel liefert nur den Kontext (wo der Knopf
+    weiterschaltet), niemals den Text. #}}
+sections:
+  main:
+    display: Inhalt
+    fields:
+      - handle: title
+        field:
+          type: text
+          required: true
+          display: 'Überschrift'
+          instructions: 'Die Headline dieses Schritts.'
+          width: 66
+      - handle: brand
+        field:
+          type: select
+          required: true
+          display: Marke
+          instructions: 'Welcher Marke diese Seite gehört. Bestimmt Rahmen und Schrift.'
+          options:
+            chorwerkstatt: Chorwerkstatt Nord
+            halbmond: Kollektiv Halbmond
+            lindhorst: Praxis Lindhorst
+          width: 33
+      - handle: eyebrow
+        field:
+          type: text
+          display: Kicker
+          instructions: 'Kleine Zeile über der Überschrift, optional.'
+          width: 50
+      - handle: intro
+        field:
+          type: textarea
+          display: Einleitung
+          instructions: 'Ein Satz unter der Überschrift, optional.'
+      - handle: body
+        field:
+          type: markdown
+          display: Text
+          instructions: 'Der Inhalt der Seite. Alles, was hier steht, ist die Seite.'
+      - handle: button_label
+        field:
+          type: text
+          display: 'Knopfbeschriftung'
+          instructions: 'Leer lassen für „Weiter".'
+          width: 50
+      - handle: button_link
+        field:
+          type: text
+          display: 'Knopf als Link'
+          instructions: 'Nur beim letzten Schritt: wohin der Knopf führt, statt weiterzuschalten.'
+          width: 50
+      - handle: cta_note
+        field:
+          type: text
+          display: 'Zeile unter dem Knopf'
+          instructions: 'Kurz, optional.'
+      - handle: email_capture
+        field:
+          type: toggle
+          display: 'E-Mail abfragen'
+          instructions: 'Nur für Formularschritte: fragt die Adresse ab, die der Funnel speichern soll.'
+  sidebar:
+    display: Seite
+    fields:
+      - handle: slug
+        field:
+          type: slug
+          from: title
+          required: true
+      - handle: noindex
+        field:
+          type: toggle
+          display: noindex
+          instructions: 'Standard an: Funnel-Seiten sollen nicht in Suchmaschinen.'
+          default: true

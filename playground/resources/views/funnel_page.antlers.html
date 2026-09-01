@@ -1,0 +1,29 @@
+{{# Der Inhalt eines Funnel-Schritts, der auf einen Entry zeigt. Der Entry ist
+    die Seite: sein eigener Text, sein eigener Knopf, das Layout der Marke.
+    Der Funnel liefert nur den Kontext — `funnel:action` ist die Adresse, an
+    der dieser Schritt weiterschaltet. #}}
+{{ if brand == 'chorwerkstatt' }}{{ partial:marken/chorwerkstatt/funnelpage }}
+{{ elseif brand == 'halbmond' }}{{ partial:marken/halbmond/funnelpage }}
+{{ elseif brand == 'lindhorst' }}{{ partial:marken/lindhorst/funnelpage }}
+{{ else }}
+{{# Eine Funnel-Seite ohne Marke ist ein Fehlerfall, kein viertes Design:
+    `brand` ist Pflichtfeld, und ohne Marke gibt es auch kein Marken-CSS,
+    das hier etwas kleiden könnte. Also der nackte Inhalt, ungestylt —
+    sichtbar falsch statt heimlich anders. #}}
+<article>
+    {{ if eyebrow }}<p>{{ eyebrow | sanitize }}</p>{{ /if }}
+    <h1>{{ title | sanitize }}</h1>
+    {{ if intro }}<p>{{ intro | sanitize }}</p>{{ /if }}
+    <div>{{ body | markdown }}</div>
+    {{ if button_link }}
+        <a href="{{ button_link }}">{{ button_label ?: 'Weiter' }}</a>
+    {{ else }}
+        <form method="POST" action="{{ funnel:action }}">
+            {{ csrf_field }}
+            {{ if email_capture }}<input type="email" name="email" value="{{ funnel:visit:email }}" required>{{ /if }}
+            <button type="submit">{{ button_label ?: 'Weiter' }}</button>
+        </form>
+    {{ /if }}
+    {{ if cta_note }}<p>{{ cta_note | sanitize }}</p>{{ /if }}
+</article>
+{{ /if }}

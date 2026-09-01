@@ -43,18 +43,15 @@ class SeedsFunnels
         $funnel = $this->funnel('fruehlingskurs', 'Frühlingskurs', true);
 
         $this->schritte($funnel, [
+            // Every telling step points at an entry of the funnel_pages
+            // collection: the entry IS the page, with its own text and its
+            // own button. That is the pattern the addon exists for — the
+            // funnel carries the walk, the entry carries the words.
             ['entry_1', 'entry', null, 'Willkommen', [
-                // Same clothes as the membership path: the plain-shipped look
-                // was a leftover of the first wire-up, not a feature — and
-                // this funnel is the one a stranger walks first.
-                'template' => 'funnel/chorwerkstatt',
-                'headline' => 'Drei Übungen für den nächsten Probenabend',
-                'body' => "Kostenlos, gegen deine Adresse. Danach zeige ich dir, was im Kurs passiert.",
+                'entry' => 'e71b5ae4-897e-4729-b85e-d9c54a8be4d4',
             ]],
             ['capture_1', 'capture', 'anmeldung', 'Anmeldung', [
-                'template' => 'funnel/chorwerkstatt',
-                'headline' => 'Wohin schicken wir die erste Übung?',
-                'body' => 'Eine Adresse genügt. Abmelden geht mit einem Klick.',
+                'entry' => '6b750ef4-04d3-4306-b681-ff62bf5000f2',
             ]],
             ['offer_1', 'offer', 'angebot', 'Angebot', [
                 'template' => 'funnel/chorwerkstatt',
@@ -78,20 +75,21 @@ class SeedsFunnels
                 'body' => 'Einmal zahlen, für immer behalten.',
             ]],
             ['danke_1', 'finish', 'danke', 'Danke', [
-                'template' => 'funnel/chorwerkstatt',
-                'headline' => 'Danke!',
-                'body' => 'Du bekommst gleich eine E-Mail.',
+                'entry' => '3e57b67a-c36e-439c-bec0-8a4e47a5bc20',
             ]],
             ['auch-gut_1', 'page', 'auch-gut', 'Auch gut', [
-                'template' => 'funnel/chorwerkstatt',
-                'headline' => 'Auch gut',
-                'body' => 'Die drei Übungen kommen trotzdem.',
+                'entry' => 'bf38770e-1c78-4ba5-aa41-a4c332e82628',
             ]],
         ]);
 
         $this->kanten($funnel, [
             ['entry_1', 'capture_1', 'default'],
-            ['capture_1', 'offer_1', 'submitted'],
+            // A capture advances on `default`, not `submitted`: the form's
+            // validation is Statamic's, and from the walk's view submitting
+            // the form IS the default way out of the step. Found by walking
+            // the demo end to end — with `submitted` the walk found no edge,
+            // marked the visit complete and silently went back to the start.
+            ['capture_1', 'offer_1', 'default'],
             ['offer_1', 'upsell_1', 'accepted'],
             ['offer_1', 'auch-gut_1', 'declined'],
             ['upsell_1', 'danke_1', 'accepted'],
@@ -104,15 +102,13 @@ class SeedsFunnels
         // by choir year, not by month.
         $funnel = $this->funnel('mitgliedschaft', 'Mitgliedschaft', true);
 
-        // Every step names the site template that dresses it in the workshop's
-        // own clothes: the shipped `statamic-funnels::step` renders naked,
+        // The telling steps are entries again; only the checkout names the
+        // Kasse template; the shipped `statamic-funnels::step` renders naked,
         // without even an html skeleton, and a checkout that looks like a
         // foreign site reads as a foreign site.
         $this->schritte($funnel, [
             ['entry_1', 'entry', null, 'Mitgliedschaft', [
-                'template' => 'funnel/chorwerkstatt',
-                'headline' => 'Ein Jahr Begleitung',
-                'body' => 'Vier Werkstatttage, Sprechstunde, Übungsarchiv. Ein Chorjahr, endet am 31. Juli.',
+                'entry' => 'd28a90c7-64fb-4378-abab-84f06233b60b',
             ]],
             ['offer_1', 'offer', 'beitreten', 'Beitritt', [
                 'template' => 'funnel/chorwerkstatt',
@@ -121,8 +117,7 @@ class SeedsFunnels
                 'body' => 'Achtzehnhundert Euro, einmalig für ein Chorjahr.',
             ]],
             ['danke_1', 'finish', 'danke', 'Danke', [
-                'template' => 'funnel/chorwerkstatt',
-                'headline' => 'Willkommen.',
+                'entry' => '0a1f7e5e-d86d-4a0f-91ee-9bf68b7af0eb',
             ]],
         ]);
 
@@ -138,12 +133,11 @@ class SeedsFunnels
         $funnel = $this->funnel('vinyl', 'Die Platte', true);
 
         // Both buy paths of the band wear the band's clothes: dark ground,
-        // poster type, the red moon. Same reason as the workshop's funnel.
+        // poster type, the red moon. The telling steps as entries of the
+        // band, the checkout as the band's Kasse.
         $this->schritte($funnel, [
             ['entry_1', 'entry', null, 'Die Platte', [
-                'template' => 'funnel/halbmond',
-                'headline' => 'Halbmond, auf Vinyl',
-                'body' => 'Dreihundert Stück, nummeriert, von uns allen unterschrieben.',
+                'entry' => '03c15d34-d804-42dc-a2fb-3c64fec0942a',
             ]],
             ['offer_1', 'offer', 'bestellen', 'Bestellen', [
                 'template' => 'funnel/halbmond',
@@ -158,8 +152,7 @@ class SeedsFunnels
                 'countdown_until' => '2027-01-31 23:59:59',
             ]],
             ['danke_1', 'finish', 'danke', 'Danke', [
-                'template' => 'funnel/halbmond',
-                'headline' => 'Ist unterwegs.',
+                'entry' => '6d257f79-c572-4e87-8317-f3ae69a1befa',
             ]],
         ]);
 
@@ -175,9 +168,7 @@ class SeedsFunnels
 
         $this->schritte($funnel, [
             ['entry_1', 'entry', null, 'Fanclub', [
-                'template' => 'funnel/halbmond',
-                'headline' => 'Kein Newsletter. Fanclub.',
-                'body' => 'Vorausverkauf zwei Tage früher, Brief im Jahr, ein Jahr Laufzeit.',
+                'entry' => 'be842758-5c8a-4f88-83d3-5da83182f55f',
             ]],
             ['offer_1', 'offer', 'mitmachen', 'Mitmachen', [
                 'template' => 'funnel/halbmond',
@@ -186,8 +177,7 @@ class SeedsFunnels
                 'body' => 'Hundertacht Euro für ein Jahr Fanclub.',
             ]],
             ['danke_1', 'finish', 'danke', 'Danke', [
-                'template' => 'funnel/halbmond',
-                'headline' => 'Willkommen im Fanclub.',
+                'entry' => '87aabd68-b9f1-416c-9a2e-ac211b6ee958',
             ]],
         ]);
 
@@ -218,19 +208,21 @@ class SeedsFunnels
 
         $this->kanten($funnel, [
             ['entry_1', 'capture_1', 'default'],
-            ['capture_1', 'danke_1', 'submitted'],
+            // Same trap as above, caught before it could ship twice: a
+            // capture leaves on `default`. One toggle in the CP and this
+            // draft is live — it should not go live carrying the bug.
+            ['capture_1', 'danke_1', 'default'],
         ]);
 
         // The five-session card the pricing page sells, live.
         $funnel = $this->funnel('fuenferkarte', 'Fünferkarte', true);
 
         // The practice's card, in the practice's clothes: one column, plenty
-        // of air, sage buttons. Same reason as the other two.
+        // of air, sage buttons. The telling step as an entry, the checkout as
+        // the practice's Kasse.
         $this->schritte($funnel, [
             ['entry_1', 'entry', null, 'Fünferkarte', [
-                'template' => 'funnel/lindhorst',
-                'headline' => 'Fünf Sitzungen, frei wählbar',
-                'body' => 'Zwei Jahre gültig, übertragbar, kurze Mails zwischendurch inklusive.',
+                'entry' => '77077ebf-2bf8-4db7-a36d-e2425f39d00e',
             ]],
             ['offer_1', 'offer', 'kaufen', 'Kaufen', [
                 'template' => 'funnel/lindhorst',
@@ -239,8 +231,7 @@ class SeedsFunnels
                 'body' => 'Siebenhundert Euro, fünf Sitzungen.',
             ]],
             ['danke_1', 'finish', 'danke', 'Danke', [
-                'template' => 'funnel/lindhorst',
-                'headline' => 'Bis zur ersten Sitzung.',
+                'entry' => '0fcb7d59-4e00-42cb-b529-519b97c3570b',
             ]],
         ]);
 
