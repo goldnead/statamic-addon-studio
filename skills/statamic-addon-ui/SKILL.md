@@ -11,7 +11,7 @@ Statamic shipped and which the addon did.
 ## Before you write any UI code
 
 Read `standards/ui-vocabulary.md` in the Statamic Addon Studio
-(`/Users/adriangoldner/Documents/WebDev/statamic-addon-studio/standards/ui-vocabulary.md`).
+(`standards/ui-vocabulary.md` in the studio: `~/Documents/WebDev/statamic-addon-studio/` on the Mac, `~/projects/statamic-addon-studio/` on goldneros-host).
 It was extracted directly from `statamic/cms` 6.x and is the authority. Read the section you need,
 not the whole file:
 

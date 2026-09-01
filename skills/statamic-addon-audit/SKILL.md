@@ -8,7 +8,9 @@ description: Audit a Statamic addon against the Statamic Addon Studio standards 
 An audit ends in a verdict — **ship**, **fix first**, or **rework** — backed by a numbered defect list
 that someone can work through. It does not end in impressions.
 
-Studio root: `/Users/adriangoldner/Documents/WebDev/statamic-addon-studio/`
+Studio root: `~/Documents/WebDev/statamic-addon-studio/` on the Mac,
+`~/projects/statamic-addon-studio/` on goldneros-host. Addon repos live next to it
+(`~/Documents/WebDev/<addon>` resp. `~/projects/<addon>`).
 
 ## 1. Run the linter first
 
@@ -42,6 +44,34 @@ composer config repositories.local path ../../<addon-dir>
 composer require <vendor>/<package>:@dev
 php artisan serve --port=8099   # superuser: studio@local / studio-local-password
 ```
+
+On goldneros-host the playground is already the public demo (`demo.adriangoldner.dev` proxies
+`127.0.0.1:8099`, nightly reset 03:17) and every addon is symlinked from `vendor/goldnead/*` to
+its working copy — so a code change is live in the playground at once, and a migration you run
+there runs against the demo. Do not start a second server on 8099; use another port
+(`php artisan serve --port=8137`) or the one already running. For a CP screenshot:
+
+```bash
+cd ~/GoldnerOS
+COOKIE=$(bash scripts/dev/playground-cp-cookie.sh)   # logs in, prints statamic-session=…
+CDP_COOKIE="$COOKIE" \
+CDP_EVAL='[...document.querySelectorAll("button")].find(b=>b.textContent.trim()==="Später erinnern")?.click()' \
+node scripts/dev/cdp-screenshot.js http://127.0.0.1:8137/cp/utilities/offers shot.png 1440 1000
+```
+
+The `CDP_EVAL` line dismisses the "Lizenzwarnung" modal the trial-mode playground shows on
+every CP page; without it the modal covers the screen you wanted to judge.
+
+Two traps found on 01.09.2026, both look like "my UI is broken" and are not:
+
+- **The playground serves addon JS from a copy, not from the symlink.** Bundles come from
+  `public/vendor/<addon>/build`. After `npm run build` in the addon run
+  `php8.4 artisan vendor:publish --tag=<addon> --force` in the playground, otherwise the CP shows
+  the old bundle (or a white page when the manifest and the copy disagree).
+- **The screenshot Chrome is shared.** `cdp-screenshot.js` defaults to port 9333; when several
+  agents screenshot at once, foreign tabs land in your PNG. Set `CDP_PORT=<free port>` per agent.
+- **A PHP parse error in any addon's `config/` takes the whole playground down** (HTTP 500 for
+  everyone). Run `php -l` on a config file right after editing it.
 
 Judge: does the page shell match (header, breadcrumbs, primary action placement, content width)?
 Does the empty state exist and look like core's? The loading state? The error state? Does dark mode

@@ -9,7 +9,7 @@ Statamic's own conventions are the standard. An addon whose code reads like core
 another Statamic developer can pick up, and one that survives the next minor release.
 
 Full standard: `standards/code-standard.md` in the Statamic Addon Studio
-(`/Users/adriangoldner/Documents/WebDev/statamic-addon-studio/`). Read it for the section you are
+(`~/Documents/WebDev/statamic-addon-studio/` on the Mac, `~/projects/statamic-addon-studio/` on goldneros-host). Read it for the section you are
 working in. This skill is the decision layer above it.
 
 ## Declare almost nothing

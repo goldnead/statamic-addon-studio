@@ -8,7 +8,7 @@ description: Start a new Statamic 6 addon on the studio's standards from the fir
 Getting the skeleton right costs ten minutes now and saves a rewrite later. Every item below exists
 because the studio's reference analysis found an addon that got it wrong.
 
-Studio root: `/Users/adriangoldner/Documents/WebDev/statamic-addon-studio/`
+Studio root: `~/Documents/WebDev/statamic-addon-studio/` on the Mac, `~/projects/statamic-addon-studio/` on goldneros-host.
 
 ## Use core's generators
 
