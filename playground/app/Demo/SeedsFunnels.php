@@ -44,14 +44,20 @@ class SeedsFunnels
 
         $this->schritte($funnel, [
             ['entry_1', 'entry', null, 'Willkommen', [
+                // Same clothes as the membership path: the plain-shipped look
+                // was a leftover of the first wire-up, not a feature — and
+                // this funnel is the one a stranger walks first.
+                'template' => 'funnel/chorwerkstatt',
                 'headline' => 'Drei Übungen für den nächsten Probenabend',
                 'body' => "Kostenlos, gegen deine Adresse. Danach zeige ich dir, was im Kurs passiert.",
             ]],
             ['capture_1', 'capture', 'anmeldung', 'Anmeldung', [
+                'template' => 'funnel/chorwerkstatt',
                 'headline' => 'Wohin schicken wir die erste Übung?',
                 'body' => 'Eine Adresse genügt. Abmelden geht mit einem Klick.',
             ]],
             ['offer_1', 'offer', 'angebot', 'Angebot', [
+                'template' => 'funnel/chorwerkstatt',
                 'offer' => 'cw-kurs-angebot',
                 'headline' => 'Nur jetzt: der Frühlingskurs',
                 'body' => 'Vier Abende, alle Aufnahmen, unbefristet.',
@@ -66,15 +72,18 @@ class SeedsFunnels
                 'variant_body' => 'Vier Abende. Danach ist er weg bis zum Herbst.',
             ]],
             ['upsell_1', 'offer', 'dazu', 'Noch etwas dazu', [
+                'template' => 'funnel/chorwerkstatt',
                 'offer' => 'cw-upsell',
                 'headline' => 'Die Aufnahmen aller vier Abende',
                 'body' => 'Einmal zahlen, für immer behalten.',
             ]],
             ['danke_1', 'finish', 'danke', 'Danke', [
+                'template' => 'funnel/chorwerkstatt',
                 'headline' => 'Danke!',
                 'body' => 'Du bekommst gleich eine E-Mail.',
             ]],
             ['auch-gut_1', 'page', 'auch-gut', 'Auch gut', [
+                'template' => 'funnel/chorwerkstatt',
                 'headline' => 'Auch gut',
                 'body' => 'Die drei Übungen kommen trotzdem.',
             ]],

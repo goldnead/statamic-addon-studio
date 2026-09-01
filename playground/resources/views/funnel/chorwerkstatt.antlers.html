@@ -46,7 +46,13 @@
             </svg>
             <span><b>Chorwerkstatt<br>Nord</b></span>
         </a>
-        <a class="fn-back" href="/chorwerkstatt/mitgliedschaft">Zurück zur Übersicht</a>
+        {{# Zwei Funnels teilen sich dieses Gewand, und jeder führt zurück zu
+            seiner eigenen Tür. #}}
+        {{ if funnel:handle == "mitgliedschaft" }}
+            <a class="fn-back" href="/chorwerkstatt/mitgliedschaft">Zurück zur Übersicht</a>
+        {{ else }}
+            <a class="fn-back" href="/chorwerkstatt">Zurück zur Chorwerkstatt</a>
+        {{ /if }}
     </header>
 
     <main id="inhalt">
