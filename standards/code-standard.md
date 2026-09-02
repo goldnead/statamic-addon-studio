@@ -706,9 +706,20 @@ fail with a 500 where they should fail with a 404 or a validation message.
 - **Sandbox any iframe rendering user-authored content** (`ui.unsandboxed-iframe`), and **confirm every
   destructive action** through core's confirmation modal, not `window.confirm`
   (`ui-vocabulary.md` §6; observed in `aryehraber/statamic-logbook`).
+- **A `catch (QueryException)` must say which database error it caught.** A block that neither
+  inspects the SQLSTATE nor logs reads a full disk, a dropped connection and a truncated column as
+  the happy path. `statamic-funnels`'s `MailTrigger` treated every one of them as "already sent" and
+  the mail was silently never sent (02.09.2026); the fix was `firstOrCreate()` +
+  `wasRecentlyCreated`, which needs no catch at all (`code.silent-query-exception`).
+- **A hand-written `{{ }}` substitution escapes what it inserts.** The values are usually customer
+  input and the output is usually an HTML mail. `statamic-payments`'s `AbandonedReminder` put the
+  name from the checkout raw into a mail to an unverified address (02.09.2026) — while calling `e()`
+  a hundred lines further up, which is what made it easy to miss. Escape at the substitution and name
+  the deliberate exceptions in a `RAW_VARIABLES` allowlist (`code.unescaped-template-variables`).
 
 **Checkable**
 - `code.debug-leftovers`, `ui.unsandboxed-iframe`, `ui.confirm-destructive`
+- `code.silent-query-exception`, `code.unescaped-template-variables`
 - No `match` without `default` on request/filesystem input — *(manual)*
 - `preProcessIndex()` bodies contain a `try`/`catch` returning the success shape — *(manual)*
 - No empty `catch` blocks — *(manual)*

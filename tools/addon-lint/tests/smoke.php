@@ -258,6 +258,74 @@ $report = lint($linter, [
 ]);
 check('handing a whole config file to the view is reported', fires($report, 'code.secrets-to-frontend'));
 
+// --- code.silent-query-exception -------------------------------------------
+// Shape of statamic-funnels/src/Support/MailTrigger.php before 02.09.2026: every
+// database error read as "already sent", so the mail was silently never sent.
+
+$report = lint($linter, [
+    'composer.json' => $goodComposer,
+    'src/Support/MailTrigger.php' => "<?php\nnamespace Acme\\Thing\\Support;\nuse Illuminate\\Database\\QueryException;\nclass MailTrigger { public function trigger(): bool { try { \$d = Delivery::create(['a' => 1]); } catch (QueryException) { // Schon ausgeloest.\n return false; } return true; } }\n",
+]);
+check('a QueryException catch that inspects nothing is reported', fires($report, 'code.silent-query-exception'));
+
+$report = lint($linter, [
+    'composer.json' => $goodComposer,
+    'src/Support/MailTrigger.php' => "<?php\nnamespace Acme\\Thing\\Support;\nuse Illuminate\\Database\\QueryException;\nclass MailTrigger { public function trigger(): bool { try { \$d = Delivery::create(['a' => 1]); } catch (QueryException \$e) { if (\$e->getCode() !== '23000') { throw \$e; } return false; } return true; } }\n",
+]);
+check('a QueryException catch that checks the SQLSTATE is accepted', ! fires($report, 'code.silent-query-exception'));
+
+$report = lint($linter, [
+    'composer.json' => $goodComposer,
+    'src/Support/Recorder.php' => "<?php\nnamespace Acme\\Thing\\Support;\nuse Illuminate\\Database\\QueryException;\nclass Recorder { public function record(): void { try { Row::create([]); } catch (QueryException \$e) { report(\$e); } } }\n",
+]);
+check('a QueryException catch that reports is accepted', ! fires($report, 'code.silent-query-exception'));
+
+$report = lint($linter, [
+    'composer.json' => $goodComposer,
+    'tests/Feature/DuplicateTest.php' => "<?php\nuse Illuminate\\Database\\QueryException;\nit('rejects a duplicate', function () { try { Row::create([]); } catch (QueryException) { \$hit = true; } });\n",
+]);
+check('a QueryException catch in the test suite is not the addon shipping one', ! fires($report, 'code.silent-query-exception'));
+
+// --- code.unescaped-template-variables -------------------------------------
+// Shape of statamic-payments/src/Support/AbandonedReminder.php before 02.09.2026:
+// the name from the checkout went raw into an HTML mail. Note the e() further up
+// the file — escaping elsewhere is exactly what made this easy to miss.
+
+$rawSubstitution = "<?php\nnamespace Acme\\Thing\\Support;\nclass Reminder {\n public function lines(array \$items): string { return implode('', array_map(fn (array \$l) => '<li>'.e(\$l['name']).'</li>', \$items)); }\n public function render(string \$text, array \$flat): string {\n  return (string) preg_replace_callback(\n   '/\\{\\{\\s*([a-zA-Z0-9_.]+)\\s*\\}\\}/',\n   fn (array \$m) => array_key_exists(\$m[1], \$flat) ? \$flat[\$m[1]] : \$m[0],\n   \$text,\n  );\n }\n}\n";
+
+$report = lint($linter, ['composer.json' => $goodComposer, 'src/Support/Reminder.php' => $rawSubstitution]);
+check('a raw {{ }} substitution is reported even when the file escapes elsewhere', fires($report, 'code.unescaped-template-variables'));
+
+$escapedSubstitution = str_replace(
+    '? $flat[$m[1]] : $m[0]',
+    '? e($flat[$m[1]]) : $m[0]',
+    $rawSubstitution
+);
+
+$report = lint($linter, ['composer.json' => $goodComposer, 'src/Support/Reminder.php' => $escapedSubstitution]);
+check('escaping at the substitution itself is accepted', ! fires($report, 'code.unescaped-template-variables'));
+
+$allowlisted = str_replace(
+    'class Reminder {',
+    "class Reminder {\n private const RAW_VARIABLES = ['body_html'];",
+    $rawSubstitution
+);
+
+$report = lint($linter, ['composer.json' => $goodComposer, 'src/Support/Reminder.php' => $allowlisted]);
+check('a named RAW_VARIABLES allowlist is a decision, not a defect', ! fires($report, 'code.unescaped-template-variables'));
+
+$report = lint($linter, [
+    'composer.json' => $goodComposer,
+    'src/Support/Interpolator.php' => "<?php\nnamespace Acme\\Thing\\Support;\nclass Interpolator { public function interpolate(string \$body, array \$variables): string { foreach (\$variables as \$key => \$value) { \$body = str_replace(['{{ '.\$key.' }}', '{{'.\$key.'}}'], \$value, \$body); } return \$body; } }\n",
+]);
+check('a str_replace loop over supplied variables is reported', fires($report, 'code.unescaped-template-variables'));
+
+$report = lint($linter, [
+    'composer.json' => $goodComposer,
+    'src/Engine/TokenResolver.php' => "<?php\nnamespace Acme\\Thing\\Engine;\nclass TokenResolver { public function resolveString(string \$value): string { return (string) preg_replace_callback('/\\{\\{\\s*([\\w.]+)\\s*\\}\\}/', function (\$m) { \$r = \$this->resolveToken(\$m[1]); return is_scalar(\$r) ? (string) \$r : json_encode(\$r); }, \$value); } }\n",
+]);
+check('a resolver that computes its own values is not a raw-insertion defect', ! fires($report, 'code.unescaped-template-variables'));
+
 // --- robustness ------------------------------------------------------------
 
 $report = lint($linter, []);

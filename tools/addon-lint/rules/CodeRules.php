@@ -305,3 +305,379 @@ final class TranslationFilesRule extends AbstractRule
         )];
     }
 }
+
+final class SilentQueryExceptionRule extends AbstractRule
+{
+    /**
+     * Anything in the block that shows the code looked at *which* database error
+     * it caught, or made sure somebody hears about it.
+     */
+    private const EVIDENCE = [
+        'Log::', 'logger(', 'report(', 'throw', 'getCode()', 'errorInfo',
+        'SQLSTATE', '23000', '23505', 'wasRecentlyCreated',
+    ];
+
+    public function id(): string
+    {
+        return 'code.silent-query-exception';
+    }
+
+    public function title(): string
+    {
+        return 'Do not treat every database error as the one you expected';
+    }
+
+    public function category(): string
+    {
+        return 'code';
+    }
+
+    public function severity(): string
+    {
+        return Severity::MAJOR;
+    }
+
+    public function rationale(): string
+    {
+        return 'A catch (QueryException) whose block neither inspects the SQLSTATE nor logs anything reads '
+            .'every database failure as the happy-path one. statamic-funnels/src/Support/MailTrigger.php '
+            .'(02.09.2026) caught QueryException around an insert and returned as if the row already existed: '
+            .'a full disk, a lost connection and a truncated column all looked like "already sent", and the '
+            .'mail was silently never sent. The fix was firstOrCreate() + wasRecentlyCreated, which needs no '
+            .'catch at all.';
+    }
+
+    public function appliesTo(AddonContext $addon): bool
+    {
+        return $this->sourceFiles($addon) !== [];
+    }
+
+    public function check(AddonContext $addon): array
+    {
+        $findings = [];
+
+        foreach ($this->sourceFiles($addon) as $file) {
+            $contents = $addon->read($file);
+
+            if ($contents === null || ! str_contains($contents, 'QueryException')) {
+                continue;
+            }
+
+            foreach ($this->queryExceptionCatches($contents) as [$line, $block]) {
+                if ($this->speaks($block)) {
+                    continue;
+                }
+
+                $findings[] = $this->fail(
+                    'catch (QueryException) swallows every database error without distinguishing it.',
+                    $file,
+                    $line,
+                    'Check the SQLSTATE (e.g. $e->getCode() === \'23000\'), or drop the catch for '
+                    .'firstOrCreate() + wasRecentlyCreated. A failure nobody hears about is not handled.'
+                );
+            }
+        }
+
+        return $findings;
+    }
+
+    /** Shipped PHP, tests excluded — a test may catch a QueryException on purpose. */
+    private function sourceFiles(AddonContext $addon): array
+    {
+        return array_values(array_filter(
+            $addon->phpFiles(),
+            fn (string $f) => str_starts_with($f, 'src/')
+        ));
+    }
+
+    /**
+     * Every `catch (…QueryException…) { … }` in the file, as [line, block body].
+     *
+     * Tokenised rather than brace-counted: a `{` inside a string or a comment in
+     * the block would otherwise end it early and hide the rest from the check.
+     *
+     * @return array<int, array{0:int,1:string}>
+     */
+    private function queryExceptionCatches(string $contents): array
+    {
+        $tokens = @token_get_all($contents);
+        $catches = [];
+        $count = count($tokens);
+
+        for ($i = 0; $i < $count; $i++) {
+            if (! is_array($tokens[$i]) || $tokens[$i][0] !== T_CATCH) {
+                continue;
+            }
+
+            $line = $tokens[$i][2];
+
+            // The type list, up to the closing parenthesis.
+            $types = '';
+            $depth = 0;
+            $j = $i + 1;
+
+            for (; $j < $count; $j++) {
+                $text = is_array($tokens[$j]) ? $tokens[$j][1] : $tokens[$j];
+
+                if ($text === '(') {
+                    $depth++;
+
+                    continue;
+                }
+
+                if ($text === ')') {
+                    $depth--;
+
+                    if ($depth === 0) {
+                        break;
+                    }
+
+                    continue;
+                }
+
+                if ($depth > 0) {
+                    $types .= $text;
+                }
+            }
+
+            if (! str_contains($types, 'QueryException')) {
+                continue;
+            }
+
+            // The block itself.
+            $block = '';
+            $depth = 0;
+
+            for (; $j < $count; $j++) {
+                $text = is_array($tokens[$j]) ? $tokens[$j][1] : $tokens[$j];
+
+                if ($text === '{') {
+                    $depth++;
+
+                    if ($depth === 1) {
+                        continue;
+                    }
+                }
+
+                if ($text === '}') {
+                    $depth--;
+
+                    if ($depth === 0) {
+                        break;
+                    }
+                }
+
+                if ($depth > 0) {
+                    $block .= $text;
+                }
+            }
+
+            $catches[] = [$line, $block];
+        }
+
+        return $catches;
+    }
+
+    /** Does the block show any sign of having looked at the error? */
+    private function speaks(string $block): bool
+    {
+        foreach (self::EVIDENCE as $needle) {
+            if (str_contains($block, $needle)) {
+                return true;
+            }
+        }
+
+        // A block that hands the error on — to a callback, a queue, an event —
+        // is not swallowing it, even without the words above.
+        return (bool) preg_match('/\b(rethrow|abort|fail\(|dispatch\(|event\()/', $block);
+    }
+}
+
+final class UnescapedTemplateVariablesRule extends AbstractRule
+{
+    /** A class doing its own `{{ … }}` replacement. */
+    private const SUBSTITUTION = [
+        '/str_replace\s*\(\s*[\'"]\{\{/s',
+        '/(str_replace|strtr)\s*\(\s*\[[^\]]{0,400}[\'"]\{\{/s',
+        '/preg_replace(_callback)?\s*\(\s*[\'"][^\'"\n]{0,200}\\\\\{\\\\\{/s',
+        '/strtr\s*\([^)]{0,200}[\'"]\{\{/s',
+    ];
+
+    /**
+     * The substitution must actually insert *supplied* data — a value looked up
+     * from the caller's array — rather than something the class computed itself.
+     *
+     * This is what separates the incident from its neighbours. `AbandonedReminder`
+     * put `$flat[$m[1]]` (the name from the checkout) into the output; an
+     * automations token resolver hands its matches to a method and may legitimately
+     * emit JSON or a URL, where e() would be wrong rather than missing.
+     */
+    private const DATA_INSERTION = [
+        // A data array read by the regex match: `$flat[$m[1]]`. Not `self::TAGS[$m[1]]`
+        // (a constant lookup, not the caller's data) and not `$params[$match[1]] = …`
+        // (an assignment into a parse result, not an insertion into output).
+        '/\$\w+\s*\[\s*\$(?:m|match|matches)\w*\s*\[\s*\d+\s*\]\s*\](?!\s*=[^=])/',
+        // A callback handing back an array value keyed by the token name.
+        '/return\s+\$\w+\s*\[\s*\$\w+/',
+        // `foreach ($variables as $key => $value) { … str_replace('{{ '.$key … , $value …`
+        '/foreach\s*\(\s*\$\w+\s+as\s+\$\w+\s*=>\s*\$\w+\s*\)\s*\{[^}]{0,400}(str_replace|strtr)\s*\([^;]{0,200}\{\{/s',
+    ];
+
+    /**
+     * Escaping at the substitution itself.
+     *
+     * Checked in a window around the call, not across the whole file. The
+     * incident version of AbandonedReminder *did* call e() — on the line items,
+     * a hundred lines above — while the placeholder replacement inserted the
+     * name raw. A file-wide check calls that file clean and misses the one
+     * defect the rule exists for.
+     */
+    private const ESCAPING = [
+        '/(?<![\w$>:\-])e\s*\(/',
+        '/htmlspecialchars\s*\(/',
+        '/htmlentities\s*\(/',
+        '/(?<![\w$>:\-])escape\s*\(/',
+        '/->escape\b/',
+    ];
+
+    /** A named set of deliberately raw variables is a decision; the file is not sleepwalking. */
+    private const ALLOWLIST = [
+        '/RAW_VARIABLES/i',
+        '/allowlist/i',
+        '/allow_list/i',
+    ];
+
+    /** How much of the substitution call to read when looking for escaping. */
+    private const WINDOW = 600;
+
+    public function id(): string
+    {
+        return 'code.unescaped-template-variables';
+    }
+
+    public function title(): string
+    {
+        return 'Escape the values your own `{{ }}` replacement inserts';
+    }
+
+    public function category(): string
+    {
+        return 'code';
+    }
+
+    public function severity(): string
+    {
+        return Severity::MAJOR;
+    }
+
+    public function rationale(): string
+    {
+        return 'A hand-written placeholder substitution inserts whatever it is given, and what it is given '
+            .'is usually customer input. statamic-payments/src/Support/AbandonedReminder.php (02.09.2026) '
+            .'put the name from the checkout straight into an HTML mail sent to an unverified address. '
+            .'The fix was e() on every value plus a named RAW_VARIABLES allowlist for the handful that are '
+            .'meant to carry markup — which is exactly what this rule looks for.';
+    }
+
+    public function appliesTo(AddonContext $addon): bool
+    {
+        return $this->sourceFiles($addon) !== [];
+    }
+
+    public function check(AddonContext $addon): array
+    {
+        $findings = [];
+
+        foreach ($this->sourceFiles($addon) as $file) {
+            $contents = $addon->read($file);
+
+            // No cheap `str_contains('{{')` pre-filter here: a regex writes the
+            // braces escaped (`\{\{`), so the literal two characters never appear
+            // in exactly the files this rule is looking for.
+            if ($contents === null) {
+                continue;
+            }
+
+            $offset = $this->substitutionOffset($contents);
+
+            if ($offset === null || ! $this->insertsSuppliedData($contents) || $this->escapesAt($contents, $offset)) {
+                continue;
+            }
+
+            $findings[] = $this->fail(
+                'Own `{{ }}` substitution inserts supplied values without escaping them.',
+                $file,
+                substr_count($contents, "\n", 0, $offset) + 1,
+                'Wrap each inserted value in e(), and name the exceptions in a RAW_VARIABLES allowlist '
+                .'so the raw ones are a decision rather than an oversight.'
+            );
+        }
+
+        return $findings;
+    }
+
+    private function sourceFiles(AddonContext $addon): array
+    {
+        return array_values(array_filter(
+            $addon->phpFiles(),
+            fn (string $f) => str_starts_with($f, 'src/')
+        ));
+    }
+
+    /**
+     * The byte offset of the first own-substitution call, or null.
+     *
+     * Matched against the whole file rather than line by line: the pattern
+     * argument of a `preg_replace_callback(` usually sits on the *next* line,
+     * which is exactly the shape the payments incident had — a line-wise check
+     * walks straight past it.
+     */
+    private function substitutionOffset(string $contents): ?int
+    {
+        $earliest = null;
+
+        foreach (self::SUBSTITUTION as $pattern) {
+            if (preg_match($pattern, $contents, $match, PREG_OFFSET_CAPTURE) !== 1) {
+                continue;
+            }
+
+            $offset = $match[0][1];
+
+            if ($earliest === null || $offset < $earliest) {
+                $earliest = $offset;
+            }
+        }
+
+        return $earliest;
+    }
+
+    private function insertsSuppliedData(string $contents): bool
+    {
+        foreach (self::DATA_INSERTION as $pattern) {
+            if (preg_match($pattern, $contents) === 1) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function escapesAt(string $contents, int $offset): bool
+    {
+        foreach (self::ALLOWLIST as $pattern) {
+            if (preg_match($pattern, $contents) === 1) {
+                return true;
+            }
+        }
+
+        $window = substr($contents, $offset, self::WINDOW);
+
+        foreach (self::ESCAPING as $pattern) {
+            if (preg_match($pattern, $window) === 1) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+}

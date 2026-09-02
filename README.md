@@ -53,7 +53,7 @@ you need; do not guess a component's props.
 | `statamic-addon-audit` | Reviewing an addon, deciding whether it may ship |
 | `statamic-addon-scaffold` | Starting a new addon, or migrating one from v5 |
 
-**3. `tools/addon-lint`** — 56 rules across structure, bootstrap, ui, code, testing and release.
+**3. `tools/addon-lint`** — 59 rules across structure, bootstrap, ui, code, testing and release.
 
 ```bash
 php tools/addon-lint/bin/addon-lint ../statamic-toc -v
