@@ -10,8 +10,8 @@
         "laravel"
     ],
     "require": {
-        "php": "^8.3",
         "goldnead/statamic-activity": "*",
+        "goldnead/statamic-assessments": "@dev",
         "goldnead/statamic-automations": "dev-main as 2.8.0",
         "goldnead/statamic-booking": "dev-main as 1.1.0",
         "goldnead/statamic-brand-context": "*",
@@ -29,7 +29,7 @@
         "goldnead/statamic-marketing": "dev-main as 2.16.0",
         "goldnead/statamic-notifications": "dev-main as 1.7.0",
         "goldnead/statamic-offers": "dev-main as 1.2.0",
-        "goldnead/statamic-payments": "dev-main as 1.15.0",
+        "goldnead/statamic-payments": "dev-main as 1.17.0",
         "goldnead/statamic-preference-center": "*",
         "goldnead/statamic-products": "dev-main as 1.0.0",
         "goldnead/statamic-suppression": "dev-main as 1.1.0",
@@ -37,6 +37,7 @@
         "goldnead/statamic-webhook-manager": "dev-main as 2.3.0",
         "laravel/framework": "^13.17",
         "laravel/tinker": "^3.0",
+        "php": "^8.3",
         "statamic/cms": "^6.0"
     },
     "require-dev": {
@@ -119,6 +120,11 @@
     "minimum-stability": "stable",
     "prefer-stable": true,
     "repositories": [
+        {
+            "name": "assessments",
+            "type": "path",
+            "url": "../../statamic-assessments"
+        },
         {
             "name": "products",
             "type": "path",
