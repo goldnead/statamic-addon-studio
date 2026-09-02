@@ -15,6 +15,7 @@
         "goldnead/statamic-automations": "dev-main as 2.8.0",
         "goldnead/statamic-booking": "dev-main as 1.1.0",
         "goldnead/statamic-brand-context": "*",
+        "goldnead/statamic-clientrooms": "@dev",
         "goldnead/statamic-consent": "dev-main as 1.5.0",
         "goldnead/statamic-email-templates": "*",
         "goldnead/statamic-entitlements": "dev-main as 1.0.1",
@@ -124,6 +125,11 @@
             "name": "assessments",
             "type": "path",
             "url": "../../statamic-assessments"
+        },
+        {
+            "name": "clientrooms",
+            "type": "path",
+            "url": "../../statamic-clientrooms"
         },
         {
             "name": "products",
