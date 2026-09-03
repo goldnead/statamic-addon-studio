@@ -13,7 +13,10 @@ rsync -a /tmp/statamic-demo-build/ root@157.90.224.18:/opt/statamic-demo/app/
 rsync -a --delete /tmp/statamic-demo-build/vendor/goldnead/ root@157.90.224.18:/opt/statamic-demo/app/vendor/goldnead/
 
 # im Container (auf dem Server):
-docker exec -w /var/www/html statamic-demo composer dump-autoload
+# ACHTUNG: kein composer im Container (03.09.2026 geprueft, /usr/local/bin
+# haelt nur php). "composer dump-autoload" schlaegt fehl und wird nicht
+# gebraucht: die Autoload-Dateien kommen fertig aus dem Build mit, und die
+# Addons laden per PSR-4, nicht ueber den Classmap.
 docker exec -w /var/www/html statamic-demo php artisan package:discover
 docker exec -w /var/www/html statamic-demo php artisan migrate --force
 docker exec -w /var/www/html statamic-demo php artisan demo:seed --fresh
