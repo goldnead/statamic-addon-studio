@@ -2,6 +2,7 @@
 
 namespace App\Demo;
 
+use Goldnead\BrandContext\Facades\BrandContext;
 use Goldnead\EmailTemplates\Services\EmailTemplateCollectionManager;
 use Goldnead\EmailTemplates\Support\EmailTemplateBlueprint;
 use Goldnead\EmailTemplates\Support\EmailTemplateData;
@@ -44,9 +45,23 @@ class SeedsEmailTemplates
         // vorhanden — billiger No-op, wenn schon da.
         $manager->ensure();
 
-        foreach ($this->vorlagen() as $data) {
-            $manager->upsert($data);
-        }
+        // Die Marke steht NICHT in EmailTemplateData: die Entry-Klasse stempelt
+        // beim Speichern die aktuelle. Ein Seeder, der einfach durchläuft, legt
+        // darum alles unter der Standardmarke ab — genau der Zustand bis zum
+        // 03.09.2026: vier Vorlagen, alle `nordlicht`, und unter
+        // `chorwerkstatt` eine leere Liste, die sich wie ein kaputter Screen
+        // liest statt wie eine leere Marke. Deshalb je Marke ein runFor-Rahmen.
+        BrandContext::runFor('nordlicht', function () use ($manager) {
+            foreach ($this->vorlagen() as $data) {
+                $manager->upsert($data);
+            }
+        });
+
+        BrandContext::runFor('chorwerkstatt', function () use ($manager) {
+            foreach ($this->chorwerkstattVorlagen() as $data) {
+                $manager->upsert($data);
+            }
+        });
 
         return [
             'vorlagen' => \Statamic\Facades\Entry::query()
@@ -137,6 +152,84 @@ class SeedsEmailTemplates
                     .'nicht warst, ignorier diese Mail.</p>',
                 'description' => 'Passwortloser Login. Trägt absichtlich zwei unbekannte '
                     .'Merge-Variablen, um "unbekannte Tags bleiben stehen" zu zeigen.',
+            ]),
+        ];
+    }
+
+    /**
+     * Dieselben vier Sorten für die zweite Marke, damit ein Durchgang unter
+     * `chorwerkstatt` nicht auf eine leere Liste läuft und man die Hüllen in
+     * zwei Farben nebeneinander sehen kann (Chorwerkstatt Nord: #7a4a1e).
+     *
+     * Eigene Slugs, weil ein Slug je Sammlung eindeutig ist: die Marke steht im
+     * Eintrag, nicht im Dateinamen.
+     *
+     * Der Inhalt ist der einer Chorwerkstatt und nicht der eines Abo-Produkts:
+     * Workshops mit festen Terminen, kein Abo, keine Rückgewinnung.
+     *
+     * @return array<int, EmailTemplateData>
+     */
+    protected function chorwerkstattVorlagen(): array
+    {
+        return [
+            // Die einzige mit der Kampagnen-Hülle, Gegenstück zu `willkommen`.
+            EmailTemplateData::fromArray([
+                'slug' => 'cw-willkommen',
+                'title' => 'Willkommen in der Chorwerkstatt',
+                'subject' => 'Willkommen in der Chorwerkstatt, {{ contact.first_name }}',
+                'preview' => 'Was dich erwartet und wann wir schreiben.',
+                'layout' => 'kampagne',
+                'body' => '<h2>Hallo {{ contact.first_name }},</h2>'
+                    .'<p>du stehst jetzt auf der Liste von {{ sender.name }}. Wir schreiben '
+                    .'dir an {{ contact.email }}, wenn ein neuer Workshoptermin steht.</p>'
+                    .'<p>Einmal im Monat, dazu eine Übung, die auch ohne Chor funktioniert. '
+                    .'Mehr kommt nicht.</p>'
+                    .'<p><a href="{{ unsubscribe_url }}">Wenn es zu viel wird, hier abmelden.</a></p>',
+                'description' => 'Begrüßung nach der Eintragung. Kampagnen-Hülle, Marke Chorwerkstatt.',
+            ]),
+
+            // Beleg nach der Anmeldung. Wieder der krumme Betrag, damit die
+            // Formatierung an einer Nachkommastelle geprüft wird.
+            EmailTemplateData::fromArray([
+                'slug' => 'cw-workshop-bestaetigt',
+                'title' => 'Workshop-Platz bestätigt',
+                'subject' => 'Dein Platz am {{ date }} steht, {{ contact.first_name }}',
+                'preview' => 'Anmeldung und Zahlung sind da.',
+                'layout' => 'transactional',
+                'body' => '<p>{{ contact.salutation }},</p>'
+                    .'<p>dein Platz ist gebucht. Wir haben <strong>'
+                    .number_format(DemoData::AWKWARD_AMOUNTS['krumm'] / 100, 2, ',', '.')
+                    .'&nbsp;EUR</strong> am {{ date }} erhalten.</p>'
+                    .'<p>Bring bequeme Kleidung und etwas zu trinken mit. Noten stellen wir.</p>',
+                'description' => 'Beleg nach Anmeldung und Zahlung für einen Workshop.',
+            ]),
+
+            // Erinnerung kurz vorher. Der Fall, den ein Abo-Produkt nicht hat.
+            EmailTemplateData::fromArray([
+                'slug' => 'cw-probe-erinnerung',
+                'title' => 'Erinnerung an den Probentag',
+                'subject' => 'Übermorgen, {{ contact.first_name }}',
+                'preview' => 'Kurze Erinnerung an deinen Termin.',
+                'layout' => 'transactional',
+                'body' => '<p>Hallo {{ contact.first_name }},</p>'
+                    .'<p>am {{ date }} sehen wir uns. Wir fangen pünktlich an, '
+                    .'also plan ein paar Minuten Puffer ein.</p>'
+                    .'<p>Wenn du doch nicht kannst, sag kurz Bescheid. Dann rückt '
+                    .'jemand von der Warteliste nach.</p>',
+                'description' => 'Erinnerung zwei Tage vor dem Workshop.',
+            ]),
+
+            // Abmeldung. Ruhig, keine Rückgewinnung, wie beim Gegenstück.
+            EmailTemplateData::fromArray([
+                'slug' => 'cw-abmeldung-bestaetigt',
+                'title' => 'Abmeldung bestätigt',
+                'subject' => 'Du bist abgemeldet, {{ contact.first_name }}',
+                'preview' => 'Wir schreiben dir nicht mehr.',
+                'layout' => 'transactional',
+                'body' => '<p>Hallo {{ contact.first_name }},</p>'
+                    .'<p>deine Abmeldung ist eingegangen. Wir schreiben dir ab sofort nicht mehr.</p>'
+                    .'<p>Die Termine stehen weiter öffentlich auf unserer Seite.</p>',
+                'description' => 'Bestätigung nach der Abmeldung von der Liste.',
             ]),
         ];
     }

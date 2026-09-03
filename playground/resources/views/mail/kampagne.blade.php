@@ -11,7 +11,18 @@
     diese Hülle: die Ersetzung läuft über MergeVariables::apply() auf dem Body,
     bevor er hier eingesetzt wird. Ein {{ ... }} hier wäre eine Blade-Ausgabe,
     keine Merge-Variable. Die Abmelde-Zeile steht deshalb im Template-Body.
+
+    Die Hülle nimmt die Farbe der Marke, unter der gerendert wird. Der Renderer
+    reicht nur $title und den Body durch, also holt die View sich die Marke
+    selbst — sie gehört der Host-App und darf das. Ohne gesetzte Farbe bleibt es
+    beim bisherigen Stein-Ton, damit eine Marke ohne Einstellung nicht farblos
+    aussieht.
 --}}
+@php
+    $marke = \Goldnead\BrandContext\Facades\BrandContext::current();
+    $akzent = $marke->settings['colour'] ?? '#1c1917';
+    $absender = $marke->name ?? '';
+@endphp
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -22,8 +33,11 @@
 <body style="margin:0; padding:0; background:#fafaf9; font-family:Georgia,'Times New Roman',serif; color:#1c1917;">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#fafaf9; padding:0;">
         <tr>
-            <td style="background:#1c1917; padding:20px 0;" align="center">
+            <td style="background:{{ $akzent }}; padding:20px 0;" align="center">
                 <span style="color:#fafaf9; font-size:18px; font-weight:700; letter-spacing:0.02em;">{{ $title ?? '' }}</span>
+                @if ($absender !== '')
+                    <br><span style="color:#fafaf9; opacity:0.72; font-size:12px; letter-spacing:0.08em; text-transform:uppercase;">{{ $absender }}</span>
+                @endif
             </td>
         </tr>
         <tr>

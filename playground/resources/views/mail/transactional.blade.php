@@ -9,7 +9,15 @@
     In config/email-templates.php als 'transactional' => 'mail.transactional'
     verdrahtet und dort 'default_layout'. Wird von der CP-Live-Vorschau und vom
     echten Versand über denselben Pfad gerendert.
+    Wie die Kampagnen-Hülle nimmt auch diese die Farbe der aktuellen Marke, hier
+    zurückhaltender: eine Kante oben und der Markenname über dem Betreff. Ohne
+    gesetzte Farbe bleibt das Bild genau wie bisher.
 --}}
+@php
+    $marke = \Goldnead\BrandContext\Facades\BrandContext::current();
+    $akzent = $marke->settings['colour'] ?? null;
+    $absender = $marke->name ?? '';
+@endphp
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -21,9 +29,12 @@
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5; padding:24px 0;">
         <tr>
             <td align="center">
-                <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px; width:100%; background:#ffffff; border:1px solid #e4e4e7; border-radius:8px;">
+                <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px; width:100%; background:#ffffff; border:1px solid #e4e4e7; border-radius:8px; border-top:3px solid {{ $akzent ?? '#e4e4e7' }};">
                     <tr>
                         <td style="padding:28px 32px 8px 32px; border-bottom:1px solid #f4f4f5;">
+                            @if ($absender !== '')
+                                <div style="font-size:12px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:{{ $akzent ?? '#71717a' }}; margin-bottom:6px;">{{ $absender }}</div>
+                            @endif
                             <span style="font-size:13px; font-weight:600; letter-spacing:0.04em; text-transform:uppercase; color:#71717a;">{{ $title ?? '' }}</span>
                         </td>
                     </tr>
