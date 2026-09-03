@@ -179,16 +179,20 @@ header's MaxWidthButton lets the user toggle full width, and a custom container 
 ## Verify before claiming done
 
 ```bash
-php <studio>/tools/addon-lint/bin/addon-lint <addon-path> --category=ui -v
+# Covers §9 and §9.1 in full, including the silent failures.
+php8.4 <studio>/tools/addon-lint/bin/addon-lint <addon-path> --category=ui -v
 
-# The mechanical half of §9 and §9.1 — things that render silently wrong.
-bash <studio>/tools/ui-sweep.sh <addon-path>
+# The same rules over the whole family at once, grouped by addon.
+bash <studio>/tools/ui-sweep.sh
 ```
 
-`ui-sweep` reports candidates, not verdicts. It reads whole tags rather than lines (a Vue tag is
-routinely six lines long) and scopes each rule to where the mistake is actually a mistake — an
+Both report candidates, not verdicts. They read whole tags rather than lines (a Vue tag is
+routinely six lines long) and scope each rule to where the mistake is actually a mistake — an
 `#actions` slot is correct on `Header` and dead only inside `<Listing>`; a `''`-bound combobox is
 correct when the option list really has a `value: ''` entry. Read the line before you fix it.
+
+A new rule goes in `tools/addon-lint/rules/NativeUiRules.php` with a positive and a negative case
+in `tools/addon-lint/tests/smoke.php` — not into the shell script.
 
 Then click it, do not just look at it. Drive the playground with Playwright and assert the thing
 happened — a row appeared, a name changed, a task left the "open" filter. Every defect in the

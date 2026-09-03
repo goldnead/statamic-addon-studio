@@ -5,14 +5,21 @@
 # Read-only. Greps an addon's Vue sources for the mistakes that render without a
 # warning: a slot Listing has not got, an icon name that is not in the set, a
 # combobox bound to '', a checkbox in a table cell without `solo`. Plus the
-# louder antipatterns the linter does not cover — content on a bare Panel, a
-# danger button in a page header, hard-coded colours.
+# louder antipatterns — content on a bare Panel, a danger button in a page
+# header, hard-coded colours.
 #
 # Every hit is a candidate, not a verdict: `grep` cannot see whether a Panel
 # actually holds a Card two lines down. Read the line before believing it.
 #
-# The permanent home for these is tools/addon-lint/rules/NativeUiRules.php.
-# This script exists because none of them lived there yet.
+# EVERY RULE HERE NOW LIVES IN tools/addon-lint/rules/NativeUiRules.php, which is
+# their permanent home (ported 03.09.2026; both report the same 31 candidates
+# across the family, on the same lines). Prefer the linter:
+#
+#   php8.4 tools/addon-lint/bin/addon-lint <addon-path> --category=ui
+#
+# It carries a rationale and a severity per finding, has smoke tests, and is the
+# thing to extend. This script stays as the quick eyeball over the whole family
+# grouped by addon — nothing more. A rule added here and not there will drift.
 #
 # Usage:
 #   tools/ui-sweep.sh                       # every statamic-* sibling of the studio
@@ -131,19 +138,20 @@ for dir in "${ADDONS[@]}"; do
             for my $r (@bad) {
                 my ($tag, $re, $what) = @$r;
                 while (/<\Q$tag\E\b(.*?)\/?>/gs) {
-                    my $a = $1;
+                    # $-[0] belongs to the LAST successful match, and the
+                    # attribute test below is one. Read the line off the tag
+                    # before testing it, or the finding points at the tag end.
+                    my ($a, $n) = ($1, 1 + (substr($_, 0, $-[0]) =~ tr/\n//));
                     next unless $a =~ $re;
-                    my $n = 1 + substr($_, 0, pos($_) - length($&)) =~ tr/\n//;
                     print "$ARGV:$n <$tag> $what\n";
                 }
             }
             # CommandPaletteItem runs `action` or `url`; an @click on it is
             # never called, and core logs a console warning nobody reads.
             while (/<CommandPaletteItem\b(.*?)>/gs) {
-                my $a = $1;
+                my ($a, $n) = ($1, 1 + (substr($_, 0, $-[0]) =~ tr/\n//));
                 next unless $a =~ /\@click/;
                 next if $a =~ /:?(action|url)=/;
-                my $n = 1 + substr($_, 0, pos($_) - length($&)) =~ tr/\n//;
                 print "$ARGV:$n <CommandPaletteItem> \@click without action/url\n";
             }' {} \; 2>/dev/null
     )"
@@ -170,9 +178,10 @@ for dir in "${ADDONS[@]}"; do
     report "Checkbox in cell without solo" "$(
         find "$js" -name '*.vue' -exec perl -0777 -ne '
             while (/#cell-.{0,900}?<Checkbox\b(.*?)\/>/gs) {
-                my $t = $1;
+                # $-[1], not $-[0]: the match starts back at `#cell-`, and the
+                # finding belongs on the <Checkbox> line.
+                my ($t, $n) = ($1, 1 + (substr($_, 0, $-[1]) =~ tr/\n//));
                 next if $t =~ /\bsolo\b/ || $t =~ /:?label=/;
-                my $n = 1 + substr($_, 0, pos($_) - length($&)) =~ tr/\n//;
                 print "$ARGV:$n\n";
             }' {} \; 2>/dev/null
     )"
@@ -182,10 +191,9 @@ for dir in "${ADDONS[@]}"; do
     report 'Badge size="sm", pill? (check)' "$(
         find "$js" -name '*.vue' -exec perl -0777 -ne '
             while (/<Badge\b(.*?)\/>/gs) {
-                my $t = $1;
+                my ($t, $n) = ($1, 1 + (substr($_, 0, $-[0]) =~ tr/\n//));
                 next unless $t =~ /size="sm"/;
                 next if $t =~ /\bpill\b/;
-                my $n = 1 + substr($_, 0, pos($_) - length($&)) =~ tr/\n//;
                 print "$ARGV:$n\n";
             }' {} \; 2>/dev/null
     )"
@@ -201,9 +209,8 @@ for dir in "${ADDONS[@]}"; do
     report 'Button variant="danger"' "$(
         find "$js" -name '*.vue' -exec perl -0777 -ne '
             while (/<Button\b(.*?)(?:\/>|>)/gs) {
-                my $t = $1;
+                my ($t, $n) = ($1, 1 + (substr($_, 0, $-[0]) =~ tr/\n//));
                 next unless $t =~ /variant="danger"/ || $t =~ /:variant="[^"]*'"'"'danger'"'"'/;
-                my $n = 1 + substr($_, 0, pos($_) - length($&)) =~ tr/\n//;
                 print "$ARGV:$n\n";
             }' {} \; 2>/dev/null
     )"

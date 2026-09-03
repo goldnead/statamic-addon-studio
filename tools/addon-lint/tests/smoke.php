@@ -326,6 +326,98 @@ $report = lint($linter, [
 ]);
 check('a resolver that computes its own values is not a raw-insertion defect', ! fires($report, 'code.unescaped-template-variables'));
 
+// --- ui / §9.1 silent failures ---------------------------------------------
+//
+// Every rule below was a shipped defect before it was a rule. The negative case
+// matters as much as the positive one: the first version of this sweep produced
+// more false alarms than findings, which is worse than no tool at all because
+// somebody acts on them.
+
+/** A fixture addon whose only CP surface is this Vue template. */
+function vue(string $template): array
+{
+    global $goodComposer;
+
+    return [
+        'composer.json' => $goodComposer,
+        'resources/js/pages/Thing.vue' => "<template>\n".$template."\n</template>\n",
+    ];
+}
+
+$report = lint($linter, vue('<Button icon="chart-pie" text="Stats" />'));
+check('an icon name outside the set is reported', fires($report, 'ui.icon-name-exists'));
+
+$report = lint($linter, vue('<Button icon="plus" text="Add" />'));
+check('a real icon name is accepted', ! fires($report, 'ui.icon-name-exists'));
+
+$report = lint($linter, vue("<Icon\n    name=\"check\"\n/>"));
+check('name= on a standalone <Icon> is read too', fires($report, 'ui.icon-name-exists'));
+
+$report = lint($linter, vue('<Button :icon="sort === \'asc\' ? \'arrow-up\' : \'arrow-down\'" />'));
+check('a comparison operand is not mistaken for an icon name', ! fires($report, 'ui.icon-name-exists'));
+
+$report = lint($linter, vue('<Listing :url="url"><template #actions><Button text="Edit" /></template></Listing>'));
+check('a dead slot inside <Listing> is reported', fires($report, 'ui.listing-slots'));
+
+$report = lint($linter, vue('<Header title="Things"><template #actions><Button text="New" /></template></Header>'));
+check('#actions on a Header is correct and stays silent', ! fires($report, 'ui.listing-slots'));
+
+$report = lint($linter, vue('<TabTrigger label="Overview" />'));
+check('TabTrigger label= is reported', fires($report, 'ui.unknown-props'));
+
+$report = lint($linter, vue('<TabTrigger name="overview" text="Overview" />'));
+check('TabTrigger name/text is accepted', ! fires($report, 'ui.unknown-props'));
+
+$report = lint($linter, vue('<Alert variant="danger" text="Failed" />'));
+check('Alert variant="danger" is reported', fires($report, 'ui.unknown-props'));
+
+$report = lint($linter, vue('<Alert :variant="ok ? \'success\' : \'error\'" text="Result" />'));
+check('a bound Alert variant naming real values is accepted', ! fires($report, 'ui.unknown-props'));
+
+$report = lint($linter, vue('<CommandPaletteItem text="Save" @click="save" />'));
+check('CommandPaletteItem with @click and no action is reported', fires($report, 'ui.unknown-props'));
+
+$emptyPicker = "<script setup>\nconst selected = computed(() => props.modelValue ? String(props.modelValue) : '');\n</script>\n";
+
+$report = lint($linter, ['composer.json' => $goodComposer, 'resources/js/pages/Picker.vue' => $emptyPicker]);
+check("a picker bound to '' is reported", fires($report, 'ui.picker-empty-model'));
+
+$report = lint($linter, [
+    'composer.json' => $goodComposer,
+    'resources/js/pages/Picker.vue' => $emptyPicker."<script>\nconst options = [{ value: '', label: 'No opportunity' }];\n</script>\n",
+]);
+check("an option list that really carries value: '' is accepted", ! fires($report, 'ui.picker-empty-model'));
+
+$report = lint($linter, vue("<Listing><template #cell-select=\"{ row }\">\n    <Checkbox\n        v-model=\"row.selected\"\n    />\n</template></Listing>"));
+check('a Checkbox in a cell without solo is reported', fires($report, 'ui.checkbox-solo'));
+
+$report = lint($linter, vue("<Listing><template #cell-select=\"{ row }\">\n    <Checkbox\n        solo\n        v-model=\"row.selected\"\n    />\n</template></Listing>"));
+check('solo two lines below the tag name is found (whole tags, not lines)', ! fires($report, 'ui.checkbox-solo'));
+
+$report = lint($linter, vue('<Checkbox label="Send a copy" v-model="copy" />'));
+check('a Checkbox outside a cell keeps its label', ! fires($report, 'ui.checkbox-solo'));
+
+$report = lint($linter, vue('<Badge size="sm" color="default" :text="String(count)" />'));
+check('Badge size="sm" without pill is surfaced', fires($report, 'ui.badge-pill'));
+
+$report = lint($linter, vue("<Badge\n    size=\"sm\"\n    color=\"green\"\n    pill\n    text=\"Live\"\n/>"));
+check('pill two lines below size="sm" is not a finding', ! fires($report, 'ui.badge-pill'));
+
+$report = lint($linter, vue('<Button variant="danger" text="Delete" />'));
+check('Button variant="danger" is reported', fires($report, 'ui.danger-button'));
+
+$report = lint($linter, vue('<Text variant="danger">Could not save.</Text>'));
+check('Text variant="danger" is the right way to colour an error', ! fires($report, 'ui.danger-button'));
+
+$report = lint($linter, vue("<Dropdown>\n    <template #trigger>\n        <Button\n            icon=\"dots\"\n            variant=\"ghost\"\n        />\n    </template>\n</Dropdown>"));
+check('a hand-built dots trigger is reported', fires($report, 'ui.dropdown-trigger'));
+
+$report = lint($linter, vue("<Panel>\n    <div class=\"px-3 py-2\">Content</div>\n</Panel>"));
+check('a padded div straight on a Panel is reported', fires($report, 'ui.panel-body'));
+
+$report = lint($linter, vue("<Panel>\n    <Card>\n        <div class=\"px-3\">Content</div>\n    </Card>\n</Panel>"));
+check('Panel > Card > content is accepted', ! fires($report, 'ui.panel-body'));
+
 // --- robustness ------------------------------------------------------------
 
 $report = lint($linter, []);

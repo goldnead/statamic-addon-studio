@@ -766,3 +766,787 @@ final class CommandPaletteRule extends AbstractRule
         )];
     }
 }
+
+/**
+ * Tag-level scanning, shared by the §9.1 rules below.
+ *
+ * A Vue tag routinely spans six lines, so a line-based match reports every
+ * multi-line component as missing the prop that sits two lines down. These
+ * helpers read whole tags and report the line the tag *opens* on.
+ */
+trait ScansVueTags
+{
+    /**
+     * Every opening `<Tag …>` in the source.
+     *
+     * The attribute pattern steps over quoted values, so a `>` inside one does
+     * not end the tag early.
+     *
+     * @return array<int, array{attrs: string, line: int, offset: int}>
+     */
+    protected function tags(string $contents, string $tag): array
+    {
+        $pattern = '/<'.preg_quote($tag, '/').'\b((?:[^>"\']|"[^"]*"|\'[^\']*\')*)\/?>/s';
+
+        if (preg_match_all($pattern, $contents, $matches, PREG_OFFSET_CAPTURE | PREG_SET_ORDER) < 1) {
+            return [];
+        }
+
+        return array_map(fn (array $match) => [
+            'attrs' => $match[1][0],
+            'line' => $this->lineAt($contents, $match[0][1]),
+            'offset' => $match[0][1],
+        ], $matches);
+    }
+
+    protected function lineAt(string $contents, int $offset): int
+    {
+        return $offset <= 0 ? 1 : substr_count($contents, "\n", 0, $offset) + 1;
+    }
+
+    /**
+     * @param  Finding[]  $findings
+     * @return Finding[]
+     */
+    protected function capped(array $findings, int $max, string $noun): array
+    {
+        if (count($findings) <= $max) {
+            return $findings;
+        }
+
+        $kept = array_slice($findings, 0, $max);
+        $kept[] = $this->failWith(Severity::INFO, sprintf('%d further %s suppressed.', count($findings) - $max, $noun));
+
+        return $kept;
+    }
+}
+
+final class IconNameExistsRule extends AbstractRule
+{
+    use ScansVueTags;
+
+    public function id(): string
+    {
+        return 'ui.icon-name-exists';
+    }
+
+    public function title(): string
+    {
+        return 'Pass only icon names that exist in the set';
+    }
+
+    public function category(): string
+    {
+        return 'ui';
+    }
+
+    public function severity(): string
+    {
+        return Severity::MAJOR;
+    }
+
+    public function rationale(): string
+    {
+        return 'ui-vocabulary §9.1: `Icon` renders nothing for a name it does not know — an empty box the '
+            .'width of an icon, no console warning, no failing test. `user`, `add`, `check`, `list`, '
+            .'`chart-pie` and `refresh` all read as plausible and none of them are in the 548-name set '
+            .'(`users`, `plus`, `checkmark`, `layout-list`, `charts-donut-graph`, `sync` are).';
+    }
+
+    public function appliesTo(AddonContext $addon): bool
+    {
+        // An addon that registers its own set names icons this linter cannot see,
+        // so every finding here would be a guess.
+        return $addon->vueFiles() !== []
+            && ! $addon->contains('/Icon::register\(/')
+            && $this->iconSet($addon) !== null;
+    }
+
+    public function check(AddonContext $addon): array
+    {
+        $icons = $this->iconSet($addon);
+        $findings = [];
+
+        foreach ($addon->vueFiles() as $file) {
+            $contents = $addon->read($file) ?? '';
+
+            foreach ($this->names($contents) as [$name, $line]) {
+                if (is_file($icons.'/'.$name.'.svg')) {
+                    continue;
+                }
+
+                $findings[] = $this->fail(
+                    sprintf('Icon "%s" is not in the set — it renders as an empty box.', $name),
+                    $file,
+                    $line,
+                    'Look the real name up in vendor/statamic/cms/resources/svg/icons/*.svg.'
+                );
+            }
+        }
+
+        return $this->capped($findings, 20, 'unknown icon names');
+    }
+
+    /**
+     * The icon names a file asks for, in all three spellings.
+     *
+     * @return array<int, array{0: string, 1: int}>
+     */
+    private function names(string $contents): array
+    {
+        $found = [];
+
+        // 1. `icon="…"` as a prop on any component.
+        if (preg_match_all('/(?<![-:\w])icon="([a-z][a-z0-9-]*)"/', $contents, $matches, PREG_OFFSET_CAPTURE | PREG_SET_ORDER) > 0) {
+            foreach ($matches as $hit) {
+                $found[] = [$hit[1][0], $this->lineAt($contents, $hit[0][1])];
+            }
+        }
+
+        // 2. `name="…"` on a standalone <Icon> — the spelling people forget. A
+        //    check that reads only the first misses every icon rendered on its
+        //    own, which is how `chart-pie` survived a whole pass over one addon.
+        foreach ($this->tags($contents, 'Icon') as $tag) {
+            if (preg_match('/(?<![-:\w])name="([a-z][a-z0-9-]*)"/', $tag['attrs'], $matches) === 1) {
+                $found[] = [$matches[1], $tag['line']];
+            }
+        }
+
+        // 3. A bound expression that still names icons literally:
+        //    `:icon="ok ? 'checkmark' : 'x'"`. A ternary hid a non-existent
+        //    `check` in one addon, so the confirm button lost its icon at exactly
+        //    the moment it confirmed. Strip the comparison side first — in
+        //    `:icon="sort === 'asc' ? 'arrow-up' : 'arrow-down'"` the string
+        //    `asc` is what is being tested, not an icon anybody renders.
+        foreach (explode("\n", $contents) as $index => $text) {
+            if (preg_match_all('/:(?:icon|name)="([^"]*)"/', $text, $matches) < 1) {
+                continue;
+            }
+
+            foreach ($matches[1] as $expression) {
+                $expression = preg_replace('/[!=]==? *\'[^\']*\'/', '', $expression) ?? '';
+
+                if (preg_match_all('/\'([a-z][a-z0-9-]{2,})\'/', $expression, $literals) > 0) {
+                    foreach ($literals[1] as $name) {
+                        $found[] = [$name, $index + 1];
+                    }
+                }
+            }
+        }
+
+        return $found;
+    }
+
+    /** The 548 real names, from the addon's own vendor dir or the studio playground. */
+    private function iconSet(AddonContext $addon): ?string
+    {
+        $candidates = [
+            $addon->abs('vendor/statamic/cms/resources/svg/icons'),
+            dirname(__DIR__, 3).'/playground/vendor/statamic/cms/resources/svg/icons',
+        ];
+
+        $configured = getenv('STATAMIC_ICON_SET');
+
+        if (is_string($configured) && $configured !== '') {
+            array_unshift($candidates, $configured);
+        }
+
+        foreach ($candidates as $dir) {
+            if (is_dir($dir)) {
+                return $dir;
+            }
+        }
+
+        return null;
+    }
+}
+
+final class ListingSlotRule extends AbstractRule
+{
+    use ScansVueTags;
+
+    /** What `Listing` does NOT have. Its real set is initializing, default, prepended-row-actions, cell-{name}, tbody-start. */
+    private const DEAD = ['actions', 'empty', 'footer', 'header'];
+
+    public function id(): string
+    {
+        return 'ui.listing-slots';
+    }
+
+    public function title(): string
+    {
+        return 'Use only the slots `Listing` actually has';
+    }
+
+    public function category(): string
+    {
+        return 'ui';
+    }
+
+    public function severity(): string
+    {
+        return Severity::MAJOR;
+    }
+
+    public function rationale(): string
+    {
+        return 'ui-vocabulary §9.1: Vue drops an unknown slot without a word, so the action it held never '
+            .'renders. In one addon the entire "edit" path was unreachable for months. Listing has '
+            .'`initializing`, `default`, `prepended-row-actions`, plus `cell-{name}` and `tbody-start`.';
+    }
+
+    public function appliesTo(AddonContext $addon): bool
+    {
+        return $addon->vueFiles() !== [];
+    }
+
+    public function check(AddonContext $addon): array
+    {
+        $findings = [];
+
+        foreach ($addon->vueFiles() as $file) {
+            $contents = $addon->read($file) ?? '';
+
+            if (! str_contains($contents, '<Listing')) {
+                continue;
+            }
+
+            // Scoped to the Listing block on purpose: `#actions` is correct on
+            // `Header`, `#footer` is correct on `Modal` and `Stack`. Only inside
+            // <Listing> are they dead.
+            if (preg_match_all('/<Listing\b.*?<\/Listing>/s', $contents, $blocks, PREG_OFFSET_CAPTURE) < 1) {
+                continue;
+            }
+
+            $pattern = '/#('.implode('|', self::DEAD).')[=>]/';
+
+            foreach ($blocks[0] as [$block, $blockOffset]) {
+                if (preg_match_all($pattern, $block, $slots, PREG_OFFSET_CAPTURE | PREG_SET_ORDER) < 1) {
+                    continue;
+                }
+
+                foreach ($slots as $slot) {
+                    $findings[] = $this->fail(
+                        sprintf('Slot #%s does not exist on <Listing> — Vue drops it silently.', $slot[1][0]),
+                        $file,
+                        $this->lineAt($contents, $blockOffset + $slot[0][1]),
+                        'Use #prepended-row-actions, #cell-{name} or #tbody-start.'
+                    );
+                }
+            }
+        }
+
+        return $findings;
+    }
+}
+
+final class UnknownPropRule extends AbstractRule
+{
+    use ScansVueTags;
+
+    /**
+     * tag => [pattern over the tag's attributes, what is wrong].
+     *
+     * Verified against vendor/statamic/cms/resources/dist-package/types/components/ui/*.d.ts.
+     * Do not infer a prop from its name — look it up there.
+     *
+     * @var array<int, array{0: string, 1: string, 2: string}>
+     */
+    private const BAD = [
+        // TabTrigger takes `text` + `name`. Getting this wrong renders an empty
+        // tab strip, which makes every tab behind it unreachable.
+        ['TabTrigger', '/:?(?:label|has-error)=/', 'takes text/name, not label/has-error'],
+        // Alert knows default|warning|error|success. `danger` and `info` both
+        // fall through to the neutral style, so a failure and a hint look like
+        // nothing. The lookbehind is load-bearing: without it `variant="` also
+        // matches inside `:variant="`, and the lookahead then reads the
+        // expression instead of a literal — seven false alarms in one addon.
+        ['Alert', '/(?<![-:\w])variant="(?!default|warning|error|success)/', 'unknown variant'],
+        // And the bound form, where the literals sit inside the expression.
+        ['Alert', '/:variant="[^"]*\'(?!default\'|warning\'|error\'|success\')[a-z]+\'/', 'unknown variant (bound)'],
+        // DropdownItem takes variant="destructive"; a bare `danger` colours nothing.
+        ['DropdownItem', '/(?<![-\w])danger(?![-\w=])/', 'takes variant="destructive", not a bare danger'],
+        // Panel takes heading/subheading/icon only.
+        ['Panel', '/(?<![-\w])collapsible(?![-\w])/', 'has no collapsible prop'],
+    ];
+
+    public function id(): string
+    {
+        return 'ui.unknown-props';
+    }
+
+    public function title(): string
+    {
+        return 'Pass only props the component declares';
+    }
+
+    public function category(): string
+    {
+        return 'ui';
+    }
+
+    public function severity(): string
+    {
+        return Severity::MAJOR;
+    }
+
+    public function rationale(): string
+    {
+        return 'ui-vocabulary §9.1: Vue passes an unknown prop through as a plain HTML attribute, so it '
+            .'lands in the DOM and has no effect — no warning anywhere. The worst of the family, because '
+            .'the damage scales with what the prop was for.';
+    }
+
+    public function appliesTo(AddonContext $addon): bool
+    {
+        return $addon->vueFiles() !== [];
+    }
+
+    public function check(AddonContext $addon): array
+    {
+        $findings = [];
+
+        foreach ($addon->vueFiles() as $file) {
+            $contents = $addon->read($file) ?? '';
+
+            foreach (self::BAD as [$tag, $pattern, $what]) {
+                foreach ($this->tags($contents, $tag) as $hit) {
+                    if (preg_match($pattern, $hit['attrs']) !== 1) {
+                        continue;
+                    }
+
+                    $findings[] = $this->fail(
+                        sprintf('<%s> %s.', $tag, $what),
+                        $file,
+                        $hit['line'],
+                        'Check dist-package/types/components/ui/'.$tag.'.vue.d.ts for the real props.'
+                    );
+                }
+            }
+
+            // CommandPaletteItem runs `action` or `url`; an @click on it is never
+            // called, and core logs a console warning nobody reads.
+            foreach ($this->tags($contents, 'CommandPaletteItem') as $hit) {
+                if (! str_contains($hit['attrs'], '@click') || preg_match('/:?(?:action|url)=/', $hit['attrs']) === 1) {
+                    continue;
+                }
+
+                $findings[] = $this->fail(
+                    '<CommandPaletteItem> has @click but no action/url — the palette entry does nothing.',
+                    $file,
+                    $hit['line'],
+                    'Pass :action="() => …" or :url="…".'
+                );
+            }
+        }
+
+        return $findings;
+    }
+}
+
+final class EmptyStringPickerRule extends AbstractRule
+{
+    private const BINDING = "modelValue ? String(props.modelValue) : ''";
+
+    public function id(): string
+    {
+        return 'ui.picker-empty-model';
+    }
+
+    public function title(): string
+    {
+        return 'Bind an empty picker to `null`, not `\'\'`';
+    }
+
+    public function category(): string
+    {
+        return 'ui';
+    }
+
+    public function severity(): string
+    {
+        return Severity::MAJOR;
+    }
+
+    public function rationale(): string
+    {
+        return 'ui-vocabulary §9.1: an empty string counts as a selection, so the trigger renders '
+            .'`getOptionLabel(selectedOption)` — which is empty — instead of the placeholder branch. '
+            .'The field looks blank, with a clear button offering to clear nothing.';
+    }
+
+    public function appliesTo(AddonContext $addon): bool
+    {
+        return $addon->vueFiles() !== [];
+    }
+
+    public function check(AddonContext $addon): array
+    {
+        $findings = [];
+
+        foreach ($addon->vueFiles() as $file) {
+            $contents = $addon->read($file) ?? '';
+
+            if (! str_contains($contents, self::BINDING)) {
+                continue;
+            }
+
+            // Unless the option list actually carries a `value: ''` entry — then
+            // the empty string IS a choice with a label ("No opportunity") and
+            // binding it is correct.
+            if (str_contains($contents, "value: ''")) {
+                continue;
+            }
+
+            foreach (explode("\n", $contents) as $index => $text) {
+                if (str_contains($text, self::BINDING)) {
+                    $findings[] = $this->fail(
+                        'Picker bound to \'\' instead of null — it renders blank, not the placeholder.',
+                        $file,
+                        $index + 1,
+                        'Bind null: props.modelValue ? String(props.modelValue) : null.'
+                    );
+                }
+            }
+        }
+
+        return $findings;
+    }
+}
+
+final class CheckboxSoloRule extends AbstractRule
+{
+    use ScansVueTags;
+
+    /** How far back a `#cell-` may sit and still be this checkbox's cell. */
+    private const CELL_REACH = 900;
+
+    public function id(): string
+    {
+        return 'ui.checkbox-solo';
+    }
+
+    public function title(): string
+    {
+        return 'Give a `Checkbox` in a table cell the `solo` prop';
+    }
+
+    public function category(): string
+    {
+        return 'ui';
+    }
+
+    public function severity(): string
+    {
+        return Severity::MAJOR;
+    }
+
+    public function rationale(): string
+    {
+        return 'ui-vocabulary §9.1: without `solo` the checkbox prints the literal text `false` where the '
+            .'label goes. `solo` is documented as exactly this case: "hides the label and description … '
+            .'like in a table cell".';
+    }
+
+    public function appliesTo(AddonContext $addon): bool
+    {
+        return $addon->vueFiles() !== [];
+    }
+
+    public function check(AddonContext $addon): array
+    {
+        $findings = [];
+
+        foreach ($addon->vueFiles() as $file) {
+            $contents = $addon->read($file) ?? '';
+
+            foreach ($this->tags($contents, 'Checkbox') as $hit) {
+                if (preg_match('/\bsolo\b/', $hit['attrs']) === 1 || preg_match('/:?label=/', $hit['attrs']) === 1) {
+                    continue;
+                }
+
+                // Only inside a listing cell; elsewhere a label is correct.
+                $start = max(0, $hit['offset'] - self::CELL_REACH);
+
+                if (! str_contains(substr($contents, $start, $hit['offset'] - $start), '#cell-')) {
+                    continue;
+                }
+
+                $findings[] = $this->fail(
+                    'Checkbox in a table cell without `solo` — it prints "false" where the label goes.',
+                    $file,
+                    $hit['line'],
+                    'Add the solo prop.'
+                );
+            }
+        }
+
+        return $findings;
+    }
+}
+
+final class BadgePillRule extends AbstractRule
+{
+    use ScansVueTags;
+
+    public function id(): string
+    {
+        return 'ui.badge-pill';
+    }
+
+    public function title(): string
+    {
+        return 'Render a status badge as `pill` with no `size`';
+    }
+
+    public function category(): string
+    {
+        return 'ui';
+    }
+
+    public function severity(): string
+    {
+        // A square chip (a tag, a count) is legitimate, so this asks rather than
+        // asserts. Read the line before changing it.
+        return Severity::INFO;
+    }
+
+    public function rationale(): string
+    {
+        return 'ui-vocabulary §9.22: `size="sm"` adds `rounded-[0.1875rem]`, a 3px radius where every '
+            .'button is `rounded-lg`, and `color="default"` is the same chip as `Button variant="default"` '
+            .'minus the gradient — together they read as a broken button. A status is `StatusIndicator`, '
+            .'or a `Badge` with `pill`, a semantic colour and no `size`.';
+    }
+
+    public function appliesTo(AddonContext $addon): bool
+    {
+        return $addon->vueFiles() !== [];
+    }
+
+    public function check(AddonContext $addon): array
+    {
+        $findings = [];
+
+        foreach ($addon->vueFiles() as $file) {
+            $contents = $addon->read($file) ?? '';
+
+            foreach ($this->tags($contents, 'Badge') as $hit) {
+                if (! str_contains($hit['attrs'], 'size="sm"') || preg_match('/\bpill\b/', $hit['attrs']) === 1) {
+                    continue;
+                }
+
+                $findings[] = $this->fail(
+                    'Badge size="sm" without pill — is this a status?',
+                    $file,
+                    $hit['line'],
+                    'A status wants pill + a semantic colour and no size. A tag or count chip is fine as is.'
+                );
+            }
+        }
+
+        return $findings;
+    }
+}
+
+final class DangerButtonRule extends AbstractRule
+{
+    use ScansVueTags;
+
+    public function id(): string
+    {
+        return 'ui.danger-button';
+    }
+
+    public function title(): string
+    {
+        return 'Keep `variant="danger"` inside the confirmation modal';
+    }
+
+    public function category(): string
+    {
+        return 'ui';
+    }
+
+    public function severity(): string
+    {
+        return Severity::MINOR;
+    }
+
+    public function rationale(): string
+    {
+        return 'ui-vocabulary §9.24: core uses `danger` in exactly one place — the confirm button inside a '
+            .'modal (`ConfirmationModal`). A destructive page action is a `DropdownItem '
+            .'variant="destructive"` inside the header\'s `…` menu.';
+    }
+
+    public function appliesTo(AddonContext $addon): bool
+    {
+        return $addon->vueFiles() !== [];
+    }
+
+    public function check(AddonContext $addon): array
+    {
+        $findings = [];
+
+        foreach ($addon->vueFiles() as $file) {
+            $contents = $addon->read($file) ?? '';
+
+            // Only <Button>: <Text variant="danger"> is the correct way to colour
+            // an error message and is not a finding. Both spellings of the value,
+            // because the bound form is how a red row button survived the first
+            // version of this rule.
+            foreach ($this->tags($contents, 'Button') as $hit) {
+                $literal = str_contains($hit['attrs'], 'variant="danger"');
+                $bound = preg_match('/:variant="[^"]*\'danger\'/', $hit['attrs']) === 1;
+
+                if (! $literal && ! $bound) {
+                    continue;
+                }
+
+                $findings[] = $this->fail(
+                    'Button variant="danger" outside a confirmation modal.',
+                    $file,
+                    $hit['line'],
+                    'Move it into the header\'s … menu as <DropdownItem variant="destructive">.'
+                );
+            }
+        }
+
+        return $findings;
+    }
+}
+
+final class DropdownTriggerRule extends AbstractRule
+{
+    /** How far below the `#trigger` line the dots button may sit. */
+    private const LOOKAHEAD = 4;
+
+    public function id(): string
+    {
+        return 'ui.dropdown-trigger';
+    }
+
+    public function title(): string
+    {
+        return 'Let `Dropdown` render its own dots trigger';
+    }
+
+    public function category(): string
+    {
+        return 'ui';
+    }
+
+    public function severity(): string
+    {
+        return Severity::MINOR;
+    }
+
+    public function rationale(): string
+    {
+        return 'ui-vocabulary §9.24: `Dropdown` already defaults to `Button icon="dots" variant="ghost" '
+            .'size="sm"`, so passing a `#trigger` that rebuilds exactly that duplicates core and drifts '
+            .'from it on the next release.';
+    }
+
+    public function appliesTo(AddonContext $addon): bool
+    {
+        return $addon->vueFiles() !== [];
+    }
+
+    public function check(AddonContext $addon): array
+    {
+        $findings = [];
+
+        foreach ($addon->vueFiles() as $file) {
+            $lines = explode("\n", $addon->read($file) ?? '');
+
+            foreach ($lines as $index => $text) {
+                if (! str_contains($text, '<template #trigger>')) {
+                    continue;
+                }
+
+                $window = implode("\n", array_slice($lines, $index + 1, self::LOOKAHEAD));
+
+                if (! str_contains($window, 'icon="dots"')) {
+                    continue;
+                }
+
+                $findings[] = $this->fail(
+                    'Hand-built dots trigger on a Dropdown.',
+                    $file,
+                    $index + 1,
+                    'Drop the #trigger slot — Dropdown renders it.'
+                );
+            }
+        }
+
+        return $findings;
+    }
+}
+
+final class PanelBodyRule extends AbstractRule
+{
+    public function id(): string
+    {
+        return 'ui.panel-body';
+    }
+
+    public function title(): string
+    {
+        return 'Put a `Card` between a `Panel` and its content';
+    }
+
+    public function category(): string
+    {
+        return 'ui';
+    }
+
+    public function severity(): string
+    {
+        return Severity::MINOR;
+    }
+
+    public function rationale(): string
+    {
+        return 'ui-vocabulary §9.19: `Panel` is the grey frame; the padding content needs lives on `Card` '
+            .'(`px-4.5 py-5 space-y-2`). Every core publish section is `Panel > PanelHeader > Card > '
+            .'Fields`, and `CardPanel` is the shorthand. The single exception is a table, which `Listing` '
+            .'drops straight into the `Panel`.';
+    }
+
+    public function appliesTo(AddonContext $addon): bool
+    {
+        return $addon->vueFiles() !== [];
+    }
+
+    public function check(AddonContext $addon): array
+    {
+        $findings = [];
+
+        foreach ($addon->vueFiles() as $file) {
+            $lines = explode("\n", $addon->read($file) ?? '');
+
+            foreach ($lines as $index => $text) {
+                if (preg_match('/<Panel\b/', $text) !== 1) {
+                    continue;
+                }
+
+                $next = $lines[$index + 1] ?? '';
+
+                if (preg_match('/^\s*<div class="p[xy]?-[0-9]/', $next) !== 1) {
+                    continue;
+                }
+
+                $findings[] = $this->fail(
+                    'Padded div straight on a Panel — content is sitting on the grey.',
+                    $file,
+                    $index + 2,
+                    'Wrap the body in <Card>, or use <CardPanel>.'
+                );
+            }
+        }
+
+        return $findings;
+    }
+}

@@ -97,8 +97,9 @@ a screenshot was invisible by construction: an edit action bound to a slot `List
 a picker that could never show its placeholder, a checkbox printing `false`, seven icon names that
 do not exist. Drive the playground with Playwright and assert the outcome — a row appeared, a name
 changed, a record left its filter. See §9.1 of `standards/ui-vocabulary.md` for the catalogue, and
-run `bash <studio>/tools/ui-sweep.sh <addon-path>` for the mechanical half. Its output is
-candidates, not findings — verify each line before it goes in a report.
+run `php8.4 <studio>/tools/addon-lint/bin/addon-lint <addon-path> --category=ui` for the mechanical
+half — it covers §9 and §9.1 in full (`tools/ui-sweep.sh` runs the same rules over the whole family
+at once). The output is candidates, not findings — verify each line before it goes in a report.
 
 Judge: does the page shell match (header, breadcrumbs, primary action placement, content width)?
 Does the empty state exist and look like core's? The loading state? The error state? Does dark mode

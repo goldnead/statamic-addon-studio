@@ -1461,13 +1461,27 @@ warning, no console error, no failing test. Each one shipped in a real addon and
 | `Select` in a narrow container without `adaptive-width` | Options truncated to `Qualif…` in a popover no wider than the trigger. | The only width rule is `min-w-[--reka-combobox-trigger-width]` and option labels carry `truncate`. `adaptive-width` adds `w-max max-w-md` and renders a hidden measuring block of all labels. |
 | **A prop the component has not got** | Nothing. Vue passes an unknown prop through as a plain HTML attribute, so it lands in the DOM and has no effect. | The worst of the family, because the damage scales with what the prop was for. Real examples, all shipped: `TabTrigger :label` (it takes `text`/`name`) rendered an empty tab strip and made **two whole tabs unreachable**; `Alert variant="danger"` and `variant="info"` (it knows `default\|warning\|error\|success`) drew a failure and a hint in the neutral style; `DropdownItem danger` instead of `variant="destructive"` coloured nothing; `Panel collapsible` (it takes `heading`/`subheading`/`icon`) never collapsed; `CommandPaletteItem @click` instead of `:action` produced a palette entry that did nothing. **Look the props up in `dist-package/types/components/ui/*.d.ts` — do not infer them from the name.** |
 
-`tools/ui-sweep.sh` checks all five of these plus the mechanical half of §9:
+`addon-lint` checks all five of these plus the mechanical half of §9, one rule per mistake,
+each with its severity and the paragraph above it as its rationale:
+
+```bash
+php8.4 <studio>/tools/addon-lint/bin/addon-lint <addon-path> --category=ui
+```
+
+The rules are `ui.icon-name-exists`, `ui.listing-slots`, `ui.unknown-props`,
+`ui.picker-empty-model`, `ui.checkbox-solo`, `ui.badge-pill`, `ui.danger-button`,
+`ui.dropdown-trigger` and `ui.panel-body`, in `tools/addon-lint/rules/NativeUiRules.php`, with
+a positive and a negative case each in `tools/addon-lint/tests/smoke.php`. Add a rule there,
+not in the shell script.
+
+`tools/ui-sweep.sh` runs the same rules over the whole family grouped by addon, which is the
+faster read when you want one number for all 26:
 
 ```bash
 bash <studio>/tools/ui-sweep.sh <addon-path>   # or no argument for the whole family
 ```
 
-Two things it had to learn the hard way, and which any replacement needs too:
+Two things they had to learn the hard way, and which any replacement needs too:
 
 - **Read whole tags, not lines.** A Vue tag routinely spans six lines, so a line-based grep
   reports every multi-line `<Checkbox>` as missing the `solo` that sits two lines down.
