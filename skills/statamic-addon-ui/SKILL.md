@@ -26,6 +26,7 @@ not the whole file:
 | Anything with colour or spacing | §7 design tokens |
 | A nav entry or permission | §8 nav & permissions |
 | A review of existing UI | §9 antipatterns, then run `addon-lint --category=ui` |
+| Anything that renders but does nothing | §9.1 silent failures — wrong slot name, unknown icon, `''`-bound combobox |
 
 The component catalogue is §1 — around 130 components. Do not guess a component's props;
 look it up. Core's Storybook at <https://ui.statamic.dev> is the canonical rendered documentation.
@@ -112,6 +113,24 @@ actions), `preferencesPrefix` (none ⇒ no saved views or persisted columns). A 
 loses search, filters, presets, column customisation, bulk actions, keyboard shortcuts, sticky
 headers, drag reordering and pagination — and is visibly not the Entries screen.
 
+**Creating or editing a record** → its own page, or a `Stack` from the right holding
+`Panel > PanelHeader > Card`, with the primary button and a ghost Cancel underneath. Never an inline
+form above or below the table: the CP has no such surface anywhere, and a screen carrying two of them
+(one to add, one to edit the row you picked) is the clearest tell in this whole list.
+
+**Anything that is not a heading** → inside a `Card`. `Panel` is the grey frame and carries only
+`heading`, `subheading` and `header-actions`; the padding content needs lives on `Card`. `CardPanel`
+is the shorthand for the pair. The one exception is a table, which `Listing` puts straight into the
+panel.
+
+**A status** → `StatusIndicator` for the five publish states, otherwise `Badge` with `pill`, a
+semantic colour and no `size`. `Badge color="default" size="sm"` is visually a broken button — same
+classes as `Button variant="default"` minus the gradient, with a 3px radius.
+
+**A destructive page action** → `DropdownItem variant="destructive"` in the header's `…` menu.
+`Button variant="danger"` belongs in a confirmation modal and nowhere else. The dropdown renders its
+own dots trigger; do not pass one. Header order: dropdown first, primary action last.
+
 **Addon settings** → no Vue at all.
 `Statamic\CP\PublishForm::make($blueprint)->asConfig()->submittingTo($route)` is `Responsable` and
 renders the shared settings page.
@@ -161,11 +180,30 @@ header's MaxWidthButton lets the user toggle full width, and a custom container 
 
 ```bash
 php <studio>/tools/addon-lint/bin/addon-lint <addon-path> --category=ui -v
+
+# The mechanical half of §9 and §9.1 — things that render silently wrong.
+bash <studio>/tools/ui-sweep.sh <addon-path>
 ```
+
+`ui-sweep` reports candidates, not verdicts. It reads whole tags rather than lines (a Vue tag is
+routinely six lines long) and scopes each rule to where the mistake is actually a mistake — an
+`#actions` slot is correct on `Header` and dead only inside `<Listing>`; a `''`-bound combobox is
+correct when the option list really has a `value: ''` entry. Read the line before you fix it.
+
+Then click it, do not just look at it. Drive the playground with Playwright and assert the thing
+happened — a row appeared, a name changed, a task left the "open" filter. Every defect in the
+09/2026 LeadHub pass that a screenshot missed was of this kind: an edit action wired to a slot that
+does not exist, a picker that could not show its placeholder, a checkbox printing `false`. All three
+render without a warning and look almost right.
 
 A clean UI category is the floor, not the ceiling — the linter cannot see layout, spacing or whether
 the screen actually feels like core. Install the addon into the studio playground
-(`<studio>/playground`, Statamic 6.26, superuser `studio@local` / `studio-local-password`) and compare
+(`<studio>/playground`, Statamic 6.31, superuser `studio@local` / `studio-local-password`) and compare
 the screen side by side with the nearest core equivalent: Entries for a listing, an entry publish form
 for a form, a core utility for a settings screen. Compare the rendered HTML and computed styles, not
 just a screenshot.
+
+The playground runs multi-brand (`statamic-brand-context`). The brand it opens on holds none of the
+seeded records, so a screen reached without a brand looks empty and every judgement made on it is
+wrong. Switch with `?brand=<handle>` — the middleware persists it to the session — and check the
+brand name in the top-right before believing what a screen shows.

@@ -1363,6 +1363,121 @@ Ordered roughly by how loudly each one shouts "third-party addon".
     `beforeunload`, the Inertia `before` hook and `popstate`. A second `onbeforeunload` produces a
     double prompt.
 
+19. **Interactive content sitting directly on a `Panel`.** `Panel` is the grey frame — `bg-gray-150
+    dark:bg-gray-950/35 … p-1.75` (`ui/Panel/Panel.vue`). The padding that content needs lives on
+    `Card` (`px-4.5 py-5 space-y-2`), not on the panel. Core puts nothing but a heading, a
+    subheading and header actions on the grey; every publish section is `Panel > PanelHeader >
+    Card > Fields` (`ui/Publish/Sections.vue`), and `CardPanel` is the shorthand. The single
+    exception is a table: `Listing` drops `Table` straight into the `Panel`. Inputs and buttons on
+    bare grey are the loudest "not core" signal after a hand-rolled button.
+
+20. **An inline form for creating or editing a record.** The CP has no such surface. Creating and
+    editing happen on their own page, or in a `Stack` sliding in from the right — the same
+    component the listing's own filters use (`ui/Listing/Filters.vue`): `Stack size="narrow|half"`
+    holding `Panel > PanelHeader > Card`, with a primary button and a ghost Cancel underneath. A
+    form wedged above the table (and a second one below it for the row you picked) is a shape core
+    uses nowhere.
+
+21. **A card list where a table belongs.** Three panels of cards grouped by state is not how the CP
+    shows records — `Listing` is, and it brings search, sortable columns, a column picker, row
+    actions and pagination that a card list has to reimplement and never does. The grouping
+    survives as a column plus a set of filter buttons above the table.
+
+22. **`Badge color="default" size="sm"` as a status.** That combination is visually a broken
+    button, and the reason is in the class strings: `color: "default"` is
+    `bg-gray-50 dark:bg-gray-800 border-gray-300 …` plus the base `border` — the same chip as
+    `Button variant="default"` minus the gradient — and `size: "sm"` adds
+    `rounded-[0.1875rem]`, a 3px radius where every button is `rounded-lg`. A status is
+    `StatusIndicator` when it is one of the five publish states, otherwise a `Badge` with `pill`
+    and a semantic colour and **no** `size` (core's own example:
+    `pages/collections/Index.vue` renders green/yellow/default `pill` badges for
+    Published/Scheduled/Drafts).
+
+23. **Printing a raw column value at a reader.** `open`, `won`, `note_added`,
+    `leadhub.score_changed`. The database's vocabulary is not the user's. Resolve the label next
+    to the value — server-side, where the translation table is — and never fall back to the key
+    when a label is missing; fall back to a generic sentence.
+
+24. **A `Button variant="danger"` in a page header.** Core uses `danger` in exactly one place: the
+    confirm button inside a modal (`ConfirmationModal`: `variant: danger ? "danger" : "primary"`).
+    A destructive page action is a `DropdownItem variant="destructive"` (the only two values are
+    `default` and `destructive`) inside the header's `…` menu. And that menu already renders its
+    own trigger — `Dropdown` defaults to `Button icon="dots" variant="ghost" size="sm"`, so
+    passing a `#trigger` duplicates core. Header order is: the `…` dropdown first, the primary
+    action last (`pages/user-groups/Show.vue`, `pages/taxonomies/Show.vue`).
+
+25. **A relationship panel that only reports.** A panel listing linked records needs the action
+    that creates the link, and it goes **below** the list, not in the panel header — that is the
+    relationship fieldtype's shape (`components/inputs/relationship/RelationshipInput.vue`):
+    `Button size="sm" icon="link"` with no `variant`, beside the create button. Core has no
+    example of "list + add" in a panel header; `header-actions` is used for bulk toggles.
+
+26. **An active filter with nothing on screen saying so.** A dashboard tile linking to
+    `?from=2026-08-27` leaves a table showing 3 of 19 rows and looking broken. The CP's answer is a
+    chip per active filter beside the filter control, each clearing itself:
+    `Button as="div" variant="filled"` wrapping a `Button variant="ghost" size="xs" icon="x"
+    icon-only inset` (`ui/Listing/Filters.vue`). The native way to own the filter itself is a
+    PHP `Statamic\Query\Scopes\Filter` registered in the provider's `$scopes` and passed down as
+    the `filters` prop via `Scope::filters($key, $context)` — then the addon writes no filter UI
+    at all. `Listing` has **no slot** for injecting filter markup.
+
+27. **No dirty-state guard at all.** Antipattern 18 warns against a *second* handler beside
+    `Statamic.$dirty`. The commoner mistake is the opposite one: never registering with it. A
+    sweep over this family on 03.09.2026 found `grep -rl '\$dirty' resources/js` returning zero
+    files in **all twelve addons that write**, across 43 pages that mutate. Half-edited settings,
+    a half-drawn automation and a half-filled publish form all vanish on a stray click with no
+    prompt, because the guard core already owns was never told the page had unsaved work. The
+    call is `Statamic.$dirty.state(name, bool)`.
+
+    **Do not bolt this onto a hand-built form without reading the next paragraph.** Attempted on
+    03.09.2026 and reverted. Saving is itself an Inertia visit, so with the flag up core's
+    `$dirty` challenges *the request that saves the work*: the user gets a confirmation dialog on
+    pressing Save, and a dismissed dialog cancels the visit — **the save silently never happens**,
+    with nothing in the console. Measured both ways: with the guard the `PATCH` was never sent,
+    without it the same click sent it. Clearing the flag in the visit's `onBefore` does not help
+    (core hooks the router's global `before`, which runs first), and clearing it synchronously
+    while building the options did not either.
+
+    Core's own answer is `PublishContainer`'s `trackDirtyState` prop
+    (`dist-package/types/components/ui/Publish/Container.vue.d.ts:56`), which owns the whole
+    lifecycle. A screen that wants the guard probably wants to be a publish form. Whoever wires
+    it by hand must copy `PublishContainer`'s ordering around its own save, and must prove it
+    with a **browser** test asserting the request actually goes out — no unit test and no console
+    error catches this.
+
+---
+
+## 9.1 Silent failures — the ones that cost the most time
+
+Everything above looks wrong. These do nothing at all, and say nothing while doing it. No Vue
+warning, no console error, no failing test. Each one shipped in a real addon and survived review.
+
+| Mistake | What you see | Why |
+|---|---|---|
+| A slot name `Listing` does not have (`#actions`, `#empty`) | The action never renders. In one addon the entire "edit" path was unreachable for months. | Vue drops unknown slots silently. The full set is `initializing`, `default`, `prepended-row-actions`, plus `cell-{name}` and `tbody-start` from the table children. |
+| An icon name that is not in the set | An empty box the width of an icon. Next to a `Header` title it reads as "the heading is indented". | `Icon` renders nothing for an unknown name. Check against `resources/svg/icons/*.svg` — 548 names, and `user`, `add`, `check`, `tags`, `tasks`, `archive`, `list`, `refresh`, `chart-pie`, `file`, `book-open-cover` are **not** among them (`users`, `plus`, `checkmark`, `fieldtype-taggable`, `clipboard-check`, `package-box-crate`, `layout-list`, `sync`, `charts-donut-graph`, `file-content-list`, `content-book-open` are). **Two spellings, and the second is the one people forget:** `icon="…"` as a prop on any component, and `name="…"` on a standalone `<Icon>`. A check that only reads the first misses every icon rendered on its own — which is how `chart-pie` survived a whole pass over one addon. |
+| `Combobox`/`Select` bound to `''` | The field renders blank — no placeholder, no value — with a clear button offering to clear nothing. | An empty string counts as a selection, so the trigger renders `getOptionLabel(selectedOption)`, which is empty, instead of the placeholder branch. Bind `null`. |
+| `Checkbox` in a table cell without `solo` | The literal text `false` printed where the label goes. | `solo` is documented as exactly this case: "hides the label and description … like in a table cell". |
+| `Select` in a narrow container without `adaptive-width` | Options truncated to `Qualif…` in a popover no wider than the trigger. | The only width rule is `min-w-[--reka-combobox-trigger-width]` and option labels carry `truncate`. `adaptive-width` adds `w-max max-w-md` and renders a hidden measuring block of all labels. |
+| **A prop the component has not got** | Nothing. Vue passes an unknown prop through as a plain HTML attribute, so it lands in the DOM and has no effect. | The worst of the family, because the damage scales with what the prop was for. Real examples, all shipped: `TabTrigger :label` (it takes `text`/`name`) rendered an empty tab strip and made **two whole tabs unreachable**; `Alert variant="danger"` and `variant="info"` (it knows `default\|warning\|error\|success`) drew a failure and a hint in the neutral style; `DropdownItem danger` instead of `variant="destructive"` coloured nothing; `Panel collapsible` (it takes `heading`/`subheading`/`icon`) never collapsed; `CommandPaletteItem @click` instead of `:action` produced a palette entry that did nothing. **Look the props up in `dist-package/types/components/ui/*.d.ts` — do not infer them from the name.** |
+
+`tools/ui-sweep.sh` checks all five of these plus the mechanical half of §9:
+
+```bash
+bash <studio>/tools/ui-sweep.sh <addon-path>   # or no argument for the whole family
+```
+
+Two things it had to learn the hard way, and which any replacement needs too:
+
+- **Read whole tags, not lines.** A Vue tag routinely spans six lines, so a line-based grep
+  reports every multi-line `<Checkbox>` as missing the `solo` that sits two lines down.
+- **Scope each rule to where the mistake is a mistake.** `#actions` is correct on `Header` and
+  dead only inside `<Listing>`. `variant="danger"` is wrong on a header `Button` and right on
+  `<Text>` for an error message. A `''`-bound combobox is correct when the option list really
+  carries a `value: ''` entry ("No opportunity"). Without those three exclusions the first run of
+  this sweep produced more false alarms than findings — which is worse than no tool, because
+  somebody acts on them.
+
 ---
 
 ## Appendix: quick reference for a generator

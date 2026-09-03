@@ -73,6 +73,33 @@ Two traps found on 01.09.2026, both look like "my UI is broken" and are not:
 - **A PHP parse error in any addon's `config/` takes the whole playground down** (HTTP 500 for
   everyone). Run `php -l` on a config file right after editing it.
 
+Three more, found 03.09.2026:
+
+- **Never `vendor:publish --all --force` in the playground.** It rewrites *every* addon's config
+  and migrations with vendor defaults — 24 tracked files and 76 new ones in one command, wiping
+  the demo's own settings for everybody. Publish one tag (`--tag=<addon>`), or skip artisan and
+  copy the bundle straight over:
+  `cp -r <addon>/resources/dist/build/. <playground>/public/vendor/<addon>/build/`.
+  If it happened anyway: the damage is confined to `playground/config`,
+  `playground/database/migrations` and `playground/resources`, and `git checkout --` on the
+  tracked files restores it.
+- **The playground is multi-brand.** The brand it opens on (`Nordlicht Studio`) holds none of the
+  seeded records. A screen judged there looks empty and every conclusion drawn from it is wrong —
+  including "this addon shows nothing". Append `?brand=<handle>` once (the middleware persists it)
+  and check the brand name top-right before believing a screen.
+- **`php artisan serve` binds IPv4 only.** The Command Center's preview proxy connects over `::1`
+  and answers `ECONNREFUSED`, which reads as "the app is broken" rather than "nothing is
+  listening there". Start it as `php8.4 artisan serve --host="[::]" --port=8099` when Adrian is
+  going to look at it through the CC preview.
+
+**Looking at a screen is not auditing it.** Every defect in the 09/2026 LeadHub pass that survived
+a screenshot was invisible by construction: an edit action bound to a slot `Listing` does not have,
+a picker that could never show its placeholder, a checkbox printing `false`, seven icon names that
+do not exist. Drive the playground with Playwright and assert the outcome — a row appeared, a name
+changed, a record left its filter. See §9.1 of `standards/ui-vocabulary.md` for the catalogue, and
+run `bash <studio>/tools/ui-sweep.sh <addon-path>` for the mechanical half. Its output is
+candidates, not findings — verify each line before it goes in a report.
+
 Judge: does the page shell match (header, breadcrumbs, primary action placement, content width)?
 Does the empty state exist and look like core's? The loading state? The error state? Does dark mode
 hold on every surface? Does the screen survive a narrow viewport? Do keyboard focus and esc behave
