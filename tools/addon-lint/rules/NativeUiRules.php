@@ -708,15 +708,21 @@ final class ListingComponentRule extends AbstractRule
      *
      * A `.vue` file is compiled: `<Table>` and `<table>` are two different tags,
      * and the first is core's component. A Blade or Antlers view is parsed by the
-     * browser's HTML parser instead, which lower-cases every tag name it sees —
-     * `<Table>` there IS the `<table>` element, and a PascalCase component name
-     * could not resolve even if somebody meant one (which is why Statamic's own
-     * Blade surfaces use `<ui-table>`, never `<Table>`). So the two file kinds get
-     * two answers, and the answer follows the extension rather than the casing.
+     * browser's HTML parser instead, which lower-cases every tag name it sees, so
+     * `<Table>` there IS the `<table>` element and a PascalCase component name
+     * could not resolve even if somebody meant one. Which is why a Blade CP view
+     * that wants core's table reaches for the kebab-case tag instead —
+     * `statamic-invoices/resources/views/cp/pending-vat-checks.blade.php` uses
+     * `<ui-table>`, and that spelling survives the lower-casing.
+     *
+     * The extension decides, not the casing — and it is compared lower-cased,
+     * because {@see AddonContext::withExtension} collects files case-insensitively:
+     * an `Index.VUE` reaches this rule through `inertiaPages()` and has to be read
+     * as the Vue file it is.
      */
     private static function rawMarkup(string $file, string $contents): string
     {
-        return str_ends_with($file, '.vue')
+        return str_ends_with(strtolower($file), '.vue')
             ? (string) preg_replace(self::CORE_TABLE_TAG, '', $contents)
             : $contents;
     }

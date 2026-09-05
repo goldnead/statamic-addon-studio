@@ -335,6 +335,16 @@ check('an upper-case <TABLE> in a Blade CP view is reported', fires(lint($linter
 check('a capitalised <Table> in a Blade CP view is reported too', fires(lint($linter, $blade('Table')), 'ui.listing-component'));
 check('a lower-case <table> in a Blade CP view is reported', fires(lint($linter, $blade('table')), 'ui.listing-component'));
 
+// AddonContext collects files by their lower-cased extension, so `Index.VUE` is
+// an Inertia page. If the rule decided by a case-sensitive `.vue` it would read
+// that file as Blade and let core's `<Table>` through — the same casing mistake
+// one layer up that this whole fix is about.
+$report = lint($linter, [
+    'composer.json' => $goodComposer,
+    'resources/js/pages/Index.VUE' => "<template>\n".$coreTable."\n</template>\n",
+]);
+check('an upper-case .VUE extension is still read as a Vue file', ! fires($report, 'ui.listing-component'));
+
 // --- code ------------------------------------------------------------------
 
 $report = lint($linter, [
