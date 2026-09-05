@@ -7,6 +7,20 @@ gemeinsamen Caddy, Port lokal `127.0.0.1:8099`.
 
 ## Bauen und ausrollen
 
+**Vier Schritte, und alle vier gehoeren dazu.** Wer nach dem rsync aufhoert,
+hinterlaesst eine Demo auf HTTP 500; wer nach dem chown aufhoert, verliert den
+Stand beim naechsten Reset um 03:17 UTC. Beides ist am 05.09.2026 passiert —
+die Schritte 3 und 4 wurden ueberlesen, weil sie unter dem Codeblock stehen.
+
+| # | Schritt | Was passiert, wenn er fehlt |
+|---|---|---|
+| 1 | `build.sh` | — |
+| 2 | rsync auf den Server | nichts kommt an |
+| 3 | **chown auf 33:33** | HTTP 500 auf jeder Seite (siehe unten) |
+| 4 | **`pristine.tar.gz` neu ziehen** | der Reset um 03:17 UTC holt den alten Stand zurueck |
+
+### Schritt 1 und 2 — bauen und uebertragen
+
 ```bash
 ./deploy/build.sh                      # baut /tmp/statamic-demo-build
 rsync -a /tmp/statamic-demo-build/ root@157.90.224.18:/opt/statamic-demo/app/
@@ -22,17 +36,42 @@ docker exec -w /var/www/html statamic-demo php artisan migrate --force
 docker exec -w /var/www/html statamic-demo php artisan demo:seed --fresh
 ```
 
-Der rsync läuft als root und setzt Besitzrechte auf root zurück — ohne diesen
-Schritt schreibt die Anwendung keine Session (500 auf jeder CP-Seite) und
-spätestens beim Login keine Zeile in die Datenbank:
+### Schritt 3 — Besitzrechte zurechtrücken
+
+Der rsync überträgt die Besitzrechte der Bauseite mit, im Container läuft aber
+alles als `www-data` (uid 33). Ohne diesen Schritt schreibt die Anwendung keine
+Session und keine Zeile in die Datenbank:
 
 ```bash
 ssh root@157.90.224.18 "cd /opt/statamic-demo/app && chown -R 33:33 content users database config storage bootstrap/cache"
 ```
 
-Danach `pristine.tar.gz` neu ziehen, sonst stellt der nächtliche Reset den
-alten Stand wieder her. Das Tar muss bei gestopptem Container laufen, sonst
-greift es mitten in einen SQLite-Schreibvorgang:
+**Daran erkennt man einen vergessenen chown** (beides HTTP 500, beides im
+`storage/logs/laravel.log` des Containers):
+
+```
+tempnam(): file created in the system's temporary directory
+  at vendor/laravel/framework/src/Illuminate/Foundation/AliasLoader.php:111
+```
+> Laravel kann seinen Zwischenspeicher nicht schreiben und weicht auf `/tmp`
+> aus. Trifft **jede** Seite, auch das CP-Login.
+
+```
+SQLSTATE[HY000]: General error: 8 attempt to write a readonly database
+```
+> Nur die Frontseite, weil erst der Stache dort schreibt. Kommt oft **nach**
+> dem ersten Fehler zum Vorschein: das CP antwortet dann schon wieder mit 200,
+> und man haelt die Sache faelschlich fuer erledigt. Beide Meldungen einzeln
+> pruefen, `/` und `/cp/auth/login`.
+
+Die sechs Verzeichnisse oben reichen. Ein `chown -R` auf den ganzen `app`-Ordner
+schadet nicht, ist aber breiter als noetig.
+
+### Schritt 4 — `pristine.tar.gz` neu ziehen
+
+Sonst stellt der nächtliche Reset den alten Stand wieder her. Das Tar muss bei
+gestopptem Container laufen, sonst greift es mitten in einen
+SQLite-Schreibvorgang:
 
 ```bash
 cd /opt/statamic-demo
