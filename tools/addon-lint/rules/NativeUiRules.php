@@ -680,6 +680,32 @@ final class ListingComponentRule extends AbstractRule
         return $addon->cpViews() !== [] || $addon->inertiaPages() !== [];
     }
 
+    /**
+     * The raw HTML elements this rule is after — `<table>`, `<thead>`, in any casing,
+     * but only once the core components have been taken out of the text first.
+     */
+    private const RAW_TABLE = '/<(table|thead)(?![\w-])/i';
+
+    /**
+     * Core's own table components, matched the way Vue matches them: case-sensitively.
+     *
+     * `@statamic/cms/ui` exports `Table`, `TableCell`, `TableColumn`, `TableColumns`,
+     * `TableRow`, `TableRows` and the `ListingTable*` family. In a Vue template
+     * `<Table>` is that component and `<table>` is the HTML element — two different
+     * tags. Matching the element case-insensitively made every correct use of the
+     * component a major finding (statamic-webhook-manager `deliveries/Show.vue`,
+     * plus waivers in statamic-marketing, statamic-notifications and
+     * statamic-clientrooms), which is worse than no rule at all: a linter whose
+     * majors are not trustworthy stops being read.
+     */
+    private const CORE_TABLE_TAG = '/<\/?(Listing)?Table(?![a-z0-9_-])/';
+
+    /** Blank out core's `<Table…>` component tags so only raw elements are left to match. */
+    private static function withoutCoreTableTags(string $contents): string
+    {
+        return (string) preg_replace(self::CORE_TABLE_TAG, '', $contents);
+    }
+
     public function check(AddonContext $addon): array
     {
         $files = array_merge($addon->cpViews(), $addon->inertiaPages());
@@ -688,7 +714,7 @@ final class ListingComponentRule extends AbstractRule
         foreach ($files as $file) {
             $contents = $addon->read($file) ?? '';
 
-            if (preg_match('/<(table|thead)[\s>]/i', $contents) !== 1) {
+            if (preg_match(self::RAW_TABLE, self::withoutCoreTableTags($contents)) !== 1) {
                 continue;
             }
 
@@ -699,7 +725,7 @@ final class ListingComponentRule extends AbstractRule
             $line = null;
 
             foreach (explode("\n", $contents) as $index => $text) {
-                if (preg_match('/<table[\s>]/i', $text) === 1) {
+                if (preg_match(self::RAW_TABLE, self::withoutCoreTableTags($text)) === 1) {
                     $line = $index + 1;
                     break;
                 }

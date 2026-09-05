@@ -238,6 +238,68 @@ $report = lint($linter, [
 ]);
 check('a sandboxed iframe is accepted', ! fires($report, 'ui.unsandboxed-iframe'));
 
+// --- ui.listing-component --------------------------------------------------
+//
+// The rule wants raw `<table>` markup. Vue tags are case-sensitive, so core's own
+// `<Table>` / `<TableRow>` / `<TableCell>` from @statamic/cms/ui are a different tag
+// than the element — matching case-insensitively turned every correct use of the
+// component into a major (statamic-webhook-manager deliveries/Show.vue, 05.09.2026).
+
+$coreTable = <<<'VUE'
+<Table>
+    <TableColumns>
+        <TableColumn>Event</TableColumn>
+        <TableColumn class="text-end">Status</TableColumn>
+    </TableColumns>
+    <TableRows>
+        <TableRow
+            v-for="row in rows"
+            :key="row.id"
+        >
+            <TableCell>{{ row.event }}</TableCell>
+            <TableCell><Badge :text="row.status" /></TableCell>
+        </TableRow>
+    </TableRows>
+</Table>
+VUE;
+
+$report = lint($linter, vue($coreTable));
+check('core <Table> components are not a hand-built table', ! fires($report, 'ui.listing-component'));
+
+$report = lint($linter, vue('<Table />'));
+check('a self-closing core <Table /> is not a hand-built table', ! fires($report, 'ui.listing-component'));
+
+$report = lint($linter, vue("<ListingTableHead />\n<ListingTableBody />"));
+check('the core ListingTable* family is not a hand-built table', ! fires($report, 'ui.listing-component'));
+
+$rawTable = <<<'HTML'
+<table class="w-full">
+    <thead>
+        <tr><th>Event</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+        <tr v-for="row in rows" :key="row.id"><td>{{ row.event }}</td><td>{{ row.status }}</td></tr>
+    </tbody>
+</table>
+HTML;
+
+$report = lint($linter, vue($rawTable));
+check('a raw HTML <table> is still reported', fires($report, 'ui.listing-component'));
+
+$report = lint($linter, vue("<thead>\n    <tr><th>Event</th></tr>\n</thead>"));
+check('a raw <thead> without its <table> is still reported', fires($report, 'ui.listing-component'));
+
+$report = lint($linter, vue($coreTable."\n".$rawTable));
+check('a raw <table> next to a core <Table> is still reported', fires($report, 'ui.listing-component'));
+
+// Blade CP views go through the same rule, and there the element really can be
+// upper-cased — the component-vs-element distinction is Vue's, not HTML's.
+$report = lint($linter, [
+    'composer.json' => $goodComposer,
+    'resources/views/cp/index.blade.php' => "<ui-panel>\n    <TABLE>\n        <TR><TD>Event</TD></TR>\n    </TABLE>\n</ui-panel>\n",
+]);
+check('an upper-case <TABLE> in a Blade CP view is still reported', fires($report, 'ui.listing-component'));
+
 // --- code ------------------------------------------------------------------
 
 $report = lint($linter, [
