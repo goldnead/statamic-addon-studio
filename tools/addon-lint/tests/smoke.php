@@ -22,6 +22,34 @@ foreach (['Severity', 'Finding', 'Rule', 'AbstractRule', 'AddonContext', 'Config
 
 $linter = RuleRegistry::all($base.'/rules');
 
+/**
+ * A throwaway icon set, so `ui.icon-name-exists` has one that is always there.
+ *
+ * Without this the rule falls back to `playground/vendor/statamic/cms/…/svg/icons`
+ * (see `IconNameExistsRule::iconSet`), and the two icon checks below go red
+ * whenever the playground has no vendor directory at that moment — a fresh clone,
+ * a `composer install` still running, a copy of `tools/addon-lint` run from
+ * somewhere else. A suite whose colour depends on a sibling checkout is not a
+ * gate; it is a coin toss, and the failures it produces get ignored on sight.
+ *
+ * Exactly the names the checks below need to exist, and no others. `chart-pie`
+ * and `check` are absent on purpose — their checks assert a finding, and an icon
+ * set that held everything would make both pass for the wrong reason. The two
+ * arrows are present because the rule really does read the string literals out of
+ * a bound `:icon`, so what "a comparison operand is not mistaken for an icon
+ * name" pins is that `asc` — which is NOT in here — stays unread.
+ */
+$iconSet = sys_get_temp_dir().'/addon-lint-icons-'.bin2hex(random_bytes(6));
+@mkdir($iconSet, 0777, true);
+
+foreach (['plus', 'arrow-up', 'arrow-down'] as $icon) {
+    file_put_contents($iconSet.'/'.$icon.'.svg', '<svg></svg>');
+}
+
+putenv('STATAMIC_ICON_SET='.$iconSet);
+
+register_shutdown_function(fn () => exec('rm -rf '.escapeshellarg($iconSet)));
+
 $passed = 0;
 $failed = [];
 
@@ -292,13 +320,20 @@ check('a raw <thead> without its <table> is still reported', fires($report, 'ui.
 $report = lint($linter, vue($coreTable."\n".$rawTable));
 check('a raw <table> next to a core <Table> is still reported', fires($report, 'ui.listing-component'));
 
-// Blade CP views go through the same rule, and there the element really can be
-// upper-cased — the component-vs-element distinction is Vue's, not HTML's.
-$report = lint($linter, [
+// Blade CP views go through the same rule, and there the distinction does not
+// exist: the browser's HTML parser lower-cases every tag name, so `<Table>` in a
+// Blade view is the `<table>` element and a PascalCase component could not
+// resolve there at all. Both spellings have to fire, and `<Table>` is the one
+// that would silently slip through if the Vue-only rule were applied to Blade
+// as well — which is what the first version of this fix did.
+$blade = fn (string $tag) => [
     'composer.json' => $goodComposer,
-    'resources/views/cp/index.blade.php' => "<ui-panel>\n    <TABLE>\n        <TR><TD>Event</TD></TR>\n    </TABLE>\n</ui-panel>\n",
-]);
-check('an upper-case <TABLE> in a Blade CP view is still reported', fires($report, 'ui.listing-component'));
+    'resources/views/cp/index.blade.php' => "<ui-panel>\n    <{$tag}>\n        <TR><TD>Event</TD></TR>\n    </{$tag}>\n</ui-panel>\n",
+];
+
+check('an upper-case <TABLE> in a Blade CP view is reported', fires(lint($linter, $blade('TABLE')), 'ui.listing-component'));
+check('a capitalised <Table> in a Blade CP view is reported too', fires(lint($linter, $blade('Table')), 'ui.listing-component'));
+check('a lower-case <table> in a Blade CP view is reported', fires(lint($linter, $blade('table')), 'ui.listing-component'));
 
 // --- code ------------------------------------------------------------------
 

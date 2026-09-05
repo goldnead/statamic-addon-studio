@@ -697,13 +697,28 @@ final class ListingComponentRule extends AbstractRule
      * plus waivers in statamic-marketing, statamic-notifications and
      * statamic-clientrooms), which is worse than no rule at all: a linter whose
      * majors are not trustworthy stops being read.
+     *
+     * Only applied to `.vue` files — see {@see rawMarkup}.
      */
     private const CORE_TABLE_TAG = '/<\/?(Listing)?Table(?![a-z0-9_-])/';
 
-    /** Blank out core's `<Table…>` component tags so only raw elements are left to match. */
-    private static function withoutCoreTableTags(string $contents): string
+    /**
+     * Blank out core's `<Table…>` component tags — but only where the file is
+     * compiled as a Vue template.
+     *
+     * A `.vue` file is compiled: `<Table>` and `<table>` are two different tags,
+     * and the first is core's component. A Blade or Antlers view is parsed by the
+     * browser's HTML parser instead, which lower-cases every tag name it sees —
+     * `<Table>` there IS the `<table>` element, and a PascalCase component name
+     * could not resolve even if somebody meant one (which is why Statamic's own
+     * Blade surfaces use `<ui-table>`, never `<Table>`). So the two file kinds get
+     * two answers, and the answer follows the extension rather than the casing.
+     */
+    private static function rawMarkup(string $file, string $contents): string
     {
-        return (string) preg_replace(self::CORE_TABLE_TAG, '', $contents);
+        return str_ends_with($file, '.vue')
+            ? (string) preg_replace(self::CORE_TABLE_TAG, '', $contents)
+            : $contents;
     }
 
     public function check(AddonContext $addon): array
@@ -714,7 +729,7 @@ final class ListingComponentRule extends AbstractRule
         foreach ($files as $file) {
             $contents = $addon->read($file) ?? '';
 
-            if (preg_match(self::RAW_TABLE, self::withoutCoreTableTags($contents)) !== 1) {
+            if (preg_match(self::RAW_TABLE, self::rawMarkup($file, $contents)) !== 1) {
                 continue;
             }
 
@@ -725,7 +740,7 @@ final class ListingComponentRule extends AbstractRule
             $line = null;
 
             foreach (explode("\n", $contents) as $index => $text) {
-                if (preg_match(self::RAW_TABLE, self::withoutCoreTableTags($text)) === 1) {
+                if (preg_match(self::RAW_TABLE, self::rawMarkup($file, $text)) === 1) {
                     $line = $index + 1;
                     break;
                 }
