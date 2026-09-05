@@ -114,7 +114,9 @@ while read -r repo tag; do
 done < "$(dirname "$0")/tags.conf"
 
 echo "-> Fertig. Auf den Server:"
-echo "   rsync -a $ZIEL/ root@157.90.224.18:/opt/statamic-demo/app/"
+# Host und Zielverzeichnis stehen hier absichtlich nicht: das Repo ist oeffentlich.
+# Die echten Werte liegen in GoldnerOS/memory/reference-statamic-demo-deploy.md.
+echo "   rsync -a $ZIEL/ root@\$HOST:\$APPDIR/app/"
 # Kein `composer dump-autoload`: im Demo-Container gibt es kein composer, nur php
 # (gepruft 03.09.2026). Gebraucht wird es auch nicht — die Autoload-Dateien kommen
 # fertig aus diesem Build, die Addons laden per PSR-4.

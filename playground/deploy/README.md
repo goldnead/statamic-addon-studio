@@ -1,9 +1,19 @@
 # Demo-Deploy: demo.adriangoldner.dev
 
 Der Playground läuft öffentlich auf **demo.adriangoldner.dev** (Komplett offen,
-Login steht in `adg-docs/index.md`). Betrieben wird er auf dem Hetzner-Server
-unter `/opt/statamic-demo/`: Docker-Container `statamic-demo` hinter dem
-gemeinsamen Caddy, Port lokal `127.0.0.1:8099`.
+Login steht in `adg-docs/index.md`). Betrieben wird er als Docker-Container
+hinter einem gemeinsamen Caddy, auf einem lokal gebundenen Port.
+
+> **Dieses Repo ist öffentlich.** Host, Zielverzeichnis und Portnummer stehen
+> deshalb als Platzhalter. Die echten Werte stehen in
+> `GoldnerOS/memory/reference-statamic-demo-deploy.md`. Vor dem Ausrollen
+> einmal setzen:
+>
+> ```bash
+> HOST=…            # Zielserver
+> APPDIR=…          # Zielverzeichnis auf dem Server
+> CONTAINER=statamic-demo
+> ```
 
 ## Bauen und ausrollen
 
@@ -23,8 +33,8 @@ die Schritte 3 und 4 wurden ueberlesen, weil sie unter dem Codeblock stehen.
 
 ```bash
 ./deploy/build.sh                      # baut /tmp/statamic-demo-build
-rsync -a /tmp/statamic-demo-build/ root@157.90.224.18:/opt/statamic-demo/app/
-rsync -a --delete /tmp/statamic-demo-build/vendor/goldnead/ root@157.90.224.18:/opt/statamic-demo/app/vendor/goldnead/
+rsync -a /tmp/statamic-demo-build/ "root@$HOST:$APPDIR/app/"
+rsync -a --delete /tmp/statamic-demo-build/vendor/goldnead/ "root@$HOST:$APPDIR/app/vendor/goldnead/"
 
 # im Container (auf dem Server):
 # ACHTUNG: kein composer im Container (03.09.2026 geprueft, /usr/local/bin
@@ -43,7 +53,7 @@ alles als `www-data` (uid 33). Ohne diesen Schritt schreibt die Anwendung keine
 Session und keine Zeile in die Datenbank:
 
 ```bash
-ssh root@157.90.224.18 "cd /opt/statamic-demo/app && chown -R 33:33 content users database config storage bootstrap/cache"
+ssh "root@$HOST" "cd $APPDIR/app && chown -R 33:33 content users database config storage bootstrap/cache"
 ```
 
 **Daran erkennt man einen vergessenen chown** (beides HTTP 500, beides im
@@ -74,7 +84,7 @@ gestopptem Container laufen, sonst greift es mitten in einen
 SQLite-Schreibvorgang:
 
 ```bash
-cd /opt/statamic-demo
+cd "$APPDIR"
 docker compose stop app
 tar czf pristine.tar.gz -C app content users database config storage
 docker compose up -d app
@@ -83,11 +93,10 @@ docker compose up -d app
 ## Was der Server sonst hält
 
 - `.env` — liegt nur dort (APP_KEY, DEMO-Werte). Nicht neu bauen.
-- `Dockerfile`, `docker-compose.yml`, `reset.sh` — direkt unter `/opt/statamic-demo/`.
-- Reset: `/etc/cron.d/statamic-demo-reset`, täglich 03:17 UTC, Log in
-  `/var/log/statamic-demo-reset.log`.
-- Caddy-Block `demo.adriangoldner.dev` mit `tls internal` in
-  `/root/n8n-docker-caddy/caddy_config/Caddyfile` — ändern nur mit
+- `Dockerfile`, `docker-compose.yml`, `reset.sh` — direkt unter `$APPDIR`.
+- Reset: eine `cron.d`-Datei, täglich 03:17 UTC, mit eigenem Log.
+- Caddy-Block `demo.adriangoldner.dev` mit `tls internal` in der gemeinsamen
+  Caddyfile — ändern nur mit
   `cat neu > datei` (kein `sed -i`, das reißt das Bind-Mount).
 
 ## Grundsatz
