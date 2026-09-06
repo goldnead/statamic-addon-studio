@@ -96,6 +96,42 @@ while read -r repo tag; do
     fi
 done < "$(dirname "$0")/tags.conf"
 
+# 3a) Waechter: ruft ein gepinntes Addon etwas, das die gepinnte Fassung von
+#     brand-context nicht hat?
+#
+#     Am 06.09.2026 stand tags.conf 13 Eintraege hinter den echten Tags, darunter
+#     brand-context v1.11.1 — ohne `SettingsRegistry`. Das war an dem Tag noch
+#     harmlos, weil keine gepinnte Fassung die Klasse rief. Der HEAD von
+#     automations, leadhub und webhook-manager ruft sie sehr wohl. Die Falle
+#     schnappt also in dem Moment zu, in dem jemand eines davon hier anhebt und
+#     brand-context vergisst: die Demo bootet dann nicht mehr, alle Seiten 500.
+#
+#     Deshalb hier eine Zeile Pruefung statt einer Zeile Erinnerung. Sie kostet
+#     nichts und faengt genau den Fall, der sonst erst auf dem Server auffaellt.
+#
+#     Bewusst nur diese eine Klasse: sie ist die einzige, bei der ein Addon
+#     ueber die Paketgrenze in ein anderes greift und deren Fehlen den Boot
+#     abbricht. Eine allgemeine Abhaengigkeitspruefung waere composer, und
+#     composer laeuft hier nicht.
+fehlt=""
+for anrufer in "$ZIEL"/vendor/goldnead/*; do
+    [ -d "$anrufer/src" ] || continue
+    if grep -rqs "SettingsRegistry" "$anrufer/src"; then
+        if ! [ -f "$ZIEL/vendor/goldnead/statamic-brand-context/src/Settings/SettingsRegistry.php" ]; then
+            fehlt="$fehlt $(basename "$anrufer")"
+        fi
+    fi
+done
+
+if [ -n "$fehlt" ]; then
+    echo "" >&2
+    echo "ABBRUCH: diese Addons rufen SettingsRegistry, aber die gepinnte" >&2
+    echo "         brand-context-Fassung bringt sie nicht mit:$fehlt" >&2
+    echo "         Die Demo wuerde beim Booten fatalen und alle Seiten mit 500" >&2
+    echo "         beantworten. brand-context in tags.conf anheben." >&2
+    exit 1
+fi
+
 # 3b) Ein `hot`-File zeigt auf einen laufenden Vite-Dev-Server. Landet es auf
 #     der Demo, laedt das CP JavaScript von einem Rechner, den es dort nicht
 #     gibt. Es ist in den Addon-Repos ignoriert, kann aber ueber den
