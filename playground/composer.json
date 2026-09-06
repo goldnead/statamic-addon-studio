@@ -39,7 +39,7 @@
         "goldnead/statamic-webhook-manager": "dev-main as 2.8.1",
         "laravel/framework": "^13.17",
         "laravel/tinker": "^3.0",
-        "spatie/browsershot": "*",
+        "spatie/browsershot": "^5.4",
         "statamic/cms": "^6.0"
     },
     "require-dev": {
@@ -223,32 +223,50 @@
         {
             "name": "activity",
             "type": "path",
-            "url": "../../statamic-activity"
+            "url": "../../statamic-activity",
+            "options": {
+                "symlink": true
+            }
         },
         {
             "name": "brand-context",
             "type": "path",
-            "url": "../../statamic-brand-context"
+            "url": "../../statamic-brand-context",
+            "options": {
+                "symlink": true
+            }
         },
         {
             "name": "email-templates",
             "type": "path",
-            "url": "../../statamic-email-templates"
+            "url": "../../statamic-email-templates",
+            "options": {
+                "symlink": true
+            }
         },
         {
             "name": "identity-contracts",
             "type": "path",
-            "url": "../../statamic-identity-contracts"
+            "url": "../../statamic-identity-contracts",
+            "options": {
+                "symlink": true
+            }
         },
         {
             "name": "preference-center",
             "type": "path",
-            "url": "../../statamic-preference-center"
+            "url": "../../statamic-preference-center",
+            "options": {
+                "symlink": true
+            }
         },
         {
             "name": "toc",
             "type": "path",
-            "url": "../../statamic-toc"
+            "url": "../../statamic-toc",
+            "options": {
+                "symlink": true
+            }
         }
     ]
 }
