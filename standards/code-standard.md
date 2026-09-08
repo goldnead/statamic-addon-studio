@@ -580,7 +580,15 @@ server contract:
 
   This is not hypothetical: on 03.09.2026 `statamic-assessments` and `statamic-clientrooms` shipped to
   the public demo with their migrations unrun, and `/cp/assessments` and `/cp/client-rooms` answered
-  HTTP 500 with `no such table`. `code.cp-index-setup-guard` enforces it.
+  HTTP 500 with `no such table`.
+
+  `code.cp-index-setup-guard` enforces the **shape** of this: a guard, before the first query the
+  linter can recognise, that says something to somebody. It does not enforce the table list — it
+  never compares the tables you guard against the tables you read, so that part stays yours. Nor
+  does it see a query one method call deep behind a verb it does not know: `$this->service->overdue()`
+  (statamic-leadhub) and `$stats->build(...)` (statamic-webhook-manager) both slipped past it and
+  had to be found by reading. A green line here means "nothing obvious is missing", not "this page
+  is safe".
 
 **Disagreement — Blade vs Inertia CP pages.** `simple-commerce` (R1) and `logbook` (R6, R10) build CP
 screens as Blade views extending `statamic::layout` with `<ui-*>` elements. `advanced-seo`, `runway`,

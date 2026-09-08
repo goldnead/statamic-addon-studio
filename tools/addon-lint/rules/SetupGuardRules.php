@@ -207,11 +207,14 @@ final class CpIndexSetupGuardRule extends AbstractRule
             for ($j = $i; $j < $n; $j++) {
                 $text = is_array($tokens[$j]) ? $tokens[$j][1] : $tokens[$j];
 
-                // A comment is not a guard. `/* Schema::hasTable(...) would be
-                // nice */` acquitted the method as long as the body was searched
-                // as raw text. The newlines stay so the reported line still points
-                // at the real query.
-                if (is_array($tokens[$j]) && ($tokens[$j][0] === T_COMMENT || $tokens[$j][0] === T_DOC_COMMENT)) {
+                // Neither a comment nor a string literal is a guard. As long as
+                // the body was searched as raw text, `/* Schema::hasTable(…) would
+                // be nice */` acquitted the method, and so did
+                // `$m = 'call Schema::hasTable() here';`. The newlines stay so the
+                // reported line still points at the real query.
+                if (is_array($tokens[$j]) && in_array($tokens[$j][0], [
+                    T_COMMENT, T_DOC_COMMENT, T_CONSTANT_ENCAPSED_STRING, T_ENCAPSED_AND_WHITESPACE,
+                ], true)) {
                     $text = str_repeat("\n", substr_count($text, "\n"));
                 }
 
@@ -338,15 +341,4 @@ final class CpIndexSetupGuardRule extends AbstractRule
         return 0;
     }
 
-    /** @param  string[]  $patterns */
-    private function matchesAny(string $contents, array $patterns): bool
-    {
-        foreach ($patterns as $pattern) {
-            if (preg_match($pattern, $contents) === 1) {
-                return true;
-            }
-        }
-
-        return false;
-    }
 }

@@ -441,6 +441,37 @@ $report = lint($linter, [
 ]);
 check('a guard that comes after the query is still reported', fires($report, 'code.cp-index-setup-guard'));
 
+// A guard that is only talked about is not a guard. Both of these acquitted the
+// method while the body was searched as raw text.
+$report = lint($linter, [
+    'composer.json' => $goodComposer,
+    'src/Http/Controllers/Cp/CommentController.php' => "<?php\nnamespace Acme\\Thing\\Http\\Controllers\\Cp;\nclass CommentController { public function index() { /* Schema::hasTable('things') would be nice here */ return \\Inertia::render('thing::Index', ['rows' => Thing::query()->get()]); } }\n",
+]);
+check('a guard that exists only in a comment is reported', fires($report, 'code.cp-index-setup-guard'));
+
+$report = lint($linter, [
+    'composer.json' => $goodComposer,
+    'src/Http/Controllers/Cp/StringController.php' => "<?php\nnamespace Acme\\Thing\\Http\\Controllers\\Cp;\nclass StringController { public function index() { \$hint = 'call Schema::hasTable() first'; return \\Inertia::render('thing::Index', ['rows' => Thing::query()->get(), 'hint' => \$hint]); } }\n",
+]);
+check('a guard that exists only inside a string is reported', fires($report, 'code.cp-index-setup-guard'));
+
+// The standard is not "the page must not crash", it is "and the reason must not
+// disappear". An empty state that logs nothing is worse than the 500.
+$report = lint($linter, [
+    'composer.json' => $goodComposer,
+    'src/Http/Controllers/Cp/MuteController.php' => "<?php\nnamespace Acme\\Thing\\Http\\Controllers\\Cp;\nuse Illuminate\\Support\\Facades\\Schema;\nclass MuteController { public function index() { if (! Schema::hasTable('things')) { return \\Inertia::render('thing::SetupRequired'); } return \\Inertia::render('thing::Index', ['rows' => Thing::query()->get()]); } }\n",
+]);
+check('a guard that tells nobody is reported', fires($report, 'code.cp-index-setup-guard'));
+
+// The studio's own idiom: the controller stays quiet because Setup::guard() does
+// the logging one file over.
+$report = lint($linter, [
+    'composer.json' => $goodComposer,
+    'src/Support/Setup.php' => "<?php\nnamespace Acme\\Thing\\Support;\nuse Illuminate\\Support\\Facades\\Log;\nuse Illuminate\\Support\\Facades\\Schema;\nfinal class Setup { public static function guard(string \$title, string ...\$tables) { \$missing = array_filter(\$tables, fn (\$t) => ! Schema::hasTable(\$t)); if (\$missing === []) { return null; } Log::error('missing: '.implode(', ', \$missing)); return \\Inertia::render('thing::SetupRequired'); } }\n",
+    'src/Http/Controllers/Cp/DelegatingController.php' => "<?php\nnamespace Acme\\Thing\\Http\\Controllers\\Cp;\nuse Acme\\Thing\\Support\\Setup;\nclass DelegatingController { public function index() { if (\$s = Setup::guard('Things', 'things')) { return \$s; } return \\Inertia::render('thing::Index', ['rows' => Thing::query()->get()]); } }\n",
+]);
+check('Setup::guard() whose own class logs is accepted', ! fires($report, 'code.cp-index-setup-guard'));
+
 // --- code.unescaped-template-variables -------------------------------------
 // Shape of statamic-payments/src/Support/AbandonedReminder.php before 02.09.2026:
 // the name from the checkout went raw into an HTML mail. Note the e() further up
