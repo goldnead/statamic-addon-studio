@@ -103,20 +103,32 @@ final class CpIndexSetupGuardRule extends AbstractRule
             $contents = $addon->read($file) ?? '';
 
             foreach ($this->indexBodies($contents) as [$line, $body]) {
-                if ($this->matchesAny($body, self::GUARDS)) {
-                    continue;
-                }
-
                 $offset = $this->firstQueryLine($body);
 
                 if ($offset === null) {
                     continue;
                 }
 
+                // The guard has to come BEFORE the query, not merely somewhere in
+                // the same method. Asking only whether the pattern occurs makes the
+                // rule passable with an unrelated `class_exists()` further down —
+                // a check for the presence of a word rather than for a protected
+                // query, and the addon stays broken while the report goes green.
+                $guard = $this->firstGuardLine($body);
+                $guarded = $guard !== null && $guard < $offset;
+
+                if ($guarded && $this->speaks($addon, $body)) {
+                    continue;
+                }
+
                 $findings[] = $this->fail(
-                    'index() queries the database without checking first that its table exists.',
+                    match (true) {
+                        $guard === null => 'index() queries the database without checking first that its table exists.',
+                        ! $guarded => 'index() queries the database before the setup check that is meant to protect it.',
+                        default => 'index() checks its setup but tells nobody why the page is empty.',
+                    },
                     $file,
-                    $line + $offset,
+                    $line + $this->lineOfOffset($body, $offset),
                     'Guard the first query with Schema::hasTable() (or class_exists() for an optional '
                     .'integration), log the reason with Log::warning(), and render an empty state with a '
                     .'sentence naming the missing piece. Without the guard a fresh install answers '
@@ -195,6 +207,14 @@ final class CpIndexSetupGuardRule extends AbstractRule
             for ($j = $i; $j < $n; $j++) {
                 $text = is_array($tokens[$j]) ? $tokens[$j][1] : $tokens[$j];
 
+                // A comment is not a guard. `/* Schema::hasTable(...) would be
+                // nice */` acquitted the method as long as the body was searched
+                // as raw text. The newlines stay so the reported line still points
+                // at the real query.
+                if (is_array($tokens[$j]) && ($tokens[$j][0] === T_COMMENT || $tokens[$j][0] === T_DOC_COMMENT)) {
+                    $text = str_repeat("\n", substr_count($text, "\n"));
+                }
+
                 // An abstract or interface declaration has no body to inspect.
                 if ($depth === 0 && $text === ';') {
                     break;
@@ -222,23 +242,88 @@ final class CpIndexSetupGuardRule extends AbstractRule
         return $bodies;
     }
 
-    /** Zero-based line offset of the first query inside a method body, or null. */
+    /**
+     * Character offset of the first setup check in a method body, or null.
+     *
+     * Characters, not lines: a guard and the query it is meant to protect often
+     * share a line, and comparing line numbers then calls a guard that runs
+     * afterwards "before".
+     */
+    private function firstGuardLine(string $body): ?int
+    {
+        return $this->firstMatch($body, self::GUARDS);
+    }
+
+    /** Character offset of the first query in a method body, or null. */
     private function firstQueryLine(string $body): ?int
     {
-        foreach (explode("\n", $body) as $offset => $text) {
-            foreach (self::QUERIES as $pattern) {
-                if (preg_match($pattern, $text) === 1) {
-                    return $offset;
-                }
-            }
+        $earliest = $this->firstMatch($body, self::QUERIES);
 
-            if (preg_match(self::INDIRECT_QUERY, $text, $match) === 1
-                && ! in_array(strtolower($match[1]), self::NOT_A_REPOSITORY, true)) {
-                return $offset;
+        if (preg_match(self::INDIRECT_QUERY, $body, $match, PREG_OFFSET_CAPTURE) === 1
+            && ! in_array(strtolower($match[1][0]), self::NOT_A_REPOSITORY, true)) {
+            $earliest = $earliest === null ? $match[0][1] : min($earliest, $match[0][1]);
+        }
+
+        return $earliest;
+    }
+
+    /**
+     * Character offset of the earliest match of any pattern, or null.
+     *
+     * @param  string[]  $patterns
+     */
+    private function firstMatch(string $body, array $patterns): ?int
+    {
+        $earliest = null;
+
+        foreach ($patterns as $pattern) {
+            if (preg_match($pattern, $body, $match, PREG_OFFSET_CAPTURE) === 1) {
+                $earliest = $earliest === null ? $match[0][1] : min($earliest, $match[0][1]);
             }
         }
 
-        return null;
+        return $earliest;
+    }
+
+    /** The 1-based line a character offset falls on, counted from the body's start. */
+    private function lineOfOffset(string $body, int $offset): int
+    {
+        return substr_count(substr($body, 0, $offset), "\n");
+    }
+
+    /**
+     * Does the guard say anything to anyone?
+     *
+     * The standard is not "the page must not crash", it is "the page must not
+     * crash AND the reason must not disappear". An empty state that logs nothing
+     * is worse than the 500 it replaced: the site looks installed and never
+     * works. Two shapes count — a log call in the method itself, or the studio's
+     * `Setup::guard()`, whose own class does the logging.
+     */
+    private function speaks(AddonContext $addon, string $body): bool
+    {
+        if (preg_match('/\bLog::|\blogger\s*\(|\breport\s*\(/', $body) === 1) {
+            return true;
+        }
+
+        if (preg_match('/\bSetup::guard\s*\(/', $body) !== 1) {
+            return false;
+        }
+
+        foreach ($addon->phpFiles() as $file) {
+            if (! str_ends_with($file, 'Setup.php')) {
+                continue;
+            }
+
+            $contents = $addon->read($file) ?? '';
+
+            if (preg_match('/function guard\s*\(/', $contents) === 1
+                && preg_match('/\bLog::|\blogger\s*\(|\breport\s*\(/', $contents) === 1) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /** Line of a single-character token, taken from the nearest array token before it. */

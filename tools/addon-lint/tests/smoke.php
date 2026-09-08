@@ -432,6 +432,15 @@ $report = lint($linter, [
 ]);
 check('a CP index that touches no database is left alone', ! fires($report, 'code.cp-index-setup-guard'));
 
+// A guard that runs after the query protects nothing. Asking only whether the
+// pattern occurs somewhere in the body makes the rule passable with an unrelated
+// class_exists() — presence of a word instead of a protected query.
+$report = lint($linter, [
+    'composer.json' => $goodComposer,
+    'src/Http/Controllers/Cp/LateController.php' => "<?php\nnamespace Acme\\Thing\\Http\\Controllers\\Cp;\nclass LateController { public function index() { \$rows = Thing::query()->get(); \$extra = class_exists('\\\\Other\\\\Thing') ? 1 : 0; return \\Inertia::render('thing::Index', ['rows' => \$rows, 'extra' => \$extra]); } }\n",
+]);
+check('a guard that comes after the query is still reported', fires($report, 'code.cp-index-setup-guard'));
+
 // --- code.unescaped-template-variables -------------------------------------
 // Shape of statamic-payments/src/Support/AbandonedReminder.php before 02.09.2026:
 // the name from the checkout went raw into an HTML mail. Note the e() further up

@@ -57,8 +57,23 @@ fi
 # Ohne das holt der naechtliche Reset um 03:17 UTC den Stand von vorher zurueck,
 # Migrationen eingeschlossen. Bei gestopptem Container, sonst greift der Tar
 # mitten in einen SQLite-Schreibvorgang.
+#
+# Der Start steht bewusst NICHT in derselben `&&`-Kette wie der Tar. Scheitert
+# `tar` (volle Platte, Rechteproblem, abgerissene Verbindung), bricht die Kette
+# davor ab, der Container bleibt gestoppt, und `set -e` beendet dieses Skript
+# mit dem rohen tar-Fehler — die Nachprobe unten liefe nie, und die Demo waere
+# aus, ohne dass eine Zeile das sagt.
 echo "-> 5/5 pristine.tar.gz neu ziehen"
-ssh "root@$HOST" "cd $APPDIR && docker compose stop app && tar czf pristine.tar.gz -C app content users database config storage && docker compose up -d app"
+if ! ssh "root@$HOST" "cd $APPDIR && docker compose stop app && tar czf pristine.tar.gz -C app content users database config storage"; then
+    echo "" >&2
+    echo "ABBRUCH: pristine.tar.gz konnte nicht gezogen werden." >&2
+    echo "         Der Container wird jetzt wieder gestartet, aber der naechtliche" >&2
+    echo "         Reset um 03:17 UTC holt den ALTEN Stand zurueck. Schritt 5 von" >&2
+    echo "         Hand nachholen, sonst ist dieses Deploy morgen frueh weg." >&2
+    ssh "root@$HOST" "cd $APPDIR && docker compose up -d app" || true
+    exit 1
+fi
+ssh "root@$HOST" "cd $APPDIR && docker compose up -d app"
 
 echo "-> Nachprobe"
 ssh "root@$HOST" "curl -fsS -o /dev/null -w '/up %{http_code}\n' http://127.0.0.1:8099/up"

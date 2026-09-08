@@ -147,6 +147,19 @@ while read -r repo tag; do
         '(.packages[] | select(.name == $repo) | .version) = $v' \
         "$ZIEL/vendor/composer/installed.json" > "$ZIEL/vendor/composer/installed.json.tmp"
     mv "$ZIEL/vendor/composer/installed.json.tmp" "$ZIEL/vendor/composer/installed.json"
+
+    # Nachzaehlen, nicht behaupten. `select(.name == $repo)` trifft bei einem
+    # Tippfehler in tags.conf oder einem fehlenden Paket schlicht nichts, jq gibt
+    # das Dokument unveraendert mit Exit 0 zurueck, und mv gelingt ebenfalls.
+    # Das Addon liefe dann als dev-main auf dem Server, waehrend hier "Fertig"
+    # steht — ein Update, das als erfolgt gilt, ohne dass jemand nachgesehen hat.
+    if ! jq -e --arg repo "goldnead/$repo" --arg v "$version" \
+        'any(.packages[]; .name == $repo and .version == $v)' \
+        "$ZIEL/vendor/composer/installed.json" > /dev/null; then
+        echo "ABBRUCH: goldnead/$repo steht nach dem Stempeln nicht mit $version" >&2
+        echo "         in vendor/composer/installed.json. Name in tags.conf pruefen." >&2
+        exit 1
+    fi
 done < "$(dirname "$0")/tags.conf"
 
 # 5) Migrationen zaehlen, damit der naechste Schritt nicht optional aussieht.
