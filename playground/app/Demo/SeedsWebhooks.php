@@ -4,6 +4,7 @@ namespace App\Demo;
 
 use Goldnead\BrandContext\Facades\BrandContext;
 use Goldnead\BrandContext\Models\Brand;
+use Goldnead\BrandContext\Models\BrandSetting;
 use Goldnead\WebhookManager\Auth\Support\SignatureGenerator;
 use Goldnead\WebhookManager\Contracts\Repositories\InboundEndpointRepositoryInterface;
 use Goldnead\WebhookManager\Contracts\Repositories\OutboundWebhookRepositoryInterface;
@@ -21,13 +22,11 @@ use Goldnead\WebhookManager\Domain\OutboundWebhook\Models\OutboundWebhook;
 use Goldnead\WebhookManager\Domain\Rule\Actions\CreateRuleAction;
 use Goldnead\WebhookManager\Domain\Rule\Actions\TestRuleAction;
 use Goldnead\WebhookManager\Domain\Rule\Models\Rule;
-use Goldnead\WebhookManager\Domain\Settings\Models\WebhookSetting;
 use Goldnead\WebhookManager\Domain\Template\Actions\CreateTemplateAction;
 use Goldnead\WebhookManager\Domain\Template\Actions\UpdateTemplateAction;
 use Goldnead\WebhookManager\Domain\Template\Models\Template;
 use Goldnead\WebhookManager\Registries\PresetRegistry;
 use Goldnead\WebhookManager\Services\DeliveryReplayService;
-use Goldnead\WebhookManager\Support\Settings;
 use Goldnead\WebhookManager\ValueObjects\ExecutionContext;
 use Goldnead\WebhookManager\ValueObjects\TriggerEvent;
 use Illuminate\Cache\RateLimiter;
@@ -110,7 +109,12 @@ class SeedsWebhooks
             'webhook_regeln' => Rule::query()->count(),
             'webhook_lieferungen' => Delivery::query()->count(),
             'webhook_protokoll' => LogEntry::query()->count(),
-            'webhook_einstellungen' => WebhookSetting::query()->count(),
+            // Aus `brand_settings`, nicht aus einer eigenen Tabelle: die
+            // Einstellungen des Addons sind mit
+            // `2026_09_06_000001_move_webhook_settings_to_brand_settings` in die
+            // geteilte Schicht gewandert, und `WebhookSetting` gibt es seither
+            // nicht mehr. Der Seeder zählte es trotzdem weiter und starb daran.
+            'webhook_einstellungen' => BrandSetting::query()->where('namespace', 'webhook-manager')->count(),
             'webhook_anfragen' => array_sum($this->antworten),
             // Die Antwortcodes als eine Zeile: was das Addon auf welchem Weg
             // abweist, ist die eigentliche Aussage dieses Seeders.
@@ -130,16 +134,29 @@ class SeedsWebhooks
     /**
      * Eine Einstellung, die vom Konfigurationsfile abweicht.
      *
-     * `webhook_settings` hält nur die Unterschiede: ein Wert, der wieder dem
-     * File entspricht, löscht seine Zeile. Genau eine Abweichung reicht, um zu
+     * Die Tabelle hält nur die Unterschiede: ein Wert, der wieder dem File
+     * entspricht, löscht seine Zeile. Genau eine Abweichung reicht, um zu
      * zeigen, dass der Weg existiert — und der User-Agent ist der harmloseste
      * Wert, den man dafür nehmen kann.
+     *
+     * Geschrieben wird über die geteilte Schicht in brand-context, nicht über
+     * `Goldnead\WebhookManager\Support\Settings`: diese Klasse ist reiner
+     * Schema-Lieferant (`ProvidesSettings`) und hat gar keine Schreibmethode.
+     * Der Seeder rief bis 08.09.2026 ein `save()` daran auf, das es in keiner
+     * ausgelieferten Fassung gab, und `demo:seed --fresh` starb an dieser
+     * Zeile — alles danach wurde nie geseedet. Der Seeder war gegen den HEAD
+     * geschrieben, die Demo fährt Tags.
+     *
+     * Zwei Dinge, die dabei zusammengehören: `save()` verlangt eine aufgelöste
+     * Marke und wirft sonst, deshalb steht der Aufruf in `fuerMarke()`. Und die
+     * Werte liegen seit `2026_09_06_000001_move_webhook_settings_to_brand_settings`
+     * in `brand_settings`, nicht mehr in `webhook_settings`.
      */
     protected function einstellung(): void
     {
-        app(Settings::class)->save([
-            'http.user_agent' => 'Nordlicht-Studio-Webhooks/1.0',
-        ]);
+        $this->fuerMarke('nordlicht', fn () => app('brand-context.settings')
+            ->for('webhook-manager')
+            ->save(['http.user_agent' => 'Nordlicht-Studio-Webhooks/1.0']));
     }
 
     /**
