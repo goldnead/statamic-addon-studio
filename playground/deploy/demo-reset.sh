@@ -10,13 +10,17 @@
 # nicht mitgebracht — also genau den Vorfall wiederholt, gegen den sie steht.
 # Ausrollen mit:  scp deploy/demo-reset.sh root@$HOST:$APPDIR/reset.sh
 #
-# Das Repo ist oeffentlich, deshalb stehen Verzeichnis, Container und Port als
-# Variablen. Echte Werte: GoldnerOS/memory/reference-statamic-demo-deploy.md.
+# Das Repo ist oeffentlich, deshalb stehen Verzeichnis und Port nicht drin,
+# sondern muessen gesetzt werden — dieselbe Regel wie im README nebenan.
+# Echte Werte: GoldnerOS/memory/reference-statamic-demo-deploy.md. Auf dem
+# Server stehen sie in der cron-Zeile, nicht hier:
+#
+#   17 3 * * * root APPDIR=… HEALTH=… sh $APPDIR/reset.sh
 set -eu
 
-APPDIR=${APPDIR:-/opt/statamic-demo}
+: "${APPDIR:?APPDIR setzen (Zielverzeichnis auf dem Server)}"
+: "${HEALTH:?HEALTH setzen (Gesundheitsadresse, z. B. http://127.0.0.1:PORT/up)}"
 CONTAINER=${CONTAINER:-statamic-demo}
-HEALTH=${HEALTH:-http://127.0.0.1:8099/up}
 LOG=${LOG:-/var/log/statamic-demo-reset.log}
 
 cd "$APPDIR"
