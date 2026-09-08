@@ -393,6 +393,45 @@ $report = lint($linter, [
 ]);
 check('a QueryException catch in the test suite is not the addon shipping one', ! fires($report, 'code.silent-query-exception'));
 
+// --- code.cp-index-setup-guard ---------------------------------------------
+// Shape of statamic-assessments and statamic-clientrooms on 03.09.2026: the
+// addons shipped, their migrations never ran, and the first query in index()
+// answered /cp/assessments and /cp/client-rooms with HTTP 500.
+
+$report = lint($linter, [
+    'composer.json' => $goodComposer,
+    'src/Http/Controllers/Cp/ThingController.php' => "<?php\nnamespace Acme\\Thing\\Http\\Controllers\\Cp;\nclass ThingController { public function index() { \$rows = Thing::query()->orderBy('title')->get(); return \\Inertia::render('thing::Index', ['rows' => \$rows]); } }\n",
+]);
+check('an unguarded CP index query is reported', fires($report, 'code.cp-index-setup-guard'));
+
+$report = lint($linter, [
+    'composer.json' => $goodComposer,
+    'src/Http/Controllers/Cp/ThingController.php' => "<?php\nnamespace Acme\\Thing\\Http\\Controllers\\Cp;\nuse Illuminate\\Support\\Facades\\Schema;\nclass ThingController { public function index() { if (! Schema::hasTable('things')) { \\Log::error('no table'); return \\Inertia::render('thing::SetupRequired'); } return \\Inertia::render('thing::Index', ['rows' => Thing::query()->get()]); } }\n",
+]);
+check('a CP index that checks hasTable first is accepted', ! fires($report, 'code.cp-index-setup-guard'));
+
+// The false negative that let statamic-clientrooms pass on 03.09.2026: an
+// unrelated class_exists() 430 lines below index() excused the page that threw.
+$report = lint($linter, [
+    'composer.json' => $goodComposer,
+    'src/Http/Controllers/Cp/RoomsController.php' => "<?php\nnamespace Acme\\Thing\\Http\\Controllers\\Cp;\nclass RoomsController { public function index() { return \\Inertia::render('rooms::Index', ['hasAny' => Room::query()->exists()]); } public function link(\$room) { if (! class_exists('\\\\Other\\\\Contact')) { return null; } return 1; } }\n",
+]);
+check('a guard in another method does not excuse index()', fires($report, 'code.cp-index-setup-guard'));
+
+// Half the family reads its listings through a repository. The table is just as
+// missing one indirection away.
+$report = lint($linter, [
+    'composer.json' => $goodComposer,
+    'src/Http/Controllers/Cp/OverviewController.php' => "<?php\nnamespace Acme\\Thing\\Http\\Controllers\\Cp;\nclass OverviewController { public function index(\$repo) { \$n = \$repo->countActive(); return \\Inertia::render('thing::Overview', ['n' => \$n]); } }\n",
+]);
+check('an unguarded repository count in a CP index is reported', fires($report, 'code.cp-index-setup-guard'));
+
+$report = lint($linter, [
+    'composer.json' => $goodComposer,
+    'src/Http/Controllers/Cp/RegistryController.php' => "<?php\nnamespace Acme\\Thing\\Http\\Controllers\\Cp;\nclass RegistryController { public function index(\$request) { \$input = \$request->all(); return \\Inertia::render('thing::Registry', ['presets' => \$this->presets, 'input' => \$input]); } }\n",
+]);
+check('a CP index that touches no database is left alone', ! fires($report, 'code.cp-index-setup-guard'));
+
 // --- code.unescaped-template-variables -------------------------------------
 // Shape of statamic-payments/src/Support/AbandonedReminder.php before 02.09.2026:
 // the name from the checkout went raw into an HTML mail. Note the e() further up

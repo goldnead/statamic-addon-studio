@@ -17,17 +17,32 @@ hinter einem gemeinsamen Caddy, auf einem lokal gebundenen Port.
 
 ## Bauen und ausrollen
 
-**Vier Schritte, und alle vier gehoeren dazu.** Wer nach dem rsync aufhoert,
+```bash
+./deploy/build.sh                                  # baut /tmp/statamic-demo-build
+HOST=… APPDIR=… ./deploy/rollout.sh                # rollt ihn aus, alle Schritte
+```
+
+**`rollout.sh` ist der Weg.** Es macht die fuenf Schritte unten in einem Lauf
+und bricht sichtbar ab, statt einen zu ueberspringen. Von Hand rsyncen darf man,
+aber dann gilt die Tabelle darunter vollstaendig — dreimal ist genau das
+schiefgegangen: am 03.09.2026 fehlte `migrate --force` (zwei CP-Seiten auf HTTP
+500, `no such table`), am 05.09.2026 fehlten chown und pristine.
+
+**Fuenf Schritte, und alle fuenf gehoeren dazu.** Wer nach dem rsync aufhoert,
 hinterlaesst eine Demo auf HTTP 500; wer nach dem chown aufhoert, verliert den
-Stand beim naechsten Reset um 03:17 UTC. Beides ist am 05.09.2026 passiert —
-die Schritte 3 und 4 wurden ueberlesen, weil sie unter dem Codeblock stehen.
+Stand beim naechsten Reset um 03:17 UTC.
 
 | # | Schritt | Was passiert, wenn er fehlt |
 |---|---|---|
 | 1 | `build.sh` | — |
 | 2 | rsync auf den Server | nichts kommt an |
-| 3 | **chown auf 33:33** | HTTP 500 auf jeder Seite (siehe unten) |
-| 4 | **`pristine.tar.gz` neu ziehen** | der Reset um 03:17 UTC holt den alten Stand zurueck |
+| 3 | **chown auf 33:33** | HTTP 500 auf jeder Seite (siehe unten); ohne `resources` stirbt ausserdem `demo:seed` |
+| 4 | **`migrate --force`** | ein Addon mit neuer Migration antwortet mit HTTP 500 (`no such table`) |
+| 5 | **`pristine.tar.gz` neu ziehen** | der Reset um 03:17 UTC holt den alten Stand zurueck |
+
+Seit 08.09.2026 faengt auch der naechtliche Reset auf dem Server einen
+vergessenen Schritt 4 ab: `reset.sh` laesst nach dem Wiederherstellen
+`migrate --force` laufen und schreibt das Ergebnis ins Reset-Log.
 
 ### Schritt 1 und 2 — bauen und uebertragen
 

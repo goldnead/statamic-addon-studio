@@ -149,11 +149,23 @@ while read -r repo tag; do
     mv "$ZIEL/vendor/composer/installed.json.tmp" "$ZIEL/vendor/composer/installed.json"
 done < "$(dirname "$0")/tags.conf"
 
-echo "-> Fertig. Auf den Server:"
+# 5) Migrationen zaehlen, damit der naechste Schritt nicht optional aussieht.
+#
+#    Am 03.09.2026 gingen statamic-assessments und statamic-clientrooms als Code
+#    raus, ihre Migrationen liefen nie, und /cp/assessments wie /cp/client-rooms
+#    antworteten mit HTTP 500 (`no such table`). Hier steht deshalb, wie viele
+#    Migrationsdateien im Build liegen — nicht als Erinnerung, sondern als Zahl,
+#    die man sieht.
+migrationen=$(find "$ZIEL/vendor/goldnead" -path '*/database/migrations/*.php' 2>/dev/null | wc -l)
+
+echo "-> Fertig. $migrationen Migrationsdateien in den Addons."
 # Host und Zielverzeichnis stehen hier absichtlich nicht: das Repo ist oeffentlich.
 # Die echten Werte liegen in GoldnerOS/memory/reference-statamic-demo-deploy.md.
-echo "   rsync -a $ZIEL/ root@\$HOST:\$APPDIR/app/"
-# Kein `composer dump-autoload`: im Demo-Container gibt es kein composer, nur php
-# (gepruft 03.09.2026). Gebraucht wird es auch nicht — die Autoload-Dateien kommen
-# fertig aus diesem Build, die Addons laden per PSR-4.
-echo "   dann im Container: php artisan package:discover && php artisan migrate --force"
+echo "   Ausrollen mit allen fuenf Schritten (rsync, chown, package:discover,"
+echo "   migrate --force, pristine):"
+echo ""
+echo "     HOST=… APPDIR=… ./deploy/rollout.sh $ZIEL"
+echo ""
+echo "   Von Hand rsyncen laesst regelmaessig Schritte aus — genau so entstanden"
+echo "   die 500er vom 03.09. (migrate vergessen) und vom 05.09. (chown und"
+echo "   pristine vergessen)."
