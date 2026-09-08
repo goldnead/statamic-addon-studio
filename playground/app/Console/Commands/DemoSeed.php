@@ -56,8 +56,8 @@ class DemoSeed extends Command
 
         $this->components->task('Katalog in die Konfiguration', fn () => $this->katalogSchreiben());
 
-        $this->components->task('Handel: Angebote, Gutscheine, Zahlungen, Abos', function () {
-            $this->ergebnis = (new SeedsCommerce)->run();
+        $this->components->task('Handel: Angebote, Gutscheine, Zahlungen, Abos', function () use (&$marken) {
+            $this->ergebnis = (new SeedsCommerce)->run($marken);
 
             return true;
         });

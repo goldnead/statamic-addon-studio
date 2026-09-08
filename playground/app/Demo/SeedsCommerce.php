@@ -2,6 +2,7 @@
 
 namespace App\Demo;
 
+use Goldnead\BrandContext\Models\Brand;
 use Goldnead\StatamicOffers\Models\Coupon;
 use Goldnead\StatamicOffers\Models\Offer;
 use Goldnead\StatamicPayments\Models\Payment;
@@ -100,9 +101,13 @@ class SeedsCommerce
     }
 
     /** @return array<string, mixed> */
-    public function run(): array
+    /**
+     * @param  array<string, Brand>  $marken
+     * @return array<string, int>
+     */
+    public function run(array $marken = []): array
     {
-        $angebote = $this->angebote();
+        $angebote = $this->angebote($marken);
         $this->gutscheine();
         $zahlungen = $this->zahlungen();
         $abos = $this->abos();
@@ -115,8 +120,48 @@ class SeedsCommerce
         ];
     }
 
-    /** @return array<string, Offer> */
-    protected function angebote(): array
+    /**
+     * Welche Marke ein Angebot trägt.
+     *
+     * Seit `statamic-offers` 1.11 verengt die CP-Liste auf `brand_id`. Ohne
+     * diese Zuordnung stünde jede Zeile auf Null, und **jede** Markenliste im
+     * Control Panel wäre leer — die Verengung schließt bei einer Zeile, die
+     * niemandem gehört, und das sähe aus wie ein kaputtes Addon statt wie ein
+     * unvollständiger Seeder.
+     *
+     * Nach der Vorsilbe des Handles, weil die im Demo die Marke ist und weil
+     * die Alternative wäre, sie fünfzehnmal von Hand danebenzuschreiben. Was
+     * keine Vorsilbe hat, gehört der Agentur selbst.
+     *
+     * @param  array<string, Brand>  $marken
+     */
+    protected function markeFuer(string $handle, array $marken): ?int
+    {
+        $nachVorsilbe = [
+            'cw-' => 'chorwerkstatt',
+            'hm-' => 'halbmond',
+            'lh-' => 'lindhorst',
+        ];
+
+        foreach ($nachVorsilbe as $vorsilbe => $marke) {
+            if (str_starts_with($handle, $vorsilbe)) {
+                return $marken[$marke]?->id;
+            }
+        }
+
+        // Der Bösewicht trägt seinen Namen im Handle statt als Vorsilbe.
+        if (str_contains($handle, 'sonderzeichen')) {
+            return $marken['sonderzeichen']?->id;
+        }
+
+        return $marken['nordlicht']?->id;
+    }
+
+    /**
+     * @param  array<string, Brand>  $marken
+     * @return array<string, Offer>
+     */
+    protected function angebote(array $marken = []): array
     {
         $definitionen = [
             // The ordinary case, with two bumps hanging off it.
@@ -155,16 +200,27 @@ class SeedsCommerce
         $angebote = [];
 
         foreach ($definitionen as $handle => [$name, $produkt, $cent, $slot, $bumps]) {
-            $angebote[$handle] = Offer::updateOrCreate(['handle' => $handle], [
+            $werte = [
                 'name' => $name,
                 'headline' => $name,
                 'product' => $produkt,
+                // Bleibt bewusst `null` bei zwei Angeboten: die nehmen den
+                // Katalogpreis. Deshalb wird hier **nicht** gefiltert.
                 'amount_cent' => $cent,
                 'slot' => $slot,
                 'bumps' => $bumps,
                 'active' => $handle !== 'stiller-bump',
                 'body' => 'Ein Satz, der erklärt, was dabei ist. Mit Umlauten: Übung, Größe, Maß.',
-            ]);
+            ];
+
+            // Nur wenn es Marken gibt. Ein Aufruf ohne sie — von Hand, aus
+            // einem Test — lässt die Spalte auf ihrer Vorgabe, statt die Zeile
+            // einer erfundenen Marke zuzuschlagen.
+            if (($marke = $this->markeFuer($handle, $marken)) !== null) {
+                $werte['brand_id'] = $marke;
+            }
+
+            $angebote[$handle] = Offer::updateOrCreate(['handle' => $handle], $werte);
         }
 
         // A bump list that names a bump which is switched off, plus one that
