@@ -145,16 +145,43 @@ class SeedsCommerce
 
         foreach ($nachVorsilbe as $vorsilbe => $marke) {
             if (str_starts_with($handle, $vorsilbe)) {
-                return $marken[$marke]?->id;
+                return ($marken[$marke] ?? null)?->id;
             }
         }
 
         // Der Bösewicht trägt seinen Namen im Handle statt als Vorsilbe.
         if (str_contains($handle, 'sonderzeichen')) {
-            return $marken['sonderzeichen']?->id;
+            return ($marken['sonderzeichen'] ?? null)?->id;
         }
 
-        return $marken['nordlicht']?->id;
+        return ($marken['nordlicht'] ?? null)?->id;
+    }
+
+    /**
+     * Ein Angebot, das der Käufer in der Kasse selbst zusammenstellt.
+     *
+     * Seit `statamic-offers` 1.10 kann ein Angebot mehrere Zahlweisen führen,
+     * und die Kasse zeigt sie zur Auswahl. Genau **ein** Demo-Angebot trägt
+     * sie, aus demselben Grund, aus dem der Katalog drei kaputte Produkte
+     * führt: der Playground soll jeden Zustand einmal echt zeigen, und ein
+     * Block, den keine Zeile auslöst, ist ein Block, den niemand ansieht.
+     *
+     * Die drei Zeilen decken die drei Zahltypen ab, und die Abo-Zeile trägt
+     * eine Testphase, damit auch dieser Zusatz einmal auf einer Seite steht.
+     *
+     * @return list<array<string, mixed>>|null
+     */
+    protected function zahlweisenFuer(string $handle): ?array
+    {
+        if ($handle !== 'cw-mitgliedschaft-angebot') {
+            return null;
+        }
+
+        return [
+            ['key' => 'einmalig', 'label' => 'Einmalig fürs ganze Jahr', 'amount_cent' => 180000],
+            ['key' => 'raten3', 'label' => 'In drei Raten', 'amount_cent' => 62000, 'interval' => '1 month', 'times' => 3],
+            ['key' => 'monatlich', 'label' => 'Monatlich, jederzeit kündbar', 'amount_cent' => 1900, 'interval' => '1 month', 'trial_days' => 14],
+        ];
     }
 
     /**
@@ -218,6 +245,10 @@ class SeedsCommerce
             // einer erfundenen Marke zuzuschlagen.
             if (($marke = $this->markeFuer($handle, $marken)) !== null) {
                 $werte['brand_id'] = $marke;
+            }
+
+            if ($zahlweisen = $this->zahlweisenFuer($handle)) {
+                $werte['pricing_options'] = $zahlweisen;
             }
 
             $angebote[$handle] = Offer::updateOrCreate(['handle' => $handle], $werte);
