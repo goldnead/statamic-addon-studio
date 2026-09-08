@@ -567,6 +567,20 @@ server contract:
   (observed in `duncanmcclean/simple-commerce`, `statamic/seo-pro`).
 - **A GET must never mutate.** `importer`'s edit page calls `Artisan::call('migrate')` while rendering
   (`reference/statamic__importer/src/Http/Controllers/ImportController.php:220-247`).
+- **An index page survives an unfinished setup.** Before its first query, `index()` checks that what it
+  reads is actually there — `Schema::hasTable()` for its own tables, `class_exists()` for an optional
+  sibling addon — and otherwise renders an empty state naming, in one sentence, what to do. Core does
+  the same: a section with nothing behind it renders `EmptyStateMenu` (`ui-vocabulary.md` §2.7 (a)), it
+  does not throw. Count **every** table the page touches while rendering, including the ones reached
+  through `withCount()`, through a repository, or through a sibling addon.
+
+  **And it says so out loud.** The guard writes the reason to the log before it renders. A page that
+  looks installed, works never, and logs nothing is worse than the crash it replaced — the same
+  argument as §13 and `code.silent-query-exception`, one layer up.
+
+  This is not hypothetical: on 03.09.2026 `statamic-assessments` and `statamic-clientrooms` shipped to
+  the public demo with their migrations unrun, and `/cp/assessments` and `/cp/client-rooms` answered
+  HTTP 500 with `no such table`. `code.cp-index-setup-guard` enforces it.
 
 **Disagreement — Blade vs Inertia CP pages.** `simple-commerce` (R1) and `logbook` (R6, R10) build CP
 screens as Blade views extending `statamic::layout` with `<ui-*>` elements. `advanced-seo`, `runway`,
@@ -578,7 +592,7 @@ analysis concedes it is "outside the path core itself uses". `ui.legacy-blade-sh
 
 **Checkable**
 - `bootstrap.cp-authorization`, `ui.legacy-blade-shell`, `ui.cp-route-helper`, `ui.listing-component`,
-  `ui.inertia-navigation`
+  `ui.inertia-navigation`, `code.cp-index-setup-guard`
 - No `$request->validate(` in `src/Http/Controllers/CP/` — *(manual)*
 - Every non-scalar `{param}` in `routes/cp.php` has a `Route::bind(` — *(manual)*
 - No `can(` in `resources/js/` — *(manual)*
