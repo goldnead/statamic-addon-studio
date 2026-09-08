@@ -94,6 +94,23 @@ while building → `statamic-addon-audit` before the first tag.
 linter cannot see: the playground comparison, whether the README's promises actually work, and whether
 the tests cover them.
 
+**Before you tag, ask CI about the commit — not about the repo.** These addons carry four workflow
+files, so every push starts four runs. `gh run list --limit 1` returns the most recently started run
+of *any* of them, and a green `build-check` will happily hide a red `tests` right next to it. On
+08.09.2026 that put two releases on Packagist from a red commit, and a published tag is not something
+you take back.
+
+```bash
+sha=$(git rev-parse HEAD)          # or: git rev-list -n1 <tag>
+gh run list --repo goldnead/<addon> --commit "$sha" \
+  --json conclusion,workflowName \
+  | jq -r '[.[] | select(.conclusion=="failure") | .workflowName]
+           | if length==0 then "all green" else "RED: " + join(", ") end'
+```
+
+A run still in progress is not a verdict either. `gh run view <id> --json jobs` shows how many cells
+are open; the MySQL leg of this family can take over an hour, and "still running" is not "stuck".
+
 **Keeping the standards current:** when Statamic ships a CP change, re-run the reference analysis
 against the updated `reference/statamic__cms` and update `ui-vocabulary.md` before touching any rule.
 The standards lead; `addon-lint` follows.
