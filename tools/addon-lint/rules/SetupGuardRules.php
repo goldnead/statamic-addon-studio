@@ -49,6 +49,10 @@ final class CpIndexSetupGuardRule extends AbstractRule
     private const GUARDS = [
         '/Schema::hasTable\s*\(/',
         '/\bhasTable\s*\(/',
+        // The studio's own idiom (`src/Support/Setup.php`), which is what the
+        // addons actually call. Without this line the rule fails every addon
+        // that follows the standard it exists to enforce.
+        '/\bSetup::guard\s*\(/',
         '/\bsetupNotice\s*\(/',
         '/\bmissingSetup\s*\(/',
         '/\bclass_exists\s*\(/',
