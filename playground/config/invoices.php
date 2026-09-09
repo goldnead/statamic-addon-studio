@@ -43,19 +43,13 @@ return [
         // Je Marke eine eigene Vorsilbe. Ohne die verweigert das Addon, und
         // zu Recht: der Zaehler ist je Marke, die Nummer global eindeutig --
         // zwei Marken mit derselben Vorsilbe geben dieselbe Nummer aus.
-        // Die Ids kommen aus `brands`, und zwar gezaehlt ab 1: `nordlicht` ist
-        // 1, nicht 2. Bis 09.09.2026 stand hier die um eins verschobene Reihe,
-        // und das war nicht folgenlos -- Marke 1 hatte gar keine Vorsilbe und
-        // bekam deshalb keine Rechnung, waehrend die uebrigen die Serie ihres
-        // Nachbarn trugen: Zahlung 208 (Chorwerkstatt) steht als `NL2026-09-002`
-        // in der Tabelle. Wer die Reihe aendert, prueft sie gegen
-        // `sqlite3 database/database.sqlite "SELECT id,handle FROM brands;"`.
+        // Die Ids kommen aus `brands`; nordlicht ist 2.
         'prefix_per_brand' => [
-            1 => 'NL',   // Nordlicht Studio, die Agentur
-            2 => 'CW',   // Chorwerkstatt Nord
-            3 => 'HM',   // Kollektiv Halbmond
-            4 => 'LH',   // Praxis Lindhorst
-            5 => 'SZ',   // Sonderzeichen
+            2 => 'NL',   // Nordlicht Studio, die Agentur
+            3 => 'CW',   // Chorwerkstatt Nord
+            4 => 'HM',   // Kollektiv Halbmond
+            5 => 'LH',   // Praxis Lindhorst
+            6 => 'SZ',   // Sonderzeichen
         ],
     ],
 
