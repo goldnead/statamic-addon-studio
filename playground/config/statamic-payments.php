@@ -57,7 +57,6 @@ return [
         'cw-workshop' => ['name' => 'Workshop-Tag vor Ort', 'amount_cent' => 45000, 'digital' => true],
         'hm-vinyl' => ['name' => 'Halbmond, das Album auf Vinyl', 'amount_cent' => 2900, 'digital' => false],
         'hm-ticket' => ['name' => 'Konzertticket', 'amount_cent' => 2200, 'digital' => false],
-        'hm-fanclub' => ['name' => 'Fanclub Halbmond', 'amount_cent' => 500, 'interval' => '1 month', 'grants' => 'fanclub', 'digital' => false],
         'hm-shirt' => ['name' => 'Shirt „Ännchen & Söhne"', 'amount_cent' => 3200, 'digital' => false],
         'lh-erstgespraech' => ['name' => 'Erstgespräch', 'amount_cent' => 0, 'digital' => true],
         'lh-fuenferkarte' => ['name' => 'Fünferkarte', 'amount_cent' => 45000, 'digital' => true],

@@ -154,12 +154,25 @@ class SeedsProducts
                 'grants' => null,
                 'active' => true,
             ],
+            // **Der einzige Ort, an dem es diesen Handle gibt.** Bis zum
+            // 09.09.2026 stand `hm-fanclub` auch in `SeedsCommerce::katalog()`
+            // und damit in `config/statamic-payments.php` — und die Config
+            // gewinnt in `Catalogue::find()`. Die Zeile hier war also
+            // unerreichbar, samt ihrer Marke: zwei laufende Abos standen auf
+            // Marke 0, und `payments:subscription-brand-backfill` konnte sie
+            // nicht umtragen, weil der Eintrag, den er zu sehen bekam, gar
+            // keine Marke nannte. Die Werte der Config sind hierher gezogen,
+            // damit der Handle dasselbe kostet und denselben Rhythmus hat wie
+            // vorher: 500 statt 5900, `interval`, `digital` false.
             'hm-fanclub' => [
                 'name' => 'Fanclub-Mitgliedschaft',
                 'type' => Product::TYPE_ACCESS,
                 'ref' => '0f6593db-7557-5a3b-ac31-6952de6a74fc',
-                'amount_cent' => 5900,
-                'digital' => true,
+                'amount_cent' => 500,
+                'interval' => '1 month',
+                // Vor Ort-Nutzen, kein digitales Produkt: derselbe
+                // Pflichthinweis auf der Rechnung wie vorher aus der Config.
+                'digital' => false,
                 'grants' => ['fanclub'],
                 'active' => true,
             ],

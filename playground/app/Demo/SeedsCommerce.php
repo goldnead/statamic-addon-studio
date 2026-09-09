@@ -63,12 +63,12 @@ class SeedsCommerce
             // ---- Kollektiv Halbmond -------------------------------------
             'hm-vinyl' => ['name' => 'Halbmond, das Album auf Vinyl', 'amount_cent' => 2900, 'digital' => false],
             'hm-ticket' => ['name' => 'Konzertticket', 'amount_cent' => 2200, 'digital' => false],
-            'hm-fanclub' => [
-                'name' => 'Fanclub Halbmond',
-                'amount_cent' => 500,
-                'interval' => '1 month',
-                'grants' => 'fanclub',
-            ],
+            // `hm-fanclub` stand hier und in `SeedsProducts`, und weil diese
+            // Liste die Config schreibt, gewann sie in `Catalogue::find()` —
+            // mitsamt ihrem Schweigen ueber die Marke. Zwei laufende Abos
+            // standen deshalb auf Marke 0 und liessen sich nicht umtragen. Ein
+            // Handle, eine Quelle: er steht jetzt nur noch in der
+            // Produkttabelle, mit denselben Werten und mit Marke 3.
             'hm-shirt' => ['name' => 'Shirt „Ännchen & Söhne"', 'amount_cent' => 3200, 'digital' => false],
 
             // ---- Praxis Lindhorst ---------------------------------------
