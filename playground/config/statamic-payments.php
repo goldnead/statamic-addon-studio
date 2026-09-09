@@ -47,17 +47,22 @@ return [
         'cw-begleit-cd' => ['name' => 'Begleit-CD zum Mitsingen', 'amount_cent' => 900, 'grants' => 'begleit-cd', 'digital' => true],
         'cw-noten' => ['name' => 'Notenpaket als PDF', 'amount_cent' => 1500, 'grants' => 'noten', 'digital' => true],
         'cw-stimmcheck' => ['name' => 'Stimm-Check (kostenlos)', 'amount_cent' => 0, 'grants' => 'stimmcheck', 'digital' => true],
-        'cw-mitgliedschaft' => ['name' => 'Mitgliedschaft Chorwerkstatt', 'amount_cent' => 1900, 'interval' => '1 month', 'grants' => 'mitgliedschaft'],
-        'cw-ausbildung' => ['name' => 'Chorleiter-Ausbildung, drei Raten', 'amount_cent' => 39900, 'interval' => '1 month', 'times' => 3],
+        // Die fuenf Produkte mit `interval` sagten bis 09.09.2026 nichts ueber
+        // `digital`, und ohne die Angabe schreibt statamic-invoices zu Recht
+        // gar keine Rechnung: das Merkmal entscheidet den Pflichthinweis, und
+        // eine ausgestellte Rechnung wird nicht korrigiert. Adrians Wort vom
+        // 09.09.2026: es sind keine digitalen Leistungen.
+        'cw-mitgliedschaft' => ['name' => 'Mitgliedschaft Chorwerkstatt', 'amount_cent' => 1900, 'interval' => '1 month', 'grants' => 'mitgliedschaft', 'digital' => false],
+        'cw-ausbildung' => ['name' => 'Chorleiter-Ausbildung, drei Raten', 'amount_cent' => 39900, 'interval' => '1 month', 'times' => 3, 'digital' => false],
         'cw-workshop' => ['name' => 'Workshop-Tag vor Ort', 'amount_cent' => 45000, 'digital' => true],
         'hm-vinyl' => ['name' => 'Halbmond, das Album auf Vinyl', 'amount_cent' => 2900, 'digital' => false],
         'hm-ticket' => ['name' => 'Konzertticket', 'amount_cent' => 2200, 'digital' => false],
-        'hm-fanclub' => ['name' => 'Fanclub Halbmond', 'amount_cent' => 500, 'interval' => '1 month', 'grants' => 'fanclub'],
+        'hm-fanclub' => ['name' => 'Fanclub Halbmond', 'amount_cent' => 500, 'interval' => '1 month', 'grants' => 'fanclub', 'digital' => false],
         'hm-shirt' => ['name' => 'Shirt „Ännchen & Söhne"', 'amount_cent' => 3200, 'digital' => false],
         'lh-erstgespraech' => ['name' => 'Erstgespräch', 'amount_cent' => 0, 'digital' => true],
         'lh-fuenferkarte' => ['name' => 'Fünferkarte', 'amount_cent' => 45000, 'digital' => true],
-        'lh-begleitung' => ['name' => 'Begleitung, monatlich', 'amount_cent' => 14900, 'interval' => '1 month', 'trial_days' => 14, 'trial_amount_cent' => 100],
-        'lh-quartal' => ['name' => 'Begleitung im Quartalsrhythmus', 'amount_cent' => 39900, 'interval' => '3 months'],
+        'lh-begleitung' => ['name' => 'Begleitung, monatlich', 'amount_cent' => 14900, 'interval' => '1 month', 'trial_days' => 14, 'trial_amount_cent' => 100, 'digital' => false],
+        'lh-quartal' => ['name' => 'Begleitung im Quartalsrhythmus', 'amount_cent' => 39900, 'interval' => '3 months', 'digital' => false],
         'kaputt-negativ' => ['name' => 'Negativ', 'amount_cent' => -500, 'digital' => true],
         'kaputt-string' => ['name' => 'Als Text getippt', 'amount_cent' => '19,00', 'digital' => true],
         'kaputt-ohne-preis' => ['name' => 'Ohne Preis', 'digital' => true],
