@@ -43,7 +43,6 @@ return [
     'webhook_url' => false,
 
     'products' => [
-        'cw-kurs' => ['name' => 'Frühlingskurs für Chorleitende', 'amount_cent' => 24900, 'grants' => 'kurs-fruehling', 'digital' => true],
         'cw-begleit-cd' => ['name' => 'Begleit-CD zum Mitsingen', 'amount_cent' => 900, 'grants' => 'begleit-cd', 'digital' => true],
         'cw-noten' => ['name' => 'Notenpaket als PDF', 'amount_cent' => 1500, 'grants' => 'noten', 'digital' => true],
         'cw-stimmcheck' => ['name' => 'Stimm-Check (kostenlos)', 'amount_cent' => 0, 'grants' => 'stimmcheck', 'digital' => true],
@@ -58,7 +57,6 @@ return [
         'hm-vinyl' => ['name' => 'Halbmond, das Album auf Vinyl', 'amount_cent' => 2900, 'digital' => false],
         'hm-ticket' => ['name' => 'Konzertticket', 'amount_cent' => 2200, 'digital' => false],
         'hm-shirt' => ['name' => 'Shirt „Ännchen & Söhne"', 'amount_cent' => 3200, 'digital' => false],
-        'lh-erstgespraech' => ['name' => 'Erstgespräch', 'amount_cent' => 0, 'digital' => true],
         'lh-fuenferkarte' => ['name' => 'Fünferkarte', 'amount_cent' => 45000, 'digital' => true],
         'lh-begleitung' => ['name' => 'Begleitung, monatlich', 'amount_cent' => 14900, 'interval' => '1 month', 'trial_days' => 14, 'trial_amount_cent' => 100, 'digital' => false],
         'lh-quartal' => ['name' => 'Begleitung im Quartalsrhythmus', 'amount_cent' => 39900, 'interval' => '3 months', 'digital' => false],

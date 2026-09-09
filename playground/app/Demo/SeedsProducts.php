@@ -97,7 +97,13 @@ class SeedsProducts
                 'name' => 'Frühlingskurs für Chorleitende',
                 'type' => Product::TYPE_ACCESS,
                 'ref' => 'c7a4b134-3c48-5107-a0c2-8be2bc6cc9e7',
-                'amount_cent' => 25900,
+                // 24900 und nicht 25900: der Handle stand bis zum 09.09.2026
+                // auch in `SeedsCommerce::katalog()`, und die Config gewinnt in
+                // `Catalogue::find()`. Verkauft wurde also die ganze Zeit zu
+                // 24900 — so stehen auch die Demo-Zahlungen da. Die 25900 hier
+                // hat nie jemand bezahlt; sie war der stille Widerspruch, der
+                // die Marke 2 dieser Zeile unerreichbar machte.
+                'amount_cent' => 24900,
                 'digital' => true,
                 'grants' => ['kurs-fruehling'],
                 'active' => true,
@@ -190,7 +196,13 @@ class SeedsProducts
                 'type' => Product::TYPE_SESSIONS,
                 'ref' => 'beratung',
                 'amount_cent' => 0,
-                'digital' => false,
+                // `true` und nicht `false`: derselbe Fall wie bei `cw-kurs`.
+                // Die Config sagte `digital => true`, sie gewann in
+                // `Catalogue::find()`, und danach richtete sich der
+                // Pflichthinweis auf jedem Beleg. Beim Zusammenlegen die
+                // Angabe zu drehen hiesse, die steuerliche Aussage aller
+                // bisherigen Zeilen nachtraeglich zu aendern.
+                'digital' => true,
                 'grants' => null,
                 'active' => true,
             ],

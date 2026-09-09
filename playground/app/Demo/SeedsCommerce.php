@@ -39,7 +39,11 @@ class SeedsCommerce
             // oder nicht steuerbar. statamic-invoices verweigert die Rechnung,
             // wenn ein Produkt es nicht sagt -- vier verschiedene Saetze zu
             // raten waere schlimmer als keine Rechnung.
-            'cw-kurs' => ['name' => 'Frühlingskurs für Chorleitende', 'amount_cent' => 24900, 'grants' => 'kurs-fruehling', 'digital' => true],
+            // `cw-kurs` stand hier und in `SeedsProducts`, mit zwei
+            // verschiedenen Preisen. Diese Liste schreibt die Config, die
+            // Config gewinnt — verkauft wurde also zu 24900, waehrend die
+            // Tabellenzeile 25900 sagte und ihre Marke 2 nie ankam. Der Handle
+            // steht jetzt nur noch in der Produkttabelle, dort zu 24900.
             'cw-begleit-cd' => ['name' => 'Begleit-CD zum Mitsingen', 'amount_cent' => 900, 'grants' => 'begleit-cd', 'digital' => true],
             'cw-noten' => ['name' => 'Notenpaket als PDF', 'amount_cent' => 1500, 'grants' => 'noten', 'digital' => true],
             'cw-stimmcheck' => ['name' => 'Stimm-Check (kostenlos)', 'amount_cent' => 0, 'grants' => 'stimmcheck', 'digital' => true],
@@ -72,7 +76,9 @@ class SeedsCommerce
             'hm-shirt' => ['name' => 'Shirt „Ännchen & Söhne"', 'amount_cent' => 3200, 'digital' => false],
 
             // ---- Praxis Lindhorst ---------------------------------------
-            'lh-erstgespraech' => ['name' => 'Erstgespräch', 'amount_cent' => 0, 'digital' => true],
+            // `lh-erstgespraech` ebenso, nur ohne Preisstreit: beide sagten 0.
+            // Unerreichbar war trotzdem die Marke 4 der Tabellenzeile. Steht
+            // jetzt nur noch dort.
             'lh-fuenferkarte' => ['name' => 'Fünferkarte', 'amount_cent' => 45000, 'digital' => true],
             'lh-begleitung' => [
                 'name' => 'Begleitung, monatlich',
