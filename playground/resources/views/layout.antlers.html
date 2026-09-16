@@ -7,6 +7,19 @@
     {{ if meta_description }}<meta name="description" content="{{ meta_description | sanitize }}">{{ /if }}
     {{ if noindex }}<meta name="robots" content="noindex">{{ /if }}
     {{ consent:head }}
+
+    {{# Reichweitenmessung (Rybbit, self-hosted, cookielos). Sie ist die Quelle
+        der Website-Zahlen, die das Insights-Addon im CP unter Werkzeuge →
+        Auswertung zeigt — ohne dieses Snippet hat die Demo dort ein leeres
+        Regal.
+
+        Nur, wo eine Site-Id gesetzt ist: die steht in der .env der Demo auf
+        dem Server und lokal bewusst nicht, sonst laegen die Klicks der
+        Entwicklung in der Statistik der oeffentlichen Demo. #}}
+    {{ if config:services:rybbit:site_id }}
+        <script defer src="{{ config:services:rybbit:host }}/api/script.js" data-site-id="{{ config:services:rybbit:site_id }}"></script>
+    {{ /if }}
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 

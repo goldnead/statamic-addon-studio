@@ -22,6 +22,19 @@ return [
         'key' => env('RESEND_API_KEY'),
     ],
 
+    /*
+     * Rybbit — self-hosted, cookieless reach measurement.
+     *
+     * Read by the layout, which renders the snippet only when `site_id` is
+     * set. Unset locally on purpose: development clicks would otherwise land
+     * in the public demo's statistics, which is the same statistic the
+     * Insights addon shows in the Control Panel.
+     */
+    'rybbit' => [
+        'host' => env('RYBBIT_HOST', 'https://tr.adriangoldner.com'),
+        'site_id' => env('RYBBIT_SITE_ID'),
+    ],
+
     'ses' => [
         'key' => env('AWS_ACCESS_KEY_ID'),
         'secret' => env('AWS_SECRET_ACCESS_KEY'),
