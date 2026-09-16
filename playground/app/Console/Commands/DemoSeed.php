@@ -11,6 +11,7 @@ use App\Demo\SeedsEmailTemplates;
 use App\Demo\SeedsEvents;
 use App\Demo\SeedsFunnels;
 use App\Demo\SeedsIdentity;
+use App\Demo\SeedsInsights;
 use App\Demo\SeedsInvoices;
 use App\Demo\SeedsProducts;
 use App\Demo\SeedsProof;
@@ -146,6 +147,16 @@ class DemoSeed extends Command
         // Nach den Belegen, weil die Erstattung eine Stornorechnung ausloest.
         $this->components->task('Rechnungen: und die, die keine bekommen', function () {
             $this->ergebnis = array_merge($this->ergebnis, (new SeedsInvoices)->run());
+
+            return true;
+        });
+
+        // Nach den Rechnungen, und das ist bindend: SeedsInvoices schreibt
+        // jeder bezahlten Zahlung eine Rechnung, und dreihundert Demo-
+        // Rechnungen unter einer Marke waeren eine Nummernreihe, die niemand
+        // bestellt hat.
+        $this->components->task('Menge: achtzehn Monate Handel fuer die Berichte', function () use (&$marken) {
+            $this->ergebnis = array_merge($this->ergebnis, (new SeedsInsights)->run($marken));
 
             return true;
         });

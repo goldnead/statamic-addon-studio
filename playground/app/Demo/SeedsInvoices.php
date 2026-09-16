@@ -91,11 +91,22 @@ class SeedsInvoices
         return Invoice::query()->where('kind', Invoice::KIND_CREDIT_NOTE)->count();
     }
 
-    /** @return \Illuminate\Support\Collection<int, Payment> */
+    /**
+     * Die bezahlten Zahlungen ohne Rechnung — bis auf die Menge.
+     *
+     * `SeedsInsights` schreibt zweihundert Zahlungen, damit die Berichte einen
+     * Verlauf haben. Die gehoeren hier nicht hinein: eine Rechnung ist ein
+     * Dokument mit einer fortlaufenden Nummer, und zweihundert davon je Lauf
+     * waeren eine Nummernreihe, die niemand bestellt hat — und sie wuerden die
+     * Handvoll Verweigerungen zudecken, um die es auf diesem Bildschirm geht.
+     *
+     * @return \Illuminate\Support\Collection<int, Payment>
+     */
     protected function bezahlteZahlungen()
     {
         return Payment::withoutGlobalScopes()
             ->where('status', Payment::STATUS_PAID)
+            ->where('provider_id', 'not like', 'demo_ins_%')
             ->whereNotIn('id', Invoice::query()->whereNotNull('payment_id')->pluck('payment_id'))
             ->with('items')
             ->orderBy('id')

@@ -83,6 +83,32 @@ Genau ein Fehler steht danach im Log, und der ist gewollt: der Webhook-Ausgang a
 scheitert absichtlich, damit Wiederholungsplan, Fehlerklassifizierung und Sicherung etwas zu tun
 bekommen.
 
+### Die Menge, und warum sie eine Ausnahme ist
+
+Jeder Seeder hier schreibt Zustände: je eine Zeile pro Fall, den ein Bildschirm rendern können
+muss. `SeedsInsights` ist der einzige, der stattdessen **Menge** schreibt — rund dreihundert
+Zahlungen über achtzehn Monate, mit Wachstum, Sommerloch, Dezemberspitze, Herkünften, zwei
+Währungen, Erstattungen, wiedergeholten Warenkörben und Bumps.
+
+Der Grund ist `statamic-insights`. Ein Reporting-Addon beantwortet aus elf Zahlungen in drei
+Monaten keine einzige Frage, die jemand an ein Umsatzdiagramm stellt; ein leerer Verlauf sieht
+nicht nach wenig Umsatz aus, sondern nach einem kaputten Addon. Die Daten sind deshalb
+absichtlich **unauffällig** — die hässlichen Einzelfälle stehen weiter in `SeedsCommerce` und
+bleiben dort sichtbar, weil dreihundert Sonderfälle kein Hinweis mehr wären, sondern Rauschen.
+
+Drei Dinge hängen daran und sind beim Bauen aufgefallen:
+
+- **Reihenfolge.** `SeedsInsights` läuft **nach** `SeedsInvoices`. Der Rechnungs-Seeder schreibt
+  jeder bezahlten Zahlung eine Rechnung, und dreihundert Demo-Rechnungen je Lauf wären eine
+  fortlaufende Nummernreihe, die niemand bestellt hat. Beide Stellen, die über alle Zahlungen
+  laufen (`SeedsInvoices`, `SeedsAutomations`), klammern die Menge über
+  `provider_id not like 'demo_ins_%'` aus.
+- **Die Agentur verkauft jetzt selbst.** Nordlicht Studio ist die Vorgabemarke: wer sich anmeldet,
+  landet dort. Ohne eigene Produkte wäre der erste Bildschirm des Schauraums eine leere
+  Umsatzansicht. Deshalb `studio-website` und `studio-betreuung` im Katalog.
+- **Ein Produkt je Bestellung.** `payment_items` ist eindeutig auf `(payment_id, product)` —
+  dieselben Noten als Bump und als Upsell sind kein zweiter Posten, sondern ein Abbruch.
+
 ## Mollie
 
 Der Playground nimmt einen **Testschlüssel** aus `MOLLIE_KEY` und fährt dann gegen Mollies echtes

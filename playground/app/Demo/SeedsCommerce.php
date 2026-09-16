@@ -47,10 +47,19 @@ class SeedsCommerce
             'cw-begleit-cd' => ['name' => 'Begleit-CD zum Mitsingen', 'amount_cent' => 900, 'grants' => 'begleit-cd', 'digital' => true],
             'cw-noten' => ['name' => 'Notenpaket als PDF', 'amount_cent' => 1500, 'grants' => 'noten', 'digital' => true],
             'cw-stimmcheck' => ['name' => 'Stimm-Check (kostenlos)', 'amount_cent' => 0, 'grants' => 'stimmcheck', 'digital' => true],
+            // Die fuenf Produkte mit `interval` sagten bis 09.09.2026 nichts
+            // ueber `digital`, und ohne die Angabe schreibt statamic-invoices
+            // zu Recht gar keine Rechnung: das Merkmal entscheidet den
+            // Pflichthinweis, und eine ausgestellte Rechnung wird nicht
+            // korrigiert. Adrians Wort vom 09.09.2026: es sind keine digitalen
+            // Leistungen. Das stand bis 16.09. nur in `config/` — und weil
+            // `demo:seed` die Config aus dieser Liste schreibt, loeschte jeder
+            // Lauf die Entscheidung stillschweigend wieder heraus.
             'cw-mitgliedschaft' => [
                 'name' => 'Mitgliedschaft Chorwerkstatt',
                 'amount_cent' => 1900,
                 'interval' => '1 month',
+                'digital' => false,
                 // Granted per cycle: the entitlement is extended every month by
                 // the ordinary payment path, without the bridge knowing that
                 // subscriptions exist.
@@ -61,6 +70,7 @@ class SeedsCommerce
                 'amount_cent' => 39900,
                 'interval' => '1 month',
                 'times' => 3,
+                'digital' => false,
             ],
             'cw-workshop' => ['name' => 'Workshop-Tag vor Ort', 'amount_cent' => 45000, 'digital' => true],
 
@@ -86,11 +96,31 @@ class SeedsCommerce
                 'interval' => '1 month',
                 'trial_days' => 14,
                 'trial_amount_cent' => 100,
+                'digital' => false,
             ],
             'lh-quartal' => [
                 'name' => 'Begleitung im Quartalsrhythmus',
                 'amount_cent' => 39900,
                 'interval' => '3 months',
+                'digital' => false,
+            ],
+
+            // ---- Nordlicht Studio, die Agentur selbst -------------------
+            // Ohne Vorsilbe, also faellt `markeFuer()` auf die Agentur zurueck.
+            // Die Agentur ist die Vorgabemarke im Control Panel: wer sich
+            // anmeldet, landet hier. Verkaufte sie nichts, waere der erste
+            // Bildschirm des Schauraums eine leere Umsatzansicht — und das ist
+            // die Aussage „das Addon kann nichts", nicht „diese Marke handelt
+            // nicht".
+            // Beides Dienstleistung, nicht digitales Produkt — dieselbe
+            // Einordnung wie bei den Abos oben, und damit derselbe
+            // Pflichthinweis auf der Rechnung.
+            'studio-website' => ['name' => 'Website-Paket für Chöre', 'amount_cent' => 149000, 'digital' => false],
+            'studio-betreuung' => [
+                'name' => 'Betreuung, monatlich',
+                'amount_cent' => 19900,
+                'interval' => '1 month',
+                'digital' => false,
             ],
 
             // ---- Was der Katalog ablehnen muss --------------------------
@@ -141,7 +171,7 @@ class SeedsCommerce
      *
      * @param  array<string, Brand>  $marken
      */
-    protected function markeFuer(string $handle, array $marken): ?int
+    public function markeFuer(string $handle, array $marken): ?int
     {
         $nachVorsilbe = [
             'cw-' => 'chorwerkstatt',

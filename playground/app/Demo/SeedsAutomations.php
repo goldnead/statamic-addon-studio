@@ -660,12 +660,22 @@ class SeedsAutomations
         RunAutomation::dispatchSync($lauf->id, $kontext->all(), false);
     }
 
-    /** Zahlungen eines Produkts in einem Zustand. */
+    /**
+     * Zahlungen eines Produkts in einem Zustand — ohne die Menge.
+     *
+     * Die Aufrufer spielen `PaymentPaid` auf jeder gefundenen Zeile nach, und
+     * an diesem Ereignis haengt mehr als die Automation: `statamic-invoices`
+     * schreibt daraufhin eine Rechnung. Mit den zweihundert Zahlungen aus
+     * {@see SeedsInsights} in der Tabelle wuchs die Rechnungsreihe deshalb bei
+     * jedem Lauf weiter, obwohl der Rechnungs-Seeder null meldete. Die
+     * Menge ist Zahlenmaterial fuer die Berichte, kein Auslöser.
+     */
     protected function zahlungen(string $produkt, string $status)
     {
         return Payment::query()
             ->where('product', $produkt)
             ->where('status', $status)
+            ->where('provider_id', 'not like', 'demo_ins_%')
             ->orderBy('id')
             ->get();
     }
