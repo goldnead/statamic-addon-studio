@@ -6,10 +6,13 @@ use Goldnead\BrandContext\Facades\BrandContext;
 use Goldnead\BrandContext\Models\Brand;
 use Goldnead\Entitlements\Facades\Entitlements;
 use Goldnead\Entitlements\Support\SubjectReference;
+use Goldnead\Leadhub\Facades\LeadHub;
 use Goldnead\StatamicOffers\Models\Offer;
 use Goldnead\StatamicPayments\Models\Payment;
 use Goldnead\StatamicPayments\Models\PaymentItem;
+use Goldnead\StatamicPayments\Support\Refunds;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Menge. Achtzehn Monate Handel, damit `statamic-insights` etwas zu zeigen hat.
@@ -158,6 +161,18 @@ class SeedsInsights
     protected array $angenommen = [];
 
     /**
+     * Was jede bezahlte Bestellung fuer das CRM bedeutet.
+     *
+     * Gesammelt statt sofort gebucht, weil die Reihenfolge bindend ist:
+     * `LeadHub::recordRevenue()` legt **nie** einen Kontakt an, sondern gibt
+     * still `null` zurueck, wenn es keinen gibt. Erst alle Kontakte, dann aller
+     * Umsatz.
+     *
+     * @var list<array{email: string, name: ?string, marke: ?Brand, referenz: string, cent: int, waehrung: string, zeit: Carbon, produkt: string, erstattet: int}>
+     */
+    protected array $umsatz = [];
+
+    /**
      * @param  array<string, Brand>  $marken
      * @return array<string, int>
      */
@@ -185,10 +200,10 @@ class SeedsInsights
 
         $this->angeboteNachziehen();
 
-        return [
+        return array_merge([
             'insights_zahlungen' => $nummer,
             'insights_zugaenge' => $this->zugaenge($zugaenge, $marken),
-        ];
+        ], $this->kontakteUndUmsatz());
     }
 
     /**
@@ -226,7 +241,7 @@ class SeedsInsights
      *
      * @param  array<string, array<string, mixed>>  $katalog
      * @param  array<string, Brand>  $marken
-     * @return array{produkt: string, email: string, zeit: Carbon, marke: ?Brand}|null  Bezahlt und jung genug fuer einen Zugang
+     * @return array{produkt: string, email: string, zeit: Carbon, marke: ?Brand}|null Bezahlt und jung genug fuer einen Zugang
      */
     protected function eineZahlung(int $nummer, Carbon $beginn, array $katalog, SeedsCommerce $handel, array $marken): ?array
     {
@@ -297,8 +312,13 @@ class SeedsInsights
                 'landing_page' => '/angebot/'.$produkt,
                 'card_last4' => $bezahlt && $summe > 0 ? str_pad((string) mt_rand(0, 9999), 4, '0', STR_PAD_LEFT) : null,
                 'card_label' => $bezahlt && $summe > 0 ? $this->wahl(['Visa' => 5, 'Mastercard' => 4, 'PayPal' => 3, 'SEPA' => 2]) : null,
-                'refunded_cent' => $erstattet ? $summe : 0,
-                'refunded_at' => $erstattet ? $zeit->copy()->addDays(mt_rand(2, 21)) : null,
+                // `refunded_cent` und `refunded_at` stehen hier bewusst NICHT:
+                // die Erstattung wird weiter unten ueber `Refunds::record()`
+                // gebucht. Bis 16.09.2026 stempelte dieser Seeder beides
+                // direkt, und dann trugen zehn Zahlungen eine Erstattung,
+                // waehrend `payment_refunds` vier Zeilen hatte. Der
+                // Umsatzbildschirm las den Stempel und sah richtig aus, die
+                // Belegtabelle widersprach ihm.
                 'recovered_at' => $wiedergeholt ? $zeit->copy()->addHours(mt_rand(3, 60)) : null,
                 'paid_at' => $bezahlt ? $zeit : null,
                 'fulfilled_at' => $bezahlt ? $zeit : null,
@@ -318,6 +338,26 @@ class SeedsInsights
             }
         }
 
+        $marke = $this->markeVon($produkt, $marken);
+
+        if ($bezahlt) {
+            $erstattetCent = $erstattet ? $this->erstatten($zahlung, $marke, $nummer, $zeit) : 0;
+
+            $this->umsatz[] = [
+                'email' => $kaeufer['email'],
+                'name' => $kaeufer['name'],
+                'marke' => $marke,
+                // Namensraum voran, so wie der Vertrag es vorsieht: die
+                // Referenz ist der einzige Schutz gegen doppelte Buchung.
+                'referenz' => 'payments:demo_ins:'.$nummer,
+                'cent' => $summe,
+                'waehrung' => $kaeufer['waehrung'],
+                'zeit' => $zeit,
+                'produkt' => $produkt,
+                'erstattet' => $erstattetCent,
+            ];
+        }
+
         $jungGenug = $zeit->greaterThan(Carbon::now()->subMonths(self::ZUGANG_MONATE));
 
         // `array_key_exists`, nicht `isset`: die Produkte, deren Zugang nie
@@ -326,8 +366,129 @@ class SeedsInsights
         // im ersten Lauf drei von sieben Zugangsarten stillschweigend
         // ausgefallen.
         return $bezahlt && $jungGenug && array_key_exists($produkt, self::ZUGAENGE)
-            ? ['produkt' => $produkt, 'email' => $kaeufer['email'], 'zeit' => $zeit, 'marke' => $this->markeVon($produkt, $marken)]
+            ? ['produkt' => $produkt, 'email' => $kaeufer['email'], 'zeit' => $zeit, 'marke' => $marke]
             : null;
+    }
+
+    /**
+     * Eine Erstattung buchen, nicht stempeln.
+     *
+     * `Refunds::record()` schreibt die Zeile in `payment_refunds`, rechnet
+     * `refunded_cent` auf der Zahlung nach und feuert `PaymentRefunded`. Die
+     * Referenz ist dabei nicht schmueckend, sondern die einzige Duplikatsperre:
+     * ohne sie bucht ein zweiter Seed-Lauf ein zweites Mal, solange noch Betrag
+     * offen ist.
+     *
+     * Dass an `PaymentRefunded` eine Stornorechnung haengt, ist hier harmlos:
+     * `InvoiceWriter::creditNoteFor()` gibt `null` zurueck, wenn es zur Zahlung
+     * keine Rechnung gibt, und die Menge bekommt keine (siehe SeedsInvoices).
+     *
+     * Rueckdatiert wird danach, und zwar absichtlich am Beleg entlang statt an
+     * ihm vorbei: der Dienst kennt nur „jetzt", ein Schauraum braucht eine
+     * Vergangenheit. Verstellt wird nur der Zeitpunkt, nie der Betrag.
+     */
+    protected function erstatten(Payment $zahlung, ?Brand $marke, int $nummer, Carbon $zeit): int
+    {
+        if ($marke === null) {
+            return 0;
+        }
+
+        $betrag = (int) $zahlung->amount_cent;
+
+        BrandContext::runFor($marke, fn () => app(Refunds::class)->record(
+            $zahlung,
+            $betrag,
+            'demo_ins_erstattung_'.$nummer,
+        ));
+
+        $wann = $zeit->copy()->addDays(mt_rand(2, 21))->min(Carbon::now());
+
+        $zahlung->forceFill(['refunded_at' => $wann])->saveQuietly();
+
+        // Nur `created_at`: die Tabelle fuehrt kein `updated_at`. Ein Beleg
+        // wird nicht geaendert, er entsteht einmal.
+        DB::table('payment_refunds')
+            ->where('reference', 'demo_ins_erstattung_'.$nummer)
+            ->update(['created_at' => $wann]);
+
+        return $betrag;
+    }
+
+    /**
+     * Die Kaeufer als Kontakte, und was sie ausgegeben haben.
+     *
+     * Ohne das ist die Demo in sich widerspruechlich: der Umsatzbildschirm
+     * zaehlt hunderte Kaeufer, das CRM kennt achtzehn Leute, und die Spalte
+     * „Lebensumsatz" ist auf jeder Kontaktkarte leer. Wer beides nebeneinander
+     * sieht, haelt eines von beidem fuer kaputt.
+     *
+     * Reihenfolge ist bindend: `recordRevenue()` legt keinen Kontakt an. Und
+     * beides laeuft je Marke, weil `Contact` `HasBrand` fuehrt und die Suche
+     * nach der Adresse im Bereich der aktiven Marke stattfindet.
+     *
+     * @return array<string, int>
+     */
+    protected function kontakteUndUmsatz(): array
+    {
+        $kontakte = 0;
+        $gebucht = 0;
+
+        // Je Marke ein Durchgang, statt je Buchung einmal umzuschalten.
+        $nachMarke = [];
+
+        foreach ($this->umsatz as $zeile) {
+            if ($zeile['marke'] !== null) {
+                $nachMarke[$zeile['marke']->id][] = $zeile;
+            }
+        }
+
+        foreach ($nachMarke as $zeilen) {
+            $marke = $zeilen[0]['marke'];
+
+            BrandContext::runFor($marke, function () use ($zeilen, &$kontakte, &$gebucht) {
+                $gesehen = [];
+
+                foreach ($zeilen as $zeile) {
+                    $schluessel = mb_strtolower($zeile['email']);
+
+                    if (! isset($gesehen[$schluessel])) {
+                        $gesehen[$schluessel] = true;
+                        $kontakte++;
+
+                        LeadHub::create([
+                            'email' => $zeile['email'],
+                            'full_name' => $zeile['name'],
+                            'status' => 'customer',
+                            'source' => 'checkout',
+                            'tags' => ['kunde'],
+                        ]);
+                    }
+
+                    $ergebnis = LeadHub::recordRevenue(
+                        $zeile['email'],
+                        $zeile['referenz'],
+                        $zeile['cent'],
+                        $zeile['waehrung'],
+                        $zeile['zeit'],
+                        'statamic-payments',
+                        ['product' => $zeile['produkt']],
+                    );
+
+                    if ($ergebnis !== null) {
+                        $gebucht++;
+                    }
+
+                    // Erstattet heisst nicht „nie eingenommen": der Eintrag
+                    // bleibt stehen und traegt den zurueckgegangenen Teil, so
+                    // wie es die Belegtabelle auch tut.
+                    if ($zeile['erstattet'] > 0) {
+                        LeadHub::refundRevenue($zeile['referenz'], $zeile['erstattet']);
+                    }
+                }
+            });
+        }
+
+        return ['insights_kontakte' => $kontakte, 'insights_umsatzbuchungen' => $gebucht];
     }
 
     /**

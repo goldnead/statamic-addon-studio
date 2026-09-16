@@ -9,6 +9,7 @@ use Goldnead\Invoices\InvoiceWriter;
 use Goldnead\Invoices\Models\Invoice;
 use Goldnead\StatamicPayments\Models\Payment;
 use Goldnead\StatamicPayments\Support\Refunds;
+use Illuminate\Support\Collection;
 
 /**
  * Rechnungen zu den bezahlten Zahlungen des Demos.
@@ -63,7 +64,7 @@ class SeedsInvoices
      * Stornorechnung soll dort entstehen, wo sie im Betrieb entsteht — im
      * Listener auf `PaymentRefunded`.
      *
-     * @param  \Illuminate\Support\Collection<string, Brand>  $marken
+     * @param  Collection<string, Brand>  $marken
      */
     protected function einStorno($marken): int
     {
@@ -100,7 +101,7 @@ class SeedsInvoices
      * waeren eine Nummernreihe, die niemand bestellt hat — und sie wuerden die
      * Handvoll Verweigerungen zudecken, um die es auf diesem Bildschirm geht.
      *
-     * @return \Illuminate\Support\Collection<int, Payment>
+     * @return Collection<int, Payment>
      */
     protected function bezahlteZahlungen()
     {

@@ -2,9 +2,12 @@
 
 namespace App\Console\Commands;
 
+use App\Demo\DemoData;
+use App\Demo\SeedsAssessments;
 use App\Demo\SeedsAutomations;
 use App\Demo\SeedsBrands;
 use App\Demo\SeedsCampaign;
+use App\Demo\SeedsClientRooms;
 use App\Demo\SeedsCommerce;
 use App\Demo\SeedsCrm;
 use App\Demo\SeedsEmailTemplates;
@@ -17,8 +20,16 @@ use App\Demo\SeedsProducts;
 use App\Demo\SeedsProof;
 use App\Demo\SeedsTeam;
 use App\Demo\SeedsWebhooks;
+use Goldnead\StatamicOffers\Models\Coupon;
+use Goldnead\StatamicOffers\Models\Offer;
+use Goldnead\StatamicPayments\Models\Payment;
+use Goldnead\StatamicPayments\Models\PaymentItem;
+use Goldnead\StatamicPayments\Models\Subscription;
+use Goldnead\StatamicProducts\Models\Product;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Schema;
 
 /**
  * Build the demo.
@@ -30,7 +41,7 @@ use Illuminate\Support\Facades\File;
  * the family changes.
  *
  * The data is deliberately awkward. A demo built from tidy rows proves that
- * tidy rows work, which nobody doubted. See {@see \App\Demo\DemoData}.
+ * tidy rows work, which nobody doubted. See {@see DemoData}.
  */
 class DemoSeed extends Command
 {
@@ -161,6 +172,23 @@ class DemoSeed extends Command
             return true;
         });
 
+        // Nach der Menge, damit der LeadHub-Listener die Antwort einem
+        // vorhandenen Kontakt zuordnen kann. `submit()` setzt `contact_id`
+        // selbst nicht.
+        $this->components->task('Fragebögen: zwei veröffentlicht, einer im Entwurf', function () use (&$marken) {
+            $this->ergebnis = array_merge($this->ergebnis, (new SeedsAssessments)->run($marken));
+
+            return true;
+        });
+
+        // Nach SeedsTeam und SeedsCrm: die Eigentuemer sind CP-Konten, und der
+        // Klient wird ueber seine Adresse im CRM nachgeschlagen.
+        $this->components->task('Klientenräume: sechs, mit offener Arbeit darin', function () use (&$marken) {
+            $this->ergebnis = array_merge($this->ergebnis, (new SeedsClientRooms)->run($marken));
+
+            return true;
+        });
+
         $this->components->task('Kampagne: einmal wirklich senden', function () use (&$marken) {
             $this->ergebnis = array_merge($this->ergebnis, (new SeedsCampaign)->run($marken));
 
@@ -255,19 +283,38 @@ class DemoSeed extends Command
         // eine Fall, in dem der Riegel im Weg steht -- und der Zaehler muss
         // mit, sonst kollidiert die naechste Nummer mit einer, die es nicht
         // mehr gibt.
-        foreach (['invoice_items', 'invoices', 'invoice_counters'] as $tabelle) {
-            if (\Illuminate\Support\Facades\Schema::hasTable($tabelle)) {
-                \Illuminate\Support\Facades\DB::table($tabelle)->delete();
+        // Alles, was an einer Zahlung haengt, muss mit ihr gehen.
+        //
+        // Bis 16.09.2026 standen hier nur die Rechnungen, und `PaymentItem`
+        // wurde unten eigens geloescht. Jede Kindtabelle, die seitdem
+        // dazugekommen ist, blieb liegen: nach drei `--fresh`-Laeufen trugen
+        // zehn Zahlungen eine Erstattung, waehrend `payment_refunds`
+        // einundzwanzig Zeilen hatte, elf davon Waisen ohne Zahlung. Das sieht
+        // im Bericht aus wie ein Zaehlfehler des Addons und ist keiner.
+        //
+        // `leadhub_contact_revenue` gehoert dazu, weil jede Zeile die Referenz
+        // einer Zahlung traegt, die es nach dem Wischen nicht mehr gibt. Die
+        // Kontakte selbst bleiben stehen: die legt `SeedsCrm` an, sie werden
+        // ueber die Adresse wiedergefunden, und ihre Summen rechnet
+        // `recordRevenue()` beim naechsten Lauf neu.
+        foreach ([
+            'invoice_items', 'invoices', 'invoice_counters',
+            'payment_refunds', 'payment_communications', 'payment_chargebacks',
+            'payment_webhook_events', 'payment_withdrawals', 'payment_cancellations',
+            'leadhub_contact_revenue',
+        ] as $tabelle) {
+            if (Schema::hasTable($tabelle)) {
+                DB::table($tabelle)->delete();
             }
         }
 
         foreach ([
-            \Goldnead\StatamicPayments\Models\PaymentItem::class,
-            \Goldnead\StatamicPayments\Models\Payment::class,
-            \Goldnead\StatamicPayments\Models\Subscription::class,
-            \Goldnead\StatamicOffers\Models\Coupon::class,
-            \Goldnead\StatamicOffers\Models\Offer::class,
-            \Goldnead\StatamicProducts\Models\Product::class,
+            PaymentItem::class,
+            Payment::class,
+            Subscription::class,
+            Coupon::class,
+            Offer::class,
+            Product::class,
         ] as $modell) {
             $modell::query()->delete();
         }

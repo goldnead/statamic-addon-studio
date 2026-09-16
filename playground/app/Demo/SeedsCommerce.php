@@ -5,9 +5,13 @@ namespace App\Demo;
 use Goldnead\BrandContext\Models\Brand;
 use Goldnead\StatamicOffers\Models\Coupon;
 use Goldnead\StatamicOffers\Models\Offer;
+use Goldnead\StatamicPayments\Legal\Cancellations;
+use Goldnead\StatamicPayments\Legal\Withdrawals;
+use Goldnead\StatamicPayments\Models\Cancellation;
 use Goldnead\StatamicPayments\Models\Payment;
 use Goldnead\StatamicPayments\Models\PaymentItem;
 use Goldnead\StatamicPayments\Models\Subscription;
+use Goldnead\StatamicPayments\Models\Withdrawal;
 use Illuminate\Support\Carbon;
 
 /**
@@ -148,12 +152,12 @@ class SeedsCommerce
         $zahlungen = $this->zahlungen();
         $abos = $this->abos();
 
-        return [
+        return array_merge([
             'angebote' => count($angebote),
             'gutscheine' => Coupon::count(),
             'zahlungen' => $zahlungen,
             'abos' => $abos,
-        ];
+        ], $this->rechtsfaelle());
     }
 
     /**
@@ -442,6 +446,110 @@ class SeedsCommerce
         }
 
         return count($reihen);
+    }
+
+    /**
+     * Widerrufe und Kuendigungen, die Kundenseite des Gesetzes.
+     *
+     * Beide Utilities im CP (`utilities.withdrawals`, `utilities.cancellations`)
+     * standen leer, weil diese Zeilen im Betrieb erst entstehen, wenn jemand
+     * das Formular auf der Website ausfuellt. Ein Schauraum, in dem zwei
+     * Bildschirme nie etwas zeigen, belegt nichts.
+     *
+     * Ueber die Dienste, nicht per Insert: `declare()` vergibt die oeffentliche
+     * Kennung (`W-…`, `K-…`), und `confirm()` ist der Schritt, der die Erklaerung
+     * ueberhaupt erst einer Zahlung oder einem Abo zuordnet. Wer die Zeile
+     * direkt einfuegt, bekommt eine ohne Kennung, ohne Zuordnung und ohne
+     * Protokoll, also genau das, was im CP nach einem Defekt aussieht.
+     *
+     * `order_reference` bzw. `identification` muessen die `provider_id` treffen:
+     * danach sucht `match()`. Eine Erklaerung, die niemanden trifft, bleibt
+     * stehen und wird nie zugeordnet, ohne dass ein Fehler auftaucht. Genau
+     * dieser Fall steht hier einmal bewusst drin.
+     *
+     * @return array<string, int>
+     */
+    protected function rechtsfaelle(): array
+    {
+        $widerrufe = [
+            // Der Normalfall: erklaert und bestaetigt, trifft eine Zahlung.
+            ['Bärbel Öztürk-Weiß', 'bärbel.öztürk@beispiel.de', 'demo_tr_1', true],
+            // Erklaert, aber nie bestaetigt. Der Zustand, in dem eine
+            // Erklaerung im CP auf einen Menschen wartet.
+            ['Jean-Luc «Loup» Fabre', 'plus+tag@beispiel.de', 'demo_tr_2', false],
+            // Bestaetigt, trifft aber nichts: die Kennung gibt es nicht.
+            // Im CP steht die Zeile ohne Zahlung daneben, und das ist der
+            // Fall, den ein Mensch von Hand aufloesen muss.
+            ['Ein Kunde ohne Nummer', 'kein-name@beispiel.de', 'gibt-es-nicht', true],
+        ];
+
+        $dienst = app(Withdrawals::class);
+
+        foreach ($widerrufe as [$name, $adresse, $referenz, $bestaetigen]) {
+            $vorhanden = Withdrawal::query()
+                ->where('email', $adresse)
+                ->where('order_reference', $referenz)
+                ->first();
+
+            $widerruf = $vorhanden ?? $dienst->declare([
+                'name' => $name,
+                'email' => $adresse,
+                'order_reference' => $referenz,
+            ], '198.51.100.7');
+
+            if ($bestaetigen) {
+                // Selbst idempotent: der Dienst setzt `confirmed_at` nur, wenn
+                // es noch leer ist.
+                $dienst->confirm($widerruf);
+            }
+        }
+
+        // Die Adresse kommt aus dem Abo, nicht aus dieser Liste. `match()`
+        // sucht nach Adresse **und** Kennung; eine von Hand danebengeschriebene
+        // Adresse laesst die Kuendigung fuer immer unzugeordnet, ohne dass ein
+        // Fehler auftaucht. Im ersten Lauf ist genau das passiert: zwei von
+        // drei Zeilen standen ohne Abo da, weil die Abo-Adressen aus einer
+        // rotierenden Liste stammen und nicht die sind, die man erwartet.
+        $kuendigungen = [
+            // Ordentlich, bestaetigt, trifft ein laufendes Abo.
+            ['demo_sub_1', Cancellation::KIND_ORDINARY, true],
+            // Ausserordentlich: der Fall, bei dem eine Frist nicht gilt.
+            ['demo_sub_2', Cancellation::KIND_EXTRAORDINARY, true],
+            // Erklaert und liegen geblieben, auf einem Abo, das der Anbieter
+            // nach einer geplatzten Abbuchung stillgelegt hat.
+            ['demo_sub_5', Cancellation::KIND_ORDINARY, false],
+        ];
+
+        $kdienst = app(Cancellations::class);
+
+        foreach ($kuendigungen as [$kennung, $art, $bestaetigen]) {
+            $abo = Subscription::query()->where('provider_id', $kennung)->first();
+
+            if ($abo === null) {
+                continue;
+            }
+
+            $vorhanden = Cancellation::query()
+                ->where('email', $abo->email)
+                ->where('identification', $kennung)
+                ->first();
+
+            $kuendigung = $vorhanden ?? $kdienst->declare([
+                'name' => $abo->name ?: 'Ohne Namen',
+                'email' => $abo->email,
+                'identification' => $kennung,
+                'kind' => $art,
+            ], '198.51.100.7');
+
+            if ($bestaetigen) {
+                $kdienst->confirm($kuendigung);
+            }
+        }
+
+        return [
+            'widerrufe' => Withdrawal::query()->count(),
+            'kuendigungen' => Cancellation::query()->count(),
+        ];
     }
 
     /** Agreements in every state, including the ones that have gone wrong. */
