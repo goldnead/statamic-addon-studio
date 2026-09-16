@@ -74,10 +74,25 @@ eindeutig).
 
 ### Was der Aufbau erzeugt
 
-62 der 70 Tabellen tragen Daten. Die acht leeren sind es aus einem Grund: `marketing_*` fährt den
-flat-Treiber (die Listen liegen als YAML unter `content/marketing/`, das ist Laufzeitstand und
-gehört deshalb nicht ins Repo), `users` ist bei Statamic ein Datei-Store, und vier Tabellen sind
-Einstellungs- und Abmeldespeicher, die erst beim Benutzen entstehen.
+86 der 105 Tabellen tragen Daten (Stand 16.09.2026, nach `demo:seed --fresh`). Die neunzehn
+leeren sind es aus einem Grund:
+
+- `marketing_campaigns`, `marketing_templates` — der flat-Treiber, die Inhalte liegen als YAML
+  unter `content/marketing/` und sind dort **nicht** leer.
+- `marketing_message_events`, `funnel_mail_deliveries`, `leadhub_sync_logs`,
+  `payment_webhook_events`, `payment_chargebacks` — Laufzeitspuren. Sie entstehen, wenn wirklich
+  gesendet, geklickt, synchronisiert oder zurückgebucht wird, und nicht vorher.
+- `invoice_vat_id_checks` — keine Rechnung wartet auf eine Prüfung. Der Leerzustand sagt genau das.
+- `automation_settings`, `automation_opt_outs`, `leadhub_settings`, `webhook_settings` —
+  Einstellungs- und Abmeldespeicher, die erst beim Benutzen entstehen.
+- `users` (Statamic ist dort ein Datei-Store), `sessions`, `cache_locks`, `jobs`, `job_batches`,
+  `failed_jobs`, `password_reset_tokens` — Laravel und Statamic selbst.
+
+**Diese Zählung gehört auf ein frisch geseedetes Demo, nicht auf die eigene Arbeitskopie.** Die
+lokale SQLite sammelt über viele Läufe Zeilen an, die kein Seeder mehr schreibt, und sieht
+deshalb voller aus als jeder Neuaufbau. Am 16.09.2026 standen lokal Umsatzzeilen, Widerrufe und
+Kündigungen, die auf der öffentlichen Demo nicht existierten. Wer wissen will, was ein Besucher
+sieht, zählt dort: `ssh … docker exec -u www-data … statamic-demo php -r '…'`.
 
 Genau ein Fehler steht danach im Log, und der ist gewollt: der Webhook-Ausgang auf `127.0.0.1:9`
 scheitert absichtlich, damit Wiederholungsplan, Fehlerklassifizierung und Sicherung etwas zu tun
