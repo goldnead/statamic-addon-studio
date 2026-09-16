@@ -72,3 +72,18 @@ node_modules/
 .DS_Store
 *.log
 tools/**/vendor/
+
+# Jede .env-Variante, ueberall im Baum.
+#
+# Hier war die Luecke nicht `.env` selbst — `playground/.env` faellt unter die
+# playground-Regeln, `playground-portal/.env` ebenfalls. Offen war `.env.bak` und alles
+# andere mit Endung DAHINTER: am 15.09.2026 ist in choirlive genau so ein `api/.env.bak`
+# in einen Push geraten, erzeugt von einem Editierbefehl mit Sicherungsendung und
+# eingepackt von einem Sammel-Add. Dritter Vorfall dieser Art.
+#
+# Die naechste Kopie heisst `.env.save`, `.env.orig` oder `.env.2026-09-15`, und keiner
+# dieser Namen faellt jemandem vorher ein. Deshalb ein Muster statt einer Aufzaehlung.
+.env
+.env.*
+!.env.example
+!.env.*.example
