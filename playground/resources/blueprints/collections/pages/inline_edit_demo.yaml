@@ -40,11 +40,37 @@ tabs:
               type: integer
               display: Plätze
           -
+            handle: body
+            field:
+              type: markdown
+              display: Text
+              instructions: 'Doppelklick oeffnet die Markdown-Quelle, nicht das gerenderte HTML.'
+          -
+            handle: belegung
+            field:
+              type: select
+              display: Belegung
+              options:
+                offen: 'Plaetze frei'
+                warteliste: Warteliste
+                voll: Ausgebucht
+          -
+            handle: starts_on
+            field:
+              type: date
+              display: Beginn
+          -
+            handle: schlagworte
+            field:
+              type: list
+              display: Schlagworte
+              instructions: 'Kein Fieldtype, den die Seite bedienen kann. Doppelklick oeffnet das Control Panel.'
+          -
             handle: promoted
             field:
               type: toggle
               display: Hervorgehoben
-              instructions: 'Nicht auf der Liste der bearbeitbaren Fieldtypes. Rendert normal, ist im Frontend nicht anklickbar.'
+              instructions: 'Der Wert steht nicht auf der Seite, das Template macht ein Wort daraus. Doppelklick oeffnet deshalb einen Schalter.'
   meta:
     display: Meta
     sections:
