@@ -1,0 +1,48 @@
+title: 'Inline Edit Demo'
+
+# Eine eigene Vorlage statt zwei Felder im geteilten `pages`-Blueprint. Die
+# Demo braucht genau die Fälle, die das Addon unterscheidet, und die gehen
+# niemanden etwas an, der eine Markenseite pflegt.
+
+tabs:
+  main:
+    display: Main
+    sections:
+      -
+        fields:
+          -
+            handle: title
+            field:
+              type: text
+              required: true
+              display: Titel
+          -
+            handle: kicker
+            field:
+              type: text
+              display: Dachzeile
+              instructions: 'Absichtlich leer gelassen, damit der leere Zustand im Frontend zu sehen ist.'
+          -
+            handle: intro
+            field:
+              type: textarea
+              display: Einleitung
+              instructions: 'Mehrzeilig. Enter setzt im Frontend einen Umbruch, statt das Feld zu verlassen.'
+          -
+            handle: seats
+            field:
+              type: integer
+              display: Plätze
+          -
+            handle: promoted
+            field:
+              type: toggle
+              display: Hervorgehoben
+              instructions: 'Nicht auf der Liste der bearbeitbaren Fieldtypes. Rendert normal, ist im Frontend nicht anklickbar.'
+  meta:
+    display: Meta
+    sections:
+      -
+        fields:
+          -
+            import: seo

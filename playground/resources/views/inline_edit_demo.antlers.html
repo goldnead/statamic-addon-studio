@@ -1,0 +1,55 @@
+{{#
+    Die Arbeitsprobe für statamic-inline-edit.
+
+    Jedes Feld, das ein Redakteur auf der Seite ändern darf, steht hier als
+    {{ editable:handle }} statt {{ handle }}. Das ist der ganze Einbau. Für
+    einen Besucher rendert das byteweise dasselbe wie vorher: kein Wrapper,
+    kein Skript, kein Attribut.
+
+    `promoted` steht absichtlich als gewöhnliches {{ promoted }} da. Ein
+    Toggle ist kein Text, gehört nicht auf die Liste, und die Seite soll
+    zeigen, dass daneben ganz normale Ausgabe steht.
+#}}
+
+<style>
+    .ie-demo { max-width: 40rem; }
+    .ie-demo h1 { font-family: 'Outfit', system-ui, sans-serif; font-size: 2.5rem; line-height: 1.1; margin: 0 0 .5rem; }
+    .ie-demo .kicker { font-family: 'JetBrains Mono', monospace; font-size: .75rem; letter-spacing: .12em; text-transform: uppercase; color: #6b6b73; margin: 0 0 1rem; }
+    .ie-demo .intro { font-size: 1.125rem; line-height: 1.7; }
+    .ie-demo .facts { display: flex; gap: 2rem; margin: 2rem 0; padding: 1rem 0; border-top: 1px solid #E6E6E4; border-bottom: 1px solid #E6E6E4; font-size: .9rem; }
+    .ie-demo .facts dt { color: #6b6b73; margin-bottom: .25rem; }
+    .ie-demo .facts dd { margin: 0; font-weight: 500; }
+    .ie-demo .note { margin-top: 2.5rem; padding: 1rem 1.25rem; background: #F4F4F2; border-radius: .5rem; font-size: .875rem; line-height: 1.6; color: #44444a; }
+    .ie-demo .note code { font-family: 'JetBrains Mono', monospace; font-size: .8125rem; }
+</style>
+
+<article class="ie-demo">
+
+    <p class="kicker">{{ editable:kicker }}</p>
+
+    <h1>{{ editable:title }}</h1>
+
+    <p class="intro">{{ editable:intro }}</p>
+
+    <dl class="facts">
+        <div>
+            <dt>Plätze</dt>
+            <dd>{{ editable:seats }}</dd>
+        </div>
+        <div>
+            <dt>Hervorgehoben</dt>
+            <dd>{{ if promoted }}ja{{ else }}nein{{ /if }}</dd>
+        </div>
+    </dl>
+
+    <p>Dieser Absatz steht fest im Template und gehört zu keinem Feld. Er darf
+    nie eine Umrandung bekommen.</p>
+
+    <div class="note">
+        Angemeldet? Dann liegt unten eine Leiste. <strong>Seite bearbeiten</strong>
+        anklicken, dann Doppelklick auf einen umrandeten Text. <code>Esc</code>
+        verwirft das Feld, <code>Cmd/Ctrl + S</code> speichert alles.
+        Die Dachzeile ist leer und bekommt erst im Bearbeiten-Modus eine Box.
+    </div>
+
+</article>
