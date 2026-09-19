@@ -5,6 +5,7 @@ title: 'Zuerst die Stimme'
 intro: |
   Im Chor wird musikalisch gearbeitet.
   Stimmtechnisch bleibt meistens vieles offen.
+note: 'Ein Textarea ohne echten Umbruch im Wert. Es rendert genau so, wie ein Besucher es sieht, und ändert sich beim Einschalten nicht.'
 seats: 12
 promoted: true
 template: inline_edit_demo

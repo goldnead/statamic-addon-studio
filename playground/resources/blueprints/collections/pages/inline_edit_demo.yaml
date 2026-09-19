@@ -29,6 +29,12 @@ tabs:
               display: Einleitung
               instructions: 'Mehrzeilig. Enter setzt im Frontend einen Umbruch, statt das Feld zu verlassen.'
           -
+            handle: note
+            field:
+              type: textarea
+              display: Notiz
+              instructions: 'Auch mehrzeilig, aber ohne echten Zeilenumbruch im Wert. Rendert deshalb im Frontend exakt so wie fuer einen Besucher.'
+          -
             handle: seats
             field:
               type: integer
