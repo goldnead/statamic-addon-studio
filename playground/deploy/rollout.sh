@@ -44,6 +44,19 @@ echo "-> 3/5 package:discover"
 # (03.09.2026 geprueft). Die Autoload-Dateien kommen fertig aus dem Build.
 im_container php artisan package:discover
 
+# Der Stache indiziert content/ und liegt in storage/, das der rsync mit
+# ueberschreibt — aber nicht zwingend so, dass Statamic die Aenderung bemerkt.
+# Am 19.09.2026 lag eine neu ausgerollte Seite als Datei auf dem Server und
+# antwortete trotzdem mit 404, weil der Index sie nicht kannte. Das trifft
+# jede neue Seite und jede geaenderte Collection, und es sieht aus wie ein
+# vergessener rsync, obwohl die Datei da ist.
+#
+# Danach `cache:clear`, weil ein alter Eintrag im Application-Cache denselben
+# Effekt hat und beides zusammen eine Sekunde kostet.
+echo "-> 3b/5 Stache und Cache leeren"
+im_container php please stache:clear
+im_container php artisan cache:clear
+
 echo "-> 4/5 migrate --force"
 # Der Schritt, dessen Fehlen am 03.09.2026 zwei CP-Seiten auf 500 gesetzt hat.
 # Neue Addons bringen neue Migrationen mit, und niemand sieht ihnen das an.
