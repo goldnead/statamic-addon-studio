@@ -76,6 +76,10 @@
         {{ editable field="schlagworte" }}{{ schlagworte }}<span class="tag">{{ value }}</span>{{ /schlagworte }}{{ /editable }}
     </p>
 
+    {{# Bard. Ein ganzer Editor, den diese Leiste nicht nachbaut. Der
+        Doppelklick oeffnet genau dieses Feld als Panel ueber der Seite. #}}
+    <div class="body">{{ editable:inhalt }}</div>
+
     <p>Dieser Absatz steht fest im Template und gehört zu keinem Feld. Er darf
     nie eine Umrandung bekommen.</p>
 

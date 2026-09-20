@@ -66,6 +66,14 @@ tabs:
               display: Schlagworte
               instructions: 'Kein Fieldtype, den die Seite bedienen kann. Doppelklick oeffnet das Control Panel.'
           -
+            handle: inhalt
+            field:
+              type: bard
+              display: Inhalt
+              save_html: true
+              buttons: [h2, h3, bold, italic, unorderedlist, orderedlist, quote, anchor, removeformat]
+              instructions: 'Ein ganzer Editor. Doppelklick oeffnet genau dieses eine Feld als Panel ueber der Seite, nicht das ganze Eintragsformular.'
+          -
             handle: promoted
             field:
               type: toggle

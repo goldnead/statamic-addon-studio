@@ -21,5 +21,6 @@ schlagworte:
   - stimmbildung
 seats: 12
 promoted: true
+inhalt: '<p>Technik ist ein Durchgangsstadium, kein Ziel. Wer die Stimme einmal verstanden hat, hört im Chor plötzlich, woran es liegt.</p>'
 template: inline_edit_demo
 ---
