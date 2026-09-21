@@ -94,6 +94,23 @@ while read -r repo tag; do
             echo "   $repo @ $tag (nur PHP, keine CP-Oberflaeche)"
         fi
     fi
+
+    # Eine dritte Konvention, seit statamic-inline-edit v1.4.0: das Addon
+    # setzt `$vite` als blosse Liste von Einstiegspunkten, weil Cores eigener
+    # Typ nichts anderes zulaesst. Dann steht das Ziel fest auf `public/build`
+    # im Addon statt auf `resources/dist/build`, und der dist-Zweig oben
+    # findet es nicht.
+    #
+    # Das Ziel ist trotzdem public/vendor/<repo>/build: `registerVite()` nimmt
+    # `packageName()`, und das ist die Haelfte NACH dem Schraegstrich, nicht
+    # `goldnead/<repo>`. Am 21.09.2026 einmal falsch geraten — die Demo stand
+    # danach auf HTTP 500, und zwar auf JEDER CP-Seite, weil Statamics
+    # Vite-Tag wirft, sobald das Manifest fehlt. Auch die Login-Seite.
+    if [ -d "$ziel/public/build" ]; then
+        mkdir -p "$ZIEL/public/vendor/$repo"
+        rsync -a --delete "$ziel/public/build/" "$ZIEL/public/vendor/$repo/build/"
+        echo "   $repo @ $tag (dazu das CP-Bundle nach public/vendor/$repo/build)"
+    fi
 done < "$(dirname "$0")/tags.conf"
 
 # 3a) Waechter: ruft ein gepinntes Addon etwas, das die gepinnte Fassung von
