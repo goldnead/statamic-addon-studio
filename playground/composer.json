@@ -18,6 +18,7 @@
         "goldnead/statamic-brand-context": "dev-main as 1.13.1",
         "goldnead/statamic-clientrooms": "dev-main as 0.9.0",
         "goldnead/statamic-consent": "dev-main as 1.8.0",
+        "goldnead/statamic-courses": "@dev",
         "goldnead/statamic-email-templates": "dev-main as 2.7.0",
         "goldnead/statamic-entitlements": "dev-main as 1.4.0",
         "goldnead/statamic-events": "dev-main as 2.5.0",
@@ -123,6 +124,14 @@
     "minimum-stability": "stable",
     "prefer-stable": true,
     "repositories": [
+        {
+            "name": "courses",
+            "type": "path",
+            "url": "../../statamic-courses",
+            "options": {
+                "symlink": true
+            }
+        },
         {
             "name": "inline-edit",
             "type": "path",

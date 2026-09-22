@@ -9,6 +9,7 @@ use App\Demo\SeedsBrands;
 use App\Demo\SeedsCampaign;
 use App\Demo\SeedsClientRooms;
 use App\Demo\SeedsCommerce;
+use App\Demo\SeedsCourses;
 use App\Demo\SeedsCrm;
 use App\Demo\SeedsEmailTemplates;
 use App\Demo\SeedsEvents;
@@ -185,6 +186,18 @@ class DemoSeed extends Command
         // Klient wird ueber seine Adresse im CRM nachgeschlagen.
         $this->components->task('Klientenräume: sechs, mit offener Arbeit darin', function () use (&$marken) {
             $this->ergebnis = array_merge($this->ergebnis, (new SeedsClientRooms)->run($marken));
+
+            return true;
+        });
+
+        // Nach SeedsCrm: die Zugaenge laufen ueber entitlements, das dann steht.
+        // Braucht `php artisan courses:install`, sonst fehlen die Sammlungen.
+        // Deshalb ruft der Schritt es selbst: der Befehl laesst bestehende
+        // Sammlungen und Blueprints stehen, auf der Demo (kein composer, nur
+        // rollout.sh) ist das der eine Ort, an dem er sicher laeuft.
+        $this->components->task('Kurse: zwei, drei Lernende in drei Lagen', function () {
+            $this->callSilently('courses:install');
+            $this->ergebnis = array_merge($this->ergebnis, (new SeedsCourses)->run());
 
             return true;
         });

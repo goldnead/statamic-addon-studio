@@ -1,0 +1,67 @@
+{{#
+    Die Arbeitsprobe für statamic-courses: ein Kurs mit seinen Lektionen,
+    Sperren und Formularen, gerendert allein aus den Tags des Addons.
+
+    Ohne Anmeldung oder ohne Zugang rendern die Tags nichts. Das ist gewollt
+    und hier sichtbar gemacht: der Hinweis unten steht nur, wenn
+    {{ courses:progress }} leer bleibt.
+#}}
+<style>
+  .kurs .kicker { font-family: 'JetBrains Mono', monospace; font-size: .75rem; letter-spacing: .12em; text-transform: uppercase; color: #6b6b73; margin: 0 0 .75rem; }
+  .kurs h1 { font-family: 'Outfit', system-ui, sans-serif; font-size: 2.25rem; line-height: 1.1; margin: 0 0 .75rem; }
+  .kurs .summary { font-size: 1.05rem; line-height: 1.6; color: #44444a; }
+  .kurs .stand { display: flex; gap: 2rem; margin: 1.5rem 0; padding: 1rem 0; border-top: 1px solid #E6E6E4; border-bottom: 1px solid #E6E6E4; font-size: .9rem; }
+  .kurs .stand dt { color: #6b6b73; margin-bottom: .25rem; }
+  .kurs .stand dd { margin: 0; font-weight: 500; }
+  .kurs .weiter { display: inline-block; margin-bottom: 1.5rem; padding: .5rem .9rem; background: #17171A; color: #fff; border-radius: .375rem; text-decoration: none; font-size: .9rem; }
+  .kurs ol { list-style: none; padding: 0; display: grid; gap: .5rem; }
+  .kurs li { display: grid; grid-template-columns: 1fr auto; gap: .25rem 1rem; align-items: center; padding: .75rem 1rem; background: #fff; border: 1px solid #E6E6E4; border-radius: .5rem; }
+  .kurs li.gesperrt { background: #F4F4F2; color: #8a8a90; }
+  .kurs li.fertig { border-color: #b9d8c2; }
+  .kurs .meta { grid-column: 1; font-size: .8rem; color: #6b6b73; }
+  .kurs .zustand { grid-row: 1 / span 2; grid-column: 2; font-family: 'JetBrains Mono', monospace; font-size: .75rem; text-transform: uppercase; letter-spacing: .06em; }
+  .kurs form { display: inline; }
+  .kurs button { font: inherit; font-size: .8rem; padding: .3rem .7rem; border: 1px solid #17171A; background: #fff; border-radius: .375rem; cursor: pointer; }
+  .kurs .gast { margin-top: 2rem; padding: 1rem 1.25rem; background: #F4F4F2; border-radius: .5rem; font-size: .9rem; }
+</style>
+
+<article class="kurs">
+  <p class="kicker">Kurs{{ if logged_in }} · angemeldet als {{ current_user:name }}{{ else }} · nicht angemeldet{{ /if }}</p>
+  <h1>{{ title }}</h1>
+  <p class="summary">{{ summary }}</p>
+
+  {{ courses:progress :course="slug" }}
+    <dl class="stand">
+      <div><dt>Fortschritt</dt><dd>{{ percent }} %</dd></div>
+      <div><dt>Lektionen</dt><dd>{{ completed_lessons }} von {{ total_lessons }}</dd></div>
+      <div><dt>Status</dt><dd>{{ status }}</dd></div>
+    </dl>
+  {{ /courses:progress }}
+
+  {{ courses:continue :course="slug" }}
+    <a class="weiter" href="{{ url }}">Weiter mit: {{ title }}</a>
+  {{ /courses:continue }}
+
+  <ol>
+  {{ courses:lessons :course="slug" }}
+    <li class="{{ if is_completed }}fertig{{ elseif is_locked }}gesperrt{{ /if }}">
+      <strong>{{ title }}</strong>
+      <span class="zustand">
+        {{ if is_completed }}erledigt
+        {{ elseif is_locked }}gesperrt: {{ lock_reason }}
+        {{ elseif item_type == 'quiz' }}{{ if is_test_out }}Einstufung offen{{ else }}Quiz offen{{ /if }}
+        {{ elseif item_type == 'video' }}
+          {{ courses:form :course="page:slug" :lesson="slug" do="complete" :redirect="page:url" }}<button>Als gesehen markieren</button>{{ /courses:form }}
+        {{ else }}
+          {{ courses:form :course="page:slug" :lesson="slug" do="acknowledge" :redirect="page:url" }}<button>Erledigt</button>{{ /courses:form }}
+        {{ /if }}
+      </span>
+      <span class="meta">{{ section_title }} · {{ item_type }} · {{ status }} · {{ completion_percent }} %</span>
+    </li>
+  {{ /courses:lessons }}
+  </ol>
+
+  {{ unless {courses:progress :course="slug"} }}
+    <p class="gast">Die Lektionen sind für angemeldete Teilnehmende mit Zugang sichtbar.</p>
+  {{ /unless }}
+</article>
