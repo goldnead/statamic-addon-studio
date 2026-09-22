@@ -39,12 +39,18 @@ for p in "$@"; do
   strip_ansi() { sed -E $'s/\x1b\\[[0-9;]*[a-zA-Z]//g'; }
   # -d memory_limit ist Pflicht: marketings Suite sprengt die 128M des CLI-Defaults
   # und stirbt mit einer FatalException, die wie ein Testfehler aussieht.
+  #
+  # 8G und nicht mehr 2G, seit 22.09.2026 gemessen. Mit 2G stirbt marketings Suite
+  # bei rund der Haelfte ("Allowed memory size exhausted" in statamic-leadhub/routes/cp.php)
+  # UND DER EXIT-CODE BLEIBT 0. Hier faellt das nur deshalb nicht in eine gruene Zeile,
+  # weil unten auf die "Tests:"-Zeile gegreppt wird und sonst "?" stehen bleibt — wer die
+  # Suite von Hand faehrt, hat dieses Netz nicht.
   tests="kein vendor/"
   if [ -x vendor/bin/pest ]; then
-    tests=$(php -d memory_limit=2G vendor/bin/pest --colors=never 2>&1 | strip_ansi \
+    tests=$(php -d memory_limit=8G vendor/bin/pest --colors=never 2>&1 | strip_ansi \
       | grep -oE 'Tests: .*' | head -1)
   elif [ -x vendor/bin/phpunit ]; then
-    tests=$(php -d memory_limit=2G vendor/bin/phpunit 2>&1 | strip_ansi \
+    tests=$(php -d memory_limit=8G vendor/bin/phpunit 2>&1 | strip_ansi \
       | grep -oE 'OK \(.*\)|FAILURES.*|ERRORS.*' | head -1)
   fi
   [ -n "$tests" ] || tests="?"
