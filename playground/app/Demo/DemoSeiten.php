@@ -52,8 +52,12 @@ class DemoSeiten
             return $id;
         }
 
+        // Auch hier in PHP gefiltert: auf der Demo fand `where('slug', …)` die
+        // Markenseite nach einem frischen Stache nicht, die Seite blieb an der
+        // Wurzel (23.09.2026, zweimal live als 404 unter /chorwerkstatt/partner).
         $eltern = $unter === null ? null
-            : Entry::query()->where('collection', 'pages')->where('slug', $unter)->first()?->id();
+            : Entry::query()->where('collection', 'pages')->get()
+                ->first(fn ($e) => $e->slug() === $unter)?->id();
 
         // Knoten ohne Eintrag raus: die Reste der Laeufe mit wechselnder id.
         foreach (self::ids($baum->tree()) as $knoten) {
@@ -62,15 +66,80 @@ class DemoSeiten
             }
         }
 
-        if ($baum->find($id) === null) {
-            $eltern !== null ? $baum->appendTo($eltern, $eintrag) : $baum->append($eintrag);
+        // Direkt am Baum-Array, nicht ueber `move()`/`appendTo()`: beide liessen
+        // die Seite in einem strukturierten Baum mit Wurzelseite an der Wurzel
+        // stehen (nachgestellt am 23.09.2026, Elternseite danach weiter die
+        // Startseite). Erst ueberall herausnehmen, dann genau einmal einsetzen.
+        $zweige = self::ohne($baum->tree(), $id);
+        $knoten = ['entry' => $id];
+
+        if ($eltern === null) {
+            $zweige[] = $knoten;
         } else {
-            $baum->move($id, $eltern);
+            $zweige = self::unter($zweige, $eltern, $knoten);
         }
 
-        $baum->save();
+        $baum->tree($zweige)->save();
 
         return $id;
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $zweige
+     * @return list<array<string, mixed>>
+     */
+    protected static function ohne(array $zweige, string $id): array
+    {
+        $rest = [];
+
+        foreach ($zweige as $zweig) {
+            if (($zweig['entry'] ?? null) === $id) {
+                continue;
+            }
+
+            if (isset($zweig['children'])) {
+                $zweig['children'] = self::ohne($zweig['children'], $id);
+
+                if ($zweig['children'] === []) {
+                    unset($zweig['children']);
+                }
+            }
+
+            $rest[] = $zweig;
+        }
+
+        return $rest;
+    }
+
+    /**
+     * Unter der Elternseite anhaengen; steht sie nirgends im Baum, an die Wurzel.
+     *
+     * @param  array<int, array<string, mixed>>  $zweige
+     * @param  array<string, mixed>  $knoten
+     * @return list<array<string, mixed>>
+     */
+    protected static function unter(array $zweige, string $eltern, array $knoten, bool $oben = true): array
+    {
+        $gefunden = false;
+
+        $zweige = array_map(function (array $zweig) use ($eltern, $knoten, &$gefunden) {
+            if (! $gefunden && ($zweig['entry'] ?? null) === $eltern) {
+                $zweig['children'] = [...($zweig['children'] ?? []), $knoten];
+                $gefunden = true;
+            } elseif (! $gefunden && isset($zweig['children'])) {
+                $vorher = $zweig['children'];
+                $zweig['children'] = self::unter($vorher, $eltern, $knoten, false);
+                $gefunden = $zweig['children'] !== $vorher;
+            }
+
+            return $zweig;
+        }, array_values($zweige));
+
+        if (! $gefunden && $oben) {
+            $zweige[] = $knoten;
+        }
+
+        return $zweige;
     }
 
     /**
