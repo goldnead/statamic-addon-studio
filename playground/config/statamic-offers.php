@@ -116,9 +116,12 @@ return [
     |
     */
 
+    // Playground: offensichtlich ein Beispiel. Ohne Eintrag stand in der
+    // Widerrufsbelehrung der Kasse „Statamic, hello@example.com" (app.name und
+    // mail.from der Demo), was nach einem vergessenen Wert aussieht.
     'seller' => [
-        'name' => null,
-        'contact' => null,
+        'name' => 'Nordlicht Studio (Demo)',
+        'contact' => 'Beispielweg 1, 00000 Beispielstadt, widerruf@nordlicht.beispiel',
     ],
 
     /*
