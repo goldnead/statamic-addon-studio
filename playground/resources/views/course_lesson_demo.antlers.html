@@ -1,0 +1,64 @@
+{{#
+    Die Lektionsseite der Arbeitsprobe fuer statamic-courses (K1, K4, K6),
+    gerendert allein aus den Tags des Addons:
+
+    - {{ courses:blocks }}  die Lektion als Baukasten
+    - {{ courses:quiz }}    der Fragebogen einer Quiz-Lektion und das Ergebnis
+    - {{ courses:team }}    die Plaetze der Kaeuferin, mit Formular
+
+    Ohne Anmeldung oder ohne Zugang rendern alle drei nichts. Deshalb steht die
+    Anmeldung oben, mit dem Konto, das den jeweiligen Kurs hat.
+#}}
+<style>
+  .lektion { max-width: 46rem; }
+  .lektion .kicker { font-family: 'JetBrains Mono', monospace; font-size: .75rem; letter-spacing: .12em; text-transform: uppercase; color: #6b6b73; margin: 0 0 .75rem; }
+  .lektion h1 { font-family: 'Outfit', system-ui, sans-serif; font-size: 2rem; line-height: 1.15; margin: 0 0 1rem; }
+  .lektion .anmelden { margin: 1.5rem 0; padding: 1rem 1.25rem; background: #F4F4F2; border-radius: .5rem; }
+  .lektion .anmelden label { display: block; margin: .5rem 0; }
+  .lektion .kasten { margin: 2rem 0; padding: 1rem 1.25rem; border: 1px solid #E6E6E4; border-radius: .5rem; }
+  .lektion .kasten h2 { font-size: 1rem; margin: 0 0 .5rem; }
+  .courses-blocks > * + * { margin-top: 1.25rem; }
+  .courses-blocks .courses-columns { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: 1rem; }
+</style>
+
+<article class="lektion">
+  <p class="kicker">Lektion{{ course }} · {{ title }}{{ /course }}{{ if logged_in }} · angemeldet als {{ current_user:name }}{{ /if }}</p>
+  <h1>{{ title }}</h1>
+
+  {{ course }}
+    {{ if slug == 'einsingen-leiten' }}
+      {{ partial:anmelden konto="kasse@chor.beispiel" passwort="demo-local-password" }}
+    {{ else }}
+      {{ partial:anmelden konto="baerbel@kurs.beispiel" passwort="demo-local-password" }}
+    {{ /if }}
+  {{ /course }}
+
+  {{# `content` rendert courses:blocks selbst zuerst, hier nicht noch einmal. #}}
+  {{ courses:blocks }}
+
+  {{ courses:quiz }}
+    <section class="kasten">
+      <h2>Quiz: {{ assessment }}</h2>
+      {{ if passed }}
+        <p>Bestanden mit {{ score }} Punkten.</p>
+      {{ else }}
+        <p>{{ if attempts > 0 }}{{ attempts }} Versuch, {{ score }} Punkte. Bestanden ab {{ pass_score }} Punkten.{{ else }}Noch nicht versucht. Bestanden ab {{ pass_score }} Punkten.{{ /if }}</p>
+        {{ if url }}<p><a href="{{ url }}">Zum Fragebogen</a></p>{{ /if }}
+      {{ /if }}
+    </section>
+  {{ /courses:quiz }}
+
+  {{ course }}
+    {{ courses:team :course="slug" }}
+      <section class="kasten">
+        <h2>Dein Team</h2>
+        <p>{{ left }} von {{ seats }} Plätzen frei.</p>
+        <ul>{{ members }}<li>{{ email }}</li>{{ /members }}</ul>
+        {{ courses:team_form :course="slug" :redirect="page:url" }}
+          <label>E-Mail <input type="email" name="email" required></label>
+          <button type="submit">Ins Team holen</button>
+        {{ /courses:team_form }}
+      </section>
+    {{ /courses:team }}
+  {{ /course }}
+</article>

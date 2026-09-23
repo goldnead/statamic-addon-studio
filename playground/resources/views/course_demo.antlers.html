@@ -64,4 +64,10 @@
   {{ unless {courses:progress :course="slug"} }}
     <p class="gast">Die Lektionen sind für angemeldete Teilnehmende mit Zugang sichtbar.</p>
   {{ /unless }}
+
+  {{ if slug == 'einsingen-leiten' }}
+    {{ partial:anmelden konto="kasse@chor.beispiel" passwort="demo-local-password" }}
+  {{ else }}
+    {{ partial:anmelden konto="baerbel@kurs.beispiel" passwort="demo-local-password" }}
+  {{ /if }}
 </article>

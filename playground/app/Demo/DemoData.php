@@ -17,6 +17,21 @@ namespace App\Demo;
  */
 class DemoData
 {
+    /**
+     * Zahlungen, die Zahlenmaterial sind und kein Ausloeser.
+     *
+     * Alle per `DB::table()` geschrieben, ohne `PaymentPaid`. Die zwei Stellen,
+     * die ueber alle bezahlten Zahlungen laufen ({@see SeedsInvoices},
+     * {@see SeedsAutomations}), lassen sie aus: sonst schriebe der zweite Lauf
+     * jeder davon eine Rechnung, waehrend der erste (nach `--fresh`) keine
+     * schrieb, weil die Zahlungen da noch nicht standen.
+     *
+     * `demo_ins_` Menge fuer insights, `demo_abo_` Abo-Zyklen ({@see SeedsAbos}),
+     * `demo_seats_` Platzkontingent ({@see SeedsOffers}), `tr_affdemo_`
+     * Partner-Verkaeufe ({@see SeedsAffiliates}).
+     */
+    public const MENGEN_PRAEFIXE = ['demo_ins_', 'demo_abo_', 'demo_seats_', 'tr_affdemo_'];
+
     /** Names that have to survive a form, a database, an email and a URL. */
     public const AWKWARD_NAMES = [
         'Sängerin\'s Ännchen',           // apostrophe inside a German possessive

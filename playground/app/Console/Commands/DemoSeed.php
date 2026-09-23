@@ -3,6 +3,8 @@
 namespace App\Console\Commands;
 
 use App\Demo\DemoData;
+use App\Demo\SeedsAbos;
+use App\Demo\SeedsAffiliates;
 use App\Demo\SeedsAssessments;
 use App\Demo\SeedsAutomations;
 use App\Demo\SeedsBrands;
@@ -16,7 +18,9 @@ use App\Demo\SeedsEvents;
 use App\Demo\SeedsFunnels;
 use App\Demo\SeedsIdentity;
 use App\Demo\SeedsInsights;
+use App\Demo\SeedsInvoiceExports;
 use App\Demo\SeedsInvoices;
+use App\Demo\SeedsOffers;
 use App\Demo\SeedsProducts;
 use App\Demo\SeedsProof;
 use App\Demo\SeedsTeam;
@@ -195,9 +199,53 @@ class DemoSeed extends Command
         // Deshalb ruft der Schritt es selbst: der Befehl laesst bestehende
         // Sammlungen und Blueprints stehen, auf der Demo (kein composer, nur
         // rollout.sh) ist das der eine Ort, an dem er sicher laeuft.
-        $this->components->task('Kurse: zwei, drei Lernende in drei Lagen', function () {
-            $this->callSilently('courses:install');
+        //
+        // `--merge` seit 23.09.2026 (courses K1 bis K6): ohne ergänzt der Befehl
+        // bestehende Blueprints nicht, und auf der Demo stehen sie seit dem
+        // ersten Aufbau. Bausteine, Drip-Varianten, Zielgruppen, Quiz- und
+        // Teamfelder fehlten dann im Formular, obwohl der Seeder sie füllt.
+        // `--merge` fügt nur Fehlendes hinzu und ändert nichts anderes.
+        $this->components->task('Kurse: zwei, fünf Lernende, Baukasten, Quiz, Team', function () {
+            $this->callSilently('courses:install', ['--merge' => true]);
             $this->ergebnis = array_merge($this->ergebnis, (new SeedsCourses)->run());
+
+            return true;
+        });
+
+        // ---- Suite-Runde ThriveCart-Rundgang, 23.09.2026 ---------------
+        //
+        // Je Addon eine Klasse, alle nach der Menge und nach den Rechnungen:
+        // sie schreiben Zahlungen per `DB::table()` ohne `PaymentPaid`, und
+        // SeedsInvoices wie SeedsAutomations klammern sie über
+        // `DemoData::MENGEN_PRAEFIXE` aus.
+        //
+        // Zweite Runde, noch nicht gebaut: payments (P1 bis P9, Pausen,
+        // Wechsel, Kundenportal), funnels (F1 bis F7) und automations (A1, A2).
+        // Ihre Seeds kommen als eigene Klassen hier dazu, payments vor
+        // SeedsAffiliates, weil dessen Zahlungen die neuen Abo-Felder dann
+        // mittragen sollen.
+
+        $this->components->task('Abos: 57 mit Verlauf für die Kennzahlen', function () use (&$marken) {
+            $this->ergebnis = array_merge($this->ergebnis, (new SeedsAbos)->run($marken));
+
+            return true;
+        });
+
+        $this->components->task('Steuermonat: fünf Belege für den Rechnungsexport', function () use (&$marken) {
+            $this->ergebnis = array_merge($this->ergebnis, (new SeedsInvoiceExports)->run($marken));
+
+            return true;
+        });
+
+        $this->components->task('Angebote: Spendenpreis, Aufnahmegebühr, Kurzlink, Plätze', function () use (&$marken) {
+            $this->ergebnis = array_merge($this->ergebnis, (new SeedsOffers)->run($marken));
+
+            return true;
+        });
+
+        // Nach SeedsOffers: die Partner-Verkäufe gehen auf `cw-stimmgruppe`.
+        $this->components->task('Partner: fünf, sieben Verkäufe, eine Auszahlung', function () use (&$marken) {
+            $this->ergebnis = array_merge($this->ergebnis, (new SeedsAffiliates)->run($marken));
 
             return true;
         });
@@ -266,6 +314,20 @@ class DemoSeed extends Command
 
         File::put($pfad, $neu);
 
+        // Auch in den geladenen Stand dieses Laufs. Die Datei liest Laravel
+        // erst beim naechsten Start; bis dahin saehen die Seeder dahinter den
+        // alten Katalog. Aufgefallen am `grants` von `cw-workshop`: die Plaetze
+        // aus SeedsOffers kamen im ersten Lauf ohne Zugang an. Zeile fuer
+        // Zeile gemischt statt ersetzt, weil statamic-offers seine eigenen
+        // `offer:*`-Eintraege beim Start in denselben Schluessel legt.
+        $geladen = (array) config('statamic-payments.products', []);
+
+        foreach ((new SeedsCommerce)->katalog() as $handle => $daten) {
+            $geladen[$handle] = $daten;
+        }
+
+        config()->set('statamic-payments.products', $geladen);
+
         return true;
     }
 
@@ -310,7 +372,15 @@ class DemoSeed extends Command
         // Kontakte selbst bleiben stehen: die legt `SeedsCrm` an, sie werden
         // ueber die Adresse wiedergefunden, und ihre Summen rechnet
         // `recordRevenue()` beim naechsten Lauf neu.
+        //
+        // Seit 23.09.2026 dazu: was an den Zahlungen der Suite-Runde haengt.
+        // Die Partner-Buchungen und Zuordnungen verweisen auf Zahlungs-IDs, die
+        // Platzkontingente ebenso; blieben sie stehen, zeigte das CP Provisionen
+        // auf Verkaeufe, die es nicht mehr gibt. Partner, Saetze und
+        // JV-Vertraege sind Stammdaten und bleiben, der Seeder findet sie wieder.
         foreach ([
+            'affiliate_commissions', 'affiliate_payouts', 'affiliate_referrals',
+            'offer_seats', 'offer_seat_pools',
             'invoice_items', 'invoices', 'invoice_counters',
             'payment_refunds', 'payment_communications', 'payment_chargebacks',
             'payment_webhook_events', 'payment_withdrawals', 'payment_cancellations',

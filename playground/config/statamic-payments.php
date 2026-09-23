@@ -48,7 +48,7 @@ return [
         'cw-stimmcheck' => ['name' => 'Stimm-Check (kostenlos)', 'amount_cent' => 0, 'grants' => 'stimmcheck', 'digital' => true],
         'cw-mitgliedschaft' => ['name' => 'Mitgliedschaft Chorwerkstatt', 'amount_cent' => 1900, 'interval' => '1 month', 'digital' => false, 'grants' => 'mitgliedschaft'],
         'cw-ausbildung' => ['name' => 'Chorleiter-Ausbildung, drei Raten', 'amount_cent' => 39900, 'interval' => '1 month', 'times' => 3, 'digital' => false],
-        'cw-workshop' => ['name' => 'Workshop-Tag vor Ort', 'amount_cent' => 45000, 'digital' => true],
+        'cw-workshop' => ['name' => 'Workshop-Tag vor Ort', 'amount_cent' => 45000, 'digital' => true, 'grants' => 'workshop'],
         'hm-vinyl' => ['name' => 'Halbmond, das Album auf Vinyl', 'amount_cent' => 2900, 'digital' => false],
         'hm-ticket' => ['name' => 'Konzertticket', 'amount_cent' => 2200, 'digital' => false],
         'hm-shirt' => ['name' => 'Shirt „Ännchen & Söhne"', 'amount_cent' => 3200, 'digital' => false],

@@ -124,6 +124,53 @@ Drei Dinge hängen daran und sind beim Bauen aufgefallen:
 - **Ein Produkt je Bestellung.** `payment_items` ist eindeutig auf `(payment_id, product)` —
   dieselben Noten als Bump und als Upsell sind kein zweiter Posten, sondern ein Abbruch.
 
+### Suite-Runde vom 23.09.2026 (ThriveCart-Rundgang)
+
+Vier eigene Seeder, alle nach der Menge und nach den Rechnungen, alle wiederholbar. Zahlungen
+schreiben sie per `DB::table()` **ohne `PaymentPaid`**; `SeedsInvoices` und `SeedsAutomations`
+klammern sie über `DemoData::MENGEN_PRAEFIXE` aus (`demo_ins_`, `demo_abo_`, `demo_seats_`,
+`tr_affdemo_`). `--fresh` wischt zusätzlich `affiliate_commissions`, `affiliate_payouts`,
+`affiliate_referrals`, `offer_seats`, `offer_seat_pools`.
+
+| Seeder | Addon | Was entsteht (Marke Chorwerkstatt) |
+|---|---|---|
+| `SeedsAbos` | insights I1 | 57 Abos, rund 287 bezahlte Zyklen über 18 Monate: Mitgliedschaften mit Kündigungen, Preis rauf (Expansion) und runter (Kontraktion), Jahrespässe, Franken, zwei pausiert (mit `paused_at`, falls payments P1 migriert ist), zwei mit Pausen-Historie, ein ausgesetztes, zwei Testphasen, drei Ratenpläne |
+| `SeedsInvoiceExports` | invoices R1, R2 | Fünf eingefrorene Belege `NL2026-08-901` bis `-905` im August 2026: Inland 19 % und 7 %, OSS AT 20 %, OSS FI 25,5 %, Reverse Charge FR, eine Gutschrift. Nummern außerhalb des Zählers |
+| `SeedsOffers` | offers O1–O7 | `cw-workshop-spende` (Zahl, was du willst, ab 10 €, nur DE/AT/CH, Kurzlink `/go/workshop-herbst`, schaltet in zehn Tagen auf `/warteliste`), `cw-mitglied-monatlich` (Aufnahmegebühr 49 €), Gutschein `CHOR20` (erste drei Zahlungen, nur Hauptprodukt, funnelweit, Link + QR), `cw-stimmgruppe` (10 Plätze) mit einem gekauften Kontingent: Sofie hat angenommen, Alex ist eingeladen. Seiten `/workshop` und `/warteliste` |
+| `SeedsAffiliates` | affiliates X1–X3 | Fünf Partner (aktiv, aktiv mit 40 %, beantragt, Verband, gesperrt), Sätze auf `offer:cw-stimmgruppe` (25 %), `cw-notenpaket` (Bump 10 %), `cw-mitgliedschaft` (5 € fest, 6 Folgezahlungen), JV-Vertrag mit Jonas (30 %, einen Monat alt, noch fünf), 49 Klicks, sieben Verkäufe (Link, Bump, Gutschein `CLARA10`, JV, Festbetrag, einer ohne Partner), sieben Provisionen, eine bezahlte Auszahlung über 287,65 €. Seite `/chorwerkstatt/partner` |
+
+`SeedsCourses` trägt seit derselben Runde K1 bis K6 im Kurs `einsingen-leiten`: Lektion
+`warum-einsingen` als Baukasten (Text, Hinweis, Spalten, Download, FAQ, Knopf), Drip am 15. des
+Monats, Woche 3 nur für die Gruppe `team` und den Tag „Chorleitung", Zahlungsausfall pausiert den
+Drip (Mo Lindqvist ist so pausiert), fünf Teamplätze, Paket `chorleitung-paket` (die Käuferin
+`kasse@chor.beispiel` hat es gekauft und eine Chorleiterin im Team). Die Quiz-Lektion
+`quiz-fundament` hängt am Fragebogen `cw-stimm-check` (bestanden ab 13 Punkten), Bärbel ist mit
+9 Punkten durchgefallen. `courses:install` läuft mit `--merge`, damit die neuen Felder in
+bestehende Blueprints kommen. Lektionen rendern über `course_lesson_demo`.
+
+**Rundgang** (CP-Seiten mit `?brand=chorwerkstatt`):
+
+- Abo-Kennzahlen: `/cp/insights/subscriptions`, Berichte unter
+  `/cp/insights/reports/payments.mrr_movements` (und `subscription_cohorts`, `upcoming_charges`,
+  `subscription_forecast`). Nach einem Deploy `cache:clear`, Statamic cached die Nav-Adressen.
+- Steuerbericht: `/cp/utilities/invoice-exports?brand=chorwerkstatt&month=2026-08`
+- Angebote und Plätze: `/cp/utilities/offers` → „Workshop für die Stimmgruppe" → „Verkaufte
+  Plätze"; Gutscheine `/cp/utilities/coupons`; Kurzlink `/go/workshop-herbst?coupon=CHOR20`.
+  Verwaltungs- und Annahme-Link stehen nur im Mail-Log (Tokens sind zufällig, die Demo ist offen).
+- Partner: `/cp/affiliates/partners`, `…/commissions`, `…/payouts` (CSV), `…/jv`, `…/rates`.
+  Partnerbereich `/chorwerkstatt/partner`, angemeldet als `clara.brandt@partner.beispiel`.
+- Kurs: `/courses/einsingen-leiten/warum-einsingen` als `kasse@chor.beispiel`,
+  `/courses/stimme-grundlagen/quiz-fundament` als `baerbel@kurs.beispiel`.
+
+Frontend-Konten haben alle `demo-local-password`; die Seiten zeigen ein Anmeldeformular
+(`partials/anmelden`). Kurzlinks und QR-Codes zeigen auf `https://demo.adriangoldner.dev`
+(`config/statamic-offers.php`, lokal per `OFFERS_LINKS_BASE_URL` umstellbar). Der Einwilligungsdienst
+`affiliates` steht in `config/statamic-consent.php`; ohne ihn setzt das Partnerprogramm nie einen
+Keks.
+
+Noch nicht drin, kommt in einer zweiten Runde: payments P1–P9 (Pause, Wechsel, Kundenportal),
+funnels F1–F7, automations A1–A2.
+
 ## Mollie
 
 Der Playground nimmt einen **Testschlüssel** aus `MOLLIE_KEY` und fährt dann gegen Mollies echtes
@@ -188,6 +235,11 @@ app/Demo/SeedsAutomations.php    Sechs Rezepte, zehn der elf Logik-Knoten, ein r
 app/Demo/SeedsWebhooks.php       Sechs Eingänge (je ein Prüfverfahren), ein toter Empfänger
 app/Demo/SeedsProof.php          Termine über den Cal.com-Weg, Einwilligungen über den echten Keks
 app/Demo/SeedsCampaign.php       Listen als YAML, eine Kampagne, ein echter Sendelauf
+app/Demo/SeedsAbos.php           57 Abos mit Verlauf für die Abo-Kennzahlen
+app/Demo/SeedsInvoiceExports.php Ein Steuermonat für den Rechnungsexport
+app/Demo/SeedsOffers.php         Spendenpreis, Aufnahmegebühr, Kurzlink, Plätze für Gruppen
+app/Demo/SeedsAffiliates.php     Partnerprogramm: Partner, Sätze, JV, Provisionen, Auszahlung
+app/Demo/DemoSeiten.php          Seite anlegen und in den Baum hängen
 app/Console/Commands/DemoSeed.php
 app/Console/Commands/DemoPoll.php
 ```

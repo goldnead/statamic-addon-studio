@@ -159,6 +159,11 @@ return [
     'services' => [
         ['handle' => 'youtube', 'name' => 'YouTube', 'category' => 'external_media',
          'policy_url' => 'https://policies.google.com/privacy', 'block_content' => true],
+        // statamic-affiliates fragt genau diesen Handle (`affiliates.consent.service`).
+        // Fehlt er hier, bietet das Banner ihn nie an, die Antwort ist immer
+        // nein, und ein Partnerlink zaehlt nur fuer den laufenden Besuch.
+        ['handle' => 'affiliates', 'name' => 'Partnerprogramm', 'category' => 'marketing',
+         'description' => 'Merkt sich bis zu 30 Tage, über welchen Partnerlink du gekommen bist, damit die Empfehlung ihrem Partner gutgeschrieben wird.'],
         // Empty on purpose. A service listed here appears in the banner, and a
         // banner that offers YouTube on a site with no YouTube describes data
         // processing that does not happen. Add what this site actually loads —

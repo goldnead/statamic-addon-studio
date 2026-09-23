@@ -1,0 +1,22 @@
+{{#
+    Die Arbeitsprobe fuer statamic-affiliates: der Partnerbereich, wie ein
+    Partner ihn sieht, gerendert allein aus {{ affiliates:dashboard }}.
+
+    Liegt unter /chorwerkstatt/, weil das Demo die Marke am ersten Pfadsegment
+    erkennt: Clara ist Partnerin der Chorwerkstatt, auf einer Seite der
+    Agenturmarke faende der Bereich sie nicht.
+#}}
+<style>
+  .partnerseite { max-width: 46rem; }
+  .partnerseite .anmelden { margin: 1.5rem 0; padding: 1rem 1.25rem; background: #F4F4F2; border-radius: .5rem; }
+  .partnerseite .anmelden label { display: block; margin: .5rem 0; }
+  .partnerseite .affiliates table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+  .partnerseite .affiliates th, .partnerseite .affiliates td { text-align: left; padding: .4rem .5rem; border-bottom: 1px solid #E6E6E4; }
+  .partnerseite .affiliates input[type=text], .partnerseite .affiliates input[type=url] { width: 100%; }
+</style>
+
+<article class="partnerseite">
+  <h1>{{ title }}</h1>
+  {{ partial:anmelden konto="clara.brandt@partner.beispiel" passwort="demo-local-password" }}
+  {{ affiliates:dashboard }}
+</article>

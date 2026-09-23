@@ -672,12 +672,15 @@ class SeedsAutomations
      */
     protected function zahlungen(string $produkt, string $status)
     {
-        return Payment::query()
+        $query = Payment::query()
             ->where('product', $produkt)
-            ->where('status', $status)
-            ->where('provider_id', 'not like', 'demo_ins_%')
-            ->orderBy('id')
-            ->get();
+            ->where('status', $status);
+
+        foreach (DemoData::MENGEN_PRAEFIXE as $praefix) {
+            $query->where('provider_id', 'not like', $praefix.'%');
+        }
+
+        return $query->orderBy('id')->get();
     }
 
     /**

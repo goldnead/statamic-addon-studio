@@ -1,0 +1,18 @@
+{{#
+    Anmeldung fuer die Frontend-Konten der Arbeitsprobe (Kurs-Lernende,
+    Partner). Keine CP-Konten: die melden sich unter /cp an.
+
+    Die Zugangsdaten stehen hier offen, weil die Demo offen ist, wie das
+    CP-Konto auf der Startseite. `konto` und `passwort` kommen vom Aufrufer.
+#}}
+{{ unless logged_in }}
+<div class="anmelden">
+    <p>Zum Ansehen anmelden als <code>{{ konto }}</code>, Passwort <code>{{ passwort }}</code>.</p>
+    {{ user:login_form :redirect="page:url" }}
+        {{ if errors }}<p class="fehler">{{ errors }}{{ value }} {{ /errors }}</p>{{ /if }}
+        <label>E-Mail <input type="email" name="email" value="{{ konto }}" required></label>
+        <label>Passwort <input type="password" name="password" required></label>
+        <button type="submit">Anmelden</button>
+    {{ /user:login_form }}
+</div>
+{{ /unless }}

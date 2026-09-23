@@ -105,9 +105,13 @@ class SeedsInvoices
      */
     protected function bezahlteZahlungen()
     {
-        return Payment::withoutGlobalScopes()
-            ->where('status', Payment::STATUS_PAID)
-            ->where('provider_id', 'not like', 'demo_ins_%')
+        $query = Payment::withoutGlobalScopes()->where('status', Payment::STATUS_PAID);
+
+        foreach (DemoData::MENGEN_PRAEFIXE as $praefix) {
+            $query->where('provider_id', 'not like', $praefix.'%');
+        }
+
+        return $query
             ->whereNotIn('id', Invoice::query()->whereNotNull('payment_id')->pluck('payment_id'))
             ->with('items')
             ->orderBy('id')

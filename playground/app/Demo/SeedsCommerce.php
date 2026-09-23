@@ -76,7 +76,11 @@ class SeedsCommerce
                 'times' => 3,
                 'digital' => false,
             ],
-            'cw-workshop' => ['name' => 'Workshop-Tag vor Ort', 'amount_cent' => 45000, 'digital' => true],
+            // `grants` seit 23.09.2026: ohne Zugang waren die zehn Plaetze von
+            // `cw-stimmgruppe` (statamic-offers O7) Einladungen ins Leere —
+            // angenommen, und niemand kam irgendwo hinein. Die CP-Liste
+            // markiert genau das als Warnung.
+            'cw-workshop' => ['name' => 'Workshop-Tag vor Ort', 'amount_cent' => 45000, 'digital' => true, 'grants' => 'workshop'],
 
             // ---- Kollektiv Halbmond -------------------------------------
             'hm-vinyl' => ['name' => 'Halbmond, das Album auf Vinyl', 'amount_cent' => 2900, 'digital' => false],
@@ -150,7 +154,7 @@ class SeedsCommerce
         $angebote = $this->angebote($marken);
         $this->gutscheine();
         $zahlungen = $this->zahlungen();
-        $abos = $this->abos();
+        $abos = $this->abos($marken);
 
         return array_merge([
             'angebote' => count($angebote),
@@ -552,8 +556,18 @@ class SeedsCommerce
         ];
     }
 
-    /** Agreements in every state, including the ones that have gone wrong. */
-    protected function abos(): int
+    /**
+     * Agreements in every state, including the ones that have gone wrong.
+     *
+     * `brand_id` steht seit 23.09.2026 ausdruecklich da. Vorher stempelte das
+     * Modell selbst (`Brands::stampId()`), und auf der Konsole gibt es keine
+     * aktuelle Marke: alle acht Abos standen auf Marke 0 und waren unter
+     * keiner Marke zu sehen — statamic-insights verengt jede Zahl auf die
+     * aktuelle Marke, und die Abo-Seite zeigte fuer diese acht nichts.
+     *
+     * @param  array<string, Brand>  $marken
+     */
+    protected function abos(array $marken = []): int
     {
         $reihen = [
             // Running subscription, three cycles behind it.
@@ -585,6 +599,7 @@ class SeedsCommerce
             Subscription::updateOrCreate(
                 ['provider' => 'mollie', 'provider_id' => 'demo_sub_'.$nummer],
                 [
+                    'brand_id' => $this->markeFuer($produkt, $marken) ?? 0,
                     'customer_reference' => 'demo_cst_'.$nummer,
                     'product' => $produkt,
                     'amount_cent' => $cent,

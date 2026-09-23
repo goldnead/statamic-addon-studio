@@ -12,10 +12,11 @@
     "require": {
         "php": "^8.3",
         "goldnead/statamic-activity": "dev-main as 1.4.1",
+        "goldnead/statamic-affiliates": "@dev",
         "goldnead/statamic-assessments": "dev-main as 0.3.0",
         "goldnead/statamic-automations": "dev-main as 2.18.0",
         "goldnead/statamic-booking": "dev-main as 1.5.0",
-        "goldnead/statamic-brand-context": "dev-main as 1.13.1",
+        "goldnead/statamic-brand-context": "dev-main as 1.14.0",
         "goldnead/statamic-clientrooms": "dev-main as 0.9.0",
         "goldnead/statamic-consent": "dev-main as 1.8.0",
         "goldnead/statamic-courses": "@dev",
@@ -128,6 +129,14 @@
             "name": "courses",
             "type": "path",
             "url": "../../statamic-courses",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "name": "affiliates",
+            "type": "path",
+            "url": "../../statamic-affiliates",
             "options": {
                 "symlink": true
             }

@@ -1,3 +1,4 @@
 title: 'Course Lessons'
 revisions: false
 route: '/courses/{course_slug}/{slug}'
+template: course_lesson_demo
