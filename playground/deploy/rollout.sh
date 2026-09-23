@@ -37,7 +37,14 @@ rsync -a --delete "$QUELLE/vendor/goldnead/" "root@$HOST:$APPDIR/app/vendor/gold
 # resources/blueprints/collections/et_templates/email_template.yaml): Permission
 # denied" — was wie ein Seeder-Fehler aussieht und keiner ist (08.09.2026).
 echo "-> 2/5 Besitzrechte (uid 33 = www-data im Container)"
-ssh "root@$HOST" "cd $APPDIR/app && chown -R 33:33 content users database config storage resources bootstrap/cache"
+#
+# `public/assets` seit 23.09.2026: Statamic legt zu jeder Datei im Container
+# `assets` beim ersten Lesen eine `.meta`-Datei an. Gehoert der Ordner root,
+# scheitert das mit „Unable to create a directory …/.meta", und jede Seite,
+# die die Datei zeigt, antwortet mit 500 (so die Kurs-Lektion mit dem neuen
+# PDF-Download). Die `.meta` liegt inzwischen im Repo; der chown haelt auch
+# den naechsten neuen Anhang und Uploads im CP offen.
+ssh "root@$HOST" "cd $APPDIR/app && chown -R 33:33 content users database config storage resources bootstrap/cache public/assets"
 
 echo "-> 3/5 package:discover"
 # Kein `composer dump-autoload`: im Container gibt es kein composer, nur php
