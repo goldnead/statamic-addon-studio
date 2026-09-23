@@ -168,8 +168,54 @@ Frontend-Konten haben alle `demo-local-password`; die Seiten zeigen ein Anmeldef
 `affiliates` steht in `config/statamic-consent.php`; ohne ihn setzt das Partnerprogramm nie einen
 Keks.
 
-Noch nicht drin, kommt in einer zweiten Runde: payments P1–P9 (Pause, Wechsel, Kundenportal),
-funnels F1–F7, automations A1–A2.
+#### Zweite Runde: payments, funnels, automations
+
+| Seeder | Addon | Was entsteht |
+|---|---|---|
+| `SeedsAbos` (erweitert) | payments P1–P3, O6 | `abo48` pausiert im Kundenkonto bis in fünf Wochen, mit einer früheren Pause im Verlauf; `abo49` im CP pausiert ohne Termin; `abo38` von Plus auf Mitgliedschaft gewechselt (`meta.switches`), Karte läuft in sechs Wochen ab; `abo58` mit `CHOR20` auf den ersten drei Zyklen (zwei bezahlt zu 15,20 €). Die zwei „zurück aus der Pause" zeigen fortgesetzte Abos |
+| `SeedsCommerce` (Katalog) | payments P1, P2, P4, P9 | `cw-mitgliedschaft` pausierbar, wechselbar auf `cw-mitgliedschaft-plus` und `cw-jahrespass` (beide neu im Katalog); der Jahrespass ersetzt eine laufende Mitgliedschaft; die Ausbildung in Raten ist im Kundenkonto nicht selbst kündbar. Zahlungen tragen jetzt ihre Marke |
+| `SeedsKundenkonto` | payments P7, P9 | Markeneinstellungen Chorwerkstatt: Begrüßung, Pausieren und Wechseln erlaubt, Sperrliste `wegwerf.example` |
+| `SeedsSuiteKasse` | funnels F1–F7 | Funnel `suite-kasse`: Angebote `sk-workshop` (zwei Zahlweisen, DE/AT/CH), Bumps `sk-noten` und `sk-aufnahme` mit Regeln je Zahlweise, `sk-spende` (Betragsfeld), A/B-Test auf Kauf mit 100 Besuchen (B gewinnt 21:5), `SUITE10`, In-App-Hinweis, Tracking-Schnipsel, Pixel-ID als Platzhalter. Seite `/einbetten-beispiel` |
+| `SeedsSuiteAutomations` | automations A1, A2 | Zehn Abläufe unter Chorwerkstatt, je ein Auslöser und ein Log-Knoten (keine Mail), alle `sync`. Drei echte Durchläufe mit gesetzter Marke: Abo pausiert, Kurs eingeschrieben, Upsell abgelehnt |
+
+Der Einwilligungsdienst `meta_pixel` steht in `config/statamic-consent.php`. `FUNNELS_META_CAPI_TOKEN`
+ist auf der Demo **nicht** gesetzt; es geht nichts an Meta. Captcha und Warenkorb-Abbruch-Mails
+bleiben aus (echte Schlüssel, echte Mails).
+
+**Neue Vorlagen der Addons.** `resources/views/vendor/` ist ignoriert, die veröffentlichten
+Vorlagen kommen nicht mit dem Build. `deploy/rollout.sh` schreibt die von payments (Kundenkonto)
+und funnels (Kasse) deshalb bei jedem Ausrollen mit `--force` neu. Lokal einmal:
+
+```bash
+php artisan vendor:publish --tag=statamic-payments-views --force
+php artisan vendor:publish --tag=statamic-funnels-views --force
+php artisan vendor:publish --tag=statamic-funnels --force   # embed.js, funnels.css
+```
+
+**Rundgang, zweite Runde:**
+
+- Abos: `/cp/utilities/subscriptions?brand=chorwerkstatt`, suchen nach `abo48`, `abo38`, `abo58`.
+- Kundenkonto: `/!/statamic-payments/konto/anmelden`, Adresse `abo48@beispiel.de`; der
+  Anmeldelink steht im Mail-Log. Dort „Pausiert bis …" mit „Fortsetzen". Mit `abo38@beispiel.de`
+  der Wechsel.
+- Kasse: `/f/suite-kasse/kasse?coupon=SUITE10` (Fassung B, Gutschein vorbelegt, Land, „Für die
+  Stimmgruppe" kreuzt die Übe-Aufnahmen an), `/f/suite-kasse/aufzeichnung` (Betragsfeld). Mit
+  einem Instagram- oder Facebook-Browser erscheint der Hinweis, im normalen Browser zu öffnen.
+- CP: `/cp/utilities/funnels` → „Suite: Kasse mit Regeln" (A/B, Bump-Regeln, Einstellungen).
+- Abläufe: `/cp/automations`, Durchläufe unter `/cp/automations/runs`.
+
+**Einbetten von einer eigenen Seite aus (F4).** Die Demo kann keine fremde Herkunft stellen.
+`/einbetten-beispiel` zeigt den Schnipsel und führt ihn auf derselben Herkunft einmal vor. So
+geht es von außen:
+
+1. Im CP unter Funnels → „Suite: Kasse mit Regeln" → Einstellungen die Herkunft der eigenen Seite
+   unter „Einbetten" eintragen, z. B. `http://localhost:8000` (Schema, Host, Port, ohne Pfad).
+2. Eine HTML-Datei mit dem Schnipsel von `/einbetten-beispiel` anlegen und von genau dieser
+   Herkunft ausliefern (`python3 -m http.server 8000`), nicht als `file://`.
+3. Popup und eingebettete Kasse laden. Ohne Eintrag verweigert der Browser den Rahmen
+   (`frame-ancestors` in der Antwort der Kasse), das Popup öffnet sich dann als neues Fenster.
+
+Der nächtliche Reset nimmt den Eintrag wieder heraus.
 
 ## Mollie
 
@@ -239,6 +285,9 @@ app/Demo/SeedsAbos.php           57 Abos mit Verlauf für die Abo-Kennzahlen
 app/Demo/SeedsInvoiceExports.php Ein Steuermonat für den Rechnungsexport
 app/Demo/SeedsOffers.php         Spendenpreis, Aufnahmegebühr, Kurzlink, Plätze für Gruppen
 app/Demo/SeedsAffiliates.php     Partnerprogramm: Partner, Sätze, JV, Provisionen, Auszahlung
+app/Demo/SeedsKundenkonto.php    Markeneinstellungen für Kundenkonto und Kassenschutz
+app/Demo/SeedsSuiteKasse.php     Funnel suite-kasse: A/B, Bump-Regeln, Einbetten, Tracking
+app/Demo/SeedsSuiteAutomations.php Zehn Abläufe auf die neuen Auslöser, drei Durchläufe
 app/Demo/DemoSeiten.php          Seite anlegen und in den Baum hängen
 app/Console/Commands/DemoSeed.php
 app/Console/Commands/DemoPoll.php

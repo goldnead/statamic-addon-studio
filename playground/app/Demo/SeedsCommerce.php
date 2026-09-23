@@ -68,6 +68,32 @@ class SeedsCommerce
                 // the ordinary payment path, without the bridge knowing that
                 // subscriptions exist.
                 'grants' => 'mitgliedschaft',
+                // statamic-payments P1/P2 (23.09.2026): im Kundenkonto
+                // pausierbar und wechselbar auf Plus oder den Jahrespass.
+                'pausable' => true,
+                'switch_to' => ['cw-mitgliedschaft-plus', 'cw-jahrespass'],
+            ],
+            // Beide standen bis 23.09.2026 nur als Handle an Seed-Abos
+            // (SeedsAbos), ohne Katalogeintrag. Ein Wechsel im Kundenkonto
+            // braucht ein Ziel, das man kaufen kann.
+            'cw-mitgliedschaft-plus' => [
+                'name' => 'Mitgliedschaft Plus',
+                'amount_cent' => 2400,
+                'interval' => '1 month',
+                'digital' => false,
+                'grants' => 'mitgliedschaft',
+                'pausable' => true,
+                'switch_to' => ['cw-mitgliedschaft'],
+            ],
+            // P4: wer den Jahrespass kauft, beendet damit die laufende
+            // Monatsmitgliedschaft, statt beide zu bezahlen.
+            'cw-jahrespass' => [
+                'name' => 'Jahrespass Chorwerkstatt',
+                'amount_cent' => 18000,
+                'interval' => '1 year',
+                'digital' => false,
+                'grants' => 'mitgliedschaft',
+                'replaces' => ['cw-mitgliedschaft', 'cw-mitgliedschaft-plus'],
             ],
             'cw-ausbildung' => [
                 'name' => 'Chorleiter-Ausbildung, drei Raten',
@@ -75,6 +101,9 @@ class SeedsCommerce
                 'interval' => '1 month',
                 'times' => 3,
                 'digital' => false,
+                // P9: eine Ratenzahlung kündigt man nicht selbst im
+                // Kundenkonto, sie läuft ihre drei Raten zu Ende.
+                'portal_cancel' => false,
             ],
             // `grants` seit 23.09.2026: ohne Zugang waren die zehn Plaetze von
             // `cw-stimmgruppe` (statamic-offers O7) Einladungen ins Leere —
@@ -153,7 +182,7 @@ class SeedsCommerce
     {
         $angebote = $this->angebote($marken);
         $this->gutscheine();
-        $zahlungen = $this->zahlungen();
+        $zahlungen = $this->zahlungen($marken);
         $abos = $this->abos($marken);
 
         return array_merge([
@@ -349,8 +378,14 @@ class SeedsCommerce
      * *past*, and a demo needs a history that did not all happen in the last
      * five minutes. The live path is exercised separately, against Mollie's
      * test account.
+     *
+     * `brand_id` seit 23.09.2026 ausdruecklich, aus demselben Grund wie bei
+     * den Abos: auf der Konsole stempelte das Modell 0, und statamic-invoices
+     * warnte bei jeder Rechnung „the payment carries no brand".
+     *
+     * @param  array<string, Brand>  $marken
      */
-    protected function zahlungen(): int
+    protected function zahlungen(array $marken = []): int
     {
         $daten = DemoData::awkwardDates();
 
@@ -401,6 +436,7 @@ class SeedsCommerce
             $zahlung = Payment::updateOrCreate(
                 ['provider' => $cent === 0 ? 'free' : 'mollie', 'provider_id' => 'demo_tr_'.$nummer],
                 [
+                    'brand_id' => $this->markeFuer($produkt, $marken) ?? 0,
                     'product' => $produkt,
                     'amount_cent' => $cent,
                     'currency' => 'EUR',

@@ -20,7 +20,10 @@ use App\Demo\SeedsIdentity;
 use App\Demo\SeedsInsights;
 use App\Demo\SeedsInvoiceExports;
 use App\Demo\SeedsInvoices;
+use App\Demo\SeedsKundenkonto;
 use App\Demo\SeedsOffers;
+use App\Demo\SeedsSuiteAutomations;
+use App\Demo\SeedsSuiteKasse;
 use App\Demo\SeedsProducts;
 use App\Demo\SeedsProof;
 use App\Demo\SeedsTeam;
@@ -219,14 +222,20 @@ class DemoSeed extends Command
         // SeedsInvoices wie SeedsAutomations klammern sie über
         // `DemoData::MENGEN_PRAEFIXE` aus.
         //
-        // Zweite Runde, noch nicht gebaut: payments (P1 bis P9, Pausen,
-        // Wechsel, Kundenportal), funnels (F1 bis F7) und automations (A1, A2).
-        // Ihre Seeds kommen als eigene Klassen hier dazu, payments vor
-        // SeedsAffiliates, weil dessen Zahlungen die neuen Abo-Felder dann
-        // mittragen sollen.
+        // Zweite Runde (payments P1–P9, funnels F1–F7, automations A1/A2):
+        // die Abo-Zustaende stehen in SeedsAbos, die Markeneinstellungen des
+        // Kundenkontos in SeedsKundenkonto, der Funnel in SeedsSuiteKasse, die
+        // Ablaeufe ganz am Ende, weil sie auf Abos, Kurse und den Funnel
+        // hin Durchlaeufe werfen.
 
-        $this->components->task('Abos: 57 mit Verlauf für die Kennzahlen', function () use (&$marken) {
+        $this->components->task('Abos: 58 mit Verlauf, Pause, Wechsel, Gutschein', function () use (&$marken) {
             $this->ergebnis = array_merge($this->ergebnis, (new SeedsAbos)->run($marken));
+
+            return true;
+        });
+
+        $this->components->task('Kundenkonto: Pausieren, Wechseln, Sperrliste', function () use (&$marken) {
+            $this->ergebnis = array_merge($this->ergebnis, (new SeedsKundenkonto)->run($marken));
 
             return true;
         });
@@ -243,9 +252,21 @@ class DemoSeed extends Command
             return true;
         });
 
+        $this->components->task('Kasse: Funnel suite-kasse mit A/B, Bump-Regeln, Einbetten', function () use (&$marken) {
+            $this->ergebnis = array_merge($this->ergebnis, (new SeedsSuiteKasse)->run($marken));
+
+            return true;
+        });
+
         // Nach SeedsOffers: die Partner-Verkäufe gehen auf `cw-stimmgruppe`.
         $this->components->task('Partner: fünf, sieben Verkäufe, eine Auszahlung', function () use (&$marken) {
             $this->ergebnis = array_merge($this->ergebnis, (new SeedsAffiliates)->run($marken));
+
+            return true;
+        });
+
+        $this->components->task('Abläufe: zehn neue Auslöser, drei Durchläufe', function () {
+            $this->ergebnis = array_merge($this->ergebnis, (new SeedsSuiteAutomations)->run());
 
             return true;
         });
@@ -340,13 +361,31 @@ class DemoSeed extends Command
             $teile = [];
 
             foreach ($daten as $k => $v) {
-                $teile[] = "'{$k}' => ".(is_string($v) ? "'".str_replace("'", "\\'", $v)."'" : var_export($v, true));
+                $teile[] = "'{$k}' => ".$this->wert($v);
             }
 
             $zeilen[] = "        '{$handle}' => [".implode(', ', $teile).'],';
         }
 
         return implode("\n", $zeilen);
+    }
+
+    /**
+     * Ein Wert als PHP auf einer Zeile. Listen (`switch_to`, `replaces`) als
+     * kurze Klammer: `var_export` schriebe sie mehrzeilig, und die Zeile je
+     * Produkt ist das, was `katalogSchreiben()` beim naechsten Lauf wiederfindet.
+     */
+    protected function wert(mixed $v): string
+    {
+        if (is_string($v)) {
+            return "'".str_replace("'", "\\'", $v)."'";
+        }
+
+        if (is_array($v) && array_is_list($v)) {
+            return '['.implode(', ', array_map(fn ($e) => $this->wert($e), $v)).']';
+        }
+
+        return var_export($v, true);
     }
 
     protected function wipe(): void

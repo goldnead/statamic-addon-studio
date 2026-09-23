@@ -95,6 +95,19 @@ while read -r repo tag; do
         fi
     fi
 
+    # Oeffentliche Dateien ausserhalb des Vite-Bundles, die das Addon unter
+    # seinem Paket-Tag veroeffentlicht (statamic-funnels: `embed.js`,
+    # `funnels.css`, `funnels.js` aus `resources/dist-public`). Der
+    # `--delete`-rsync oben loescht sie, weil sie nicht in `dist/` liegen; ohne
+    # diesen Schritt fehlte auf der Demo das Einbett-Skript (F4) und die Kasse
+    # liefe mit dem Stylesheet aus dem Arbeitsbaum. Ohne `--delete`, damit das
+    # Bundle aus `dist/` daneben stehen bleibt.
+    if [ -d "$ziel/resources/dist-public" ]; then
+        mkdir -p "$ZIEL/public/vendor/$repo"
+        rsync -a "$ziel/resources/dist-public/" "$ZIEL/public/vendor/$repo/"
+        echo "   $repo @ $tag (dazu resources/dist-public nach public/vendor/$repo)"
+    fi
+
     # Eine dritte Konvention, seit statamic-inline-edit v1.4.0: das Addon
     # setzt `$vite` als blosse Liste von Einstiegspunkten, weil Cores eigener
     # Typ nichts anderes zulaesst. Dann steht das Ziel fest auf `public/build`

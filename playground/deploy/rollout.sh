@@ -57,6 +57,17 @@ echo "-> 3b/5 Stache und Cache leeren"
 im_container php please stache:clear
 im_container php artisan cache:clear
 
+# Veroeffentlichte Vorlagen aus den Tags neu schreiben. `resources/views/vendor`
+# ist im Repo ignoriert und kommt nicht mit dem Build; auf dem Server liegt,
+# was irgendwann einmal veroeffentlicht wurde. Eine alte Kopie verdeckt jede
+# neue Ansicht des Addons still: am 23.09.2026 die Portal-Seiten aus
+# statamic-payments 1.25 (Pausieren, Wechseln, Karte) und die Kasse aus
+# statamic-funnels 1.17 (Betragsfeld, Land, Coupon, Bump-Regeln, In-App-
+# Hinweis). Beide Pakete haben keine Anpassung im Demo, `--force` ist richtig.
+echo "-> 3c/5 Vorlagen neu veroeffentlichen"
+im_container php artisan vendor:publish --tag=statamic-payments-views --force
+im_container php artisan vendor:publish --tag=statamic-funnels-views --force
+
 echo "-> 4/5 migrate --force"
 # Der Schritt, dessen Fehlen am 03.09.2026 zwei CP-Seiten auf 500 gesetzt hat.
 # Neue Addons bringen neue Migrationen mit, und niemand sieht ihnen das an.

@@ -164,6 +164,12 @@ return [
         // nein, und ein Partnerlink zaehlt nur fuer den laufenden Besuch.
         ['handle' => 'affiliates', 'name' => 'Partnerprogramm', 'category' => 'marketing',
          'description' => 'Merkt sich bis zu 30 Tage, über welchen Partnerlink du gekommen bist, damit die Empfehlung ihrem Partner gutgeschrieben wird.'],
+        // statamic-funnels F7 (`statamic-funnels.tracking.consent_service`):
+        // das Meta-Pixel im Funnel `suite-kasse` laedt nur mit diesem Ja. Die
+        // Pixel-ID dort ist ein Platzhalter, ein CAPI-Token hat die Demo nicht.
+        ['handle' => 'meta_pixel', 'name' => 'Meta-Pixel', 'category' => 'marketing',
+         'policy_url' => 'https://www.facebook.com/privacy/policy/',
+         'description' => 'Meldet Käufe im Funnel an Meta, um Werbung zu messen.'],
         // Empty on purpose. A service listed here appears in the banner, and a
         // banner that offers YouTube on a site with no YouTube describes data
         // processing that does not happen. Add what this site actually loads —

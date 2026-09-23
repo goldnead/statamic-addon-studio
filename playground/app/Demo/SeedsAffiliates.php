@@ -63,8 +63,12 @@ class SeedsAffiliates
     {
         $marke = $marken['chorwerkstatt'] ?? Brand::query()->where('handle', 'chorwerkstatt')->firstOrFail();
 
+        // Seit affiliates `1f9936c` setzt die Installation den Container des
+        // Bildfelds selbst (und repariert ein vorhandenes Blueprint). Ohne
+        // Vorgabe naehme sie den ersten Container der Site; das Bild der
+        // Werbemittel liegt aber in `assets`.
+        config()->set('affiliates.materials.container', 'assets');
         Artisan::call('affiliates:install');
-        $this->bildfeldAnContainer();
 
         $vorher = config('affiliates.mail.commission');
         config()->set('affiliates.mail.commission', false);
@@ -339,23 +343,6 @@ class SeedsAffiliates
         $nutzer->save();
 
         return $nutzer;
-    }
-
-    /**
-     * `affiliates:install` legt das Bildfeld der Werbemittel ohne `container`
-     * an. Mit mehr als einem Container (das Demo hat neun) wirft Statamic dann
-     * `UndefinedContainerException`, und der Partnerbereich antwortet mit 500,
-     * sobald ein Partner angemeldet ist. Fehler im Addon, gemeldet am
-     * 23.09.2026; bis zum Fix setzt das Demo den Container selbst.
-     */
-    protected function bildfeldAnContainer(): void
-    {
-        $sammlung = (string) config('affiliates.materials.collection', 'affiliate_materials');
-        $blueprint = \Statamic\Facades\Blueprint::find('collections.'.$sammlung.'.'.$sammlung);
-
-        if ($blueprint !== null && $blueprint->hasField('image') && ! $blueprint->field('image')->get('container')) {
-            $blueprint->ensureFieldHasConfig('image', ['container' => 'assets'])->save();
-        }
     }
 
     /** Zwei Werbemittel und die Seite mit dem Partnerbereich. */

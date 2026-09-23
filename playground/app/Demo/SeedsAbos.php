@@ -14,10 +14,12 @@ use Illuminate\Support\Facades\Schema;
  * Die 315 Zahlungen aus {@see SeedsInsights} sind alle Einmalkaeufe, und die
  * acht Abos aus {@see SeedsCommerce} sind Zustaende, kein Verlauf: keines hat
  * Zyklen in `payments`. Abo-Kennzahlen haetten damit nichts zu zeigen. Hier
- * stehen deshalb 57 Abos der Chorwerkstatt ueber achtzehn Monate, mit 286
- * bezahlten Zyklen: Wachstum, Kuendigungen, eine Preiserhoehung (Expansion),
- * eine Senkung (Kontraktion), Jahrespaesse, Franken, Pausen mit und ohne
- * Rueckkehr, ein ausgesetztes Abo, zwei Testphasen und drei Ratenplaene.
+ * stehen deshalb 58 Abos der Chorwerkstatt ueber achtzehn Monate, mit rund
+ * 289 bezahlten Zyklen: Wachstum, Kuendigungen, eine Preiserhoehung
+ * (Expansion), eine Senkung als Wechsel im Kundenkonto (Kontraktion,
+ * payments P2), Jahrespaesse, Franken, Pausen mit und ohne Rueckkehr (P1),
+ * ein ausgesetztes Abo, zwei Testphasen, drei Ratenplaene und ein Abo mit
+ * Gutschein auf den ersten drei Zyklen (offers O6).
  *
  * **Per `DB::table()`, nicht ueber die Modelle.** Ueber das Modell feuerten fuer
  * 286 Zyklen die Listener der Nachbarn: Rechnungen, Zugaenge, Mails. Aus
@@ -73,6 +75,7 @@ class SeedsAbos
         $this->testphase();
         $this->raten();
         $this->zurueckAusDerPause();
+        $this->mitGutschein();
 
         return [
             'abo_verlauf' => DB::table('subscriptions')->where('provider_id', 'like', 'demo_abo_%')->count(),
@@ -125,7 +128,48 @@ class SeedsAbos
             $this->abo(['product' => 'cw-mitgliedschaft-plus', 'prices' => [[0, 1900], [4, 2400]], 'start' => $this->jetzt->copy()->subMonthsNoOverflow($m)->addDays(3)]);
         }
 
-        $this->abo(['product' => 'cw-mitgliedschaft', 'prices' => [[0, 2400], [3, 1900]], 'start' => $this->jetzt->copy()->subMonthsNoOverflow(8)->addDays(5)]);
+        // Die Kontraktion ist ein Wechsel im Kundenkonto (payments P2): von
+        // Plus auf die normale Mitgliedschaft, ohne Anrechnung, zum nächsten
+        // Termin. Dazu eine Karte, die in sechs Wochen abläuft (P3).
+        $beginn = $this->jetzt->copy()->subMonthsNoOverflow(8)->addDays(5);
+        $id = $this->abo(['product' => 'cw-mitgliedschaft', 'prices' => [[0, 2400], [3, 1900]], 'start' => $beginn]);
+
+        DB::table('subscriptions')->where('id', $id)->update(['meta' => json_encode(['switches' => [[
+            'from' => 'cw-mitgliedschaft-plus',
+            'to' => 'cw-mitgliedschaft',
+            'from_amount_cent' => 2400,
+            'to_amount_cent' => 1900,
+            'proration_cent' => 0,
+            'proration_payment_id' => null,
+            'immediate' => false,
+            'by' => 'portal',
+            'at' => $beginn->copy()->addMonthsNoOverflow(2)->addDays(20)->toIso8601String(),
+        ]]])]);
+
+        if ($this->mitPause) {
+            DB::table('subscriptions')->where('id', $id)->update([
+                'card_expires_at' => $this->jetzt->copy()->addWeeks(6)->endOfMonth()->toDateString(),
+                'card_checked_at' => $this->jetzt->copy()->subDay(),
+            ]);
+        }
+    }
+
+    /**
+     * 10. Gutschein auf Folgezahlungen (offers O6, payments): `CHOR20` gilt
+     * drei Zyklen, zwei sind bezahlt, der dritte kommt noch rabattiert.
+     */
+    protected function mitGutschein(): void
+    {
+        $id = $this->abo([
+            'product' => 'cw-mitgliedschaft', 'amount' => 1900,
+            'start' => $this->jetzt->copy()->subMonthsNoOverflow(1)->subDays(3),
+            'rabatt' => ['CHOR20', 380, 3],
+        ]);
+
+        DB::table('subscriptions')->where('id', $id)->update(['meta' => json_encode(['coupon' => [
+            'code' => 'CHOR20', 'percent' => 20, 'amount_cent' => null, 'currency' => null,
+            'duration' => 'repeating', 'cycles' => 3, 'current_discount_cent' => 380,
+        ]])]);
     }
 
     /** 3. Jahrespass, 180 EUR im Jahr. */
@@ -153,16 +197,39 @@ class SeedsAbos
     /** 5. Pausiert, mit dem Status, den statamic-payments P1 schreibt. */
     protected function pausiert(): void
     {
-        foreach ([10, 7] as $m) {
+        // Das erste pausiert im Kundenkonto, mit Rückkehrtermin und einer
+        // früheren Pause im Verlauf; das zweite im CP, ohne Termin („bis
+        // jemand fortsetzt"). Die Form von `meta.pause` ist die, die
+        // `SubscriptionPauses::completePause()` schreibt.
+        foreach ([[10, 'portal', 5], [7, 'cp', null]] as [$m, $wer, $wochen]) {
             $start = $this->jetzt->copy()->subMonthsNoOverflow($m)->addDays(1);
             $seit = $this->jetzt->copy()->subDays(12 + $m);
 
             $id = $this->abo(['product' => 'cw-mitgliedschaft', 'amount' => 1900, 'start' => $start, 'status' => 'paused', 'stop' => $seit]);
 
+            $meta = ['pause' => [
+                'mode' => 'recreate',
+                'provider_id' => 'demo_abo_'.$this->nummer,
+                'next_payment_at' => $seit->copy()->addDays(9)->toIso8601String(),
+                'by' => $wer,
+                'at' => $seit->toIso8601String(),
+            ]];
+
+            if ($wer === 'portal') {
+                $meta['pauses'] = [[
+                    'paused_at' => $start->copy()->addMonthsNoOverflow(2)->toIso8601String(),
+                    'resumed_at' => $start->copy()->addMonthsNoOverflow(3)->toIso8601String(),
+                    'mode' => 'recreate',
+                    'by' => 'cp',
+                ]];
+            }
+
+            DB::table('subscriptions')->where('id', $id)->update(['meta' => json_encode($meta)]);
+
             if ($this->mitPause) {
                 DB::table('subscriptions')->where('id', $id)->update([
                     'paused_at' => $seit,
-                    'resumes_at' => $this->jetzt->copy()->addWeeks(5)->startOfDay(),
+                    'resumes_at' => $wochen === null ? null : $this->jetzt->copy()->addWeeks($wochen)->startOfDay(),
                 ]);
             }
         }
@@ -256,6 +323,12 @@ class SeedsAbos
 
         $laeuft = in_array($status, ['active', 'pending'], true);
         $letzterPreis = $zyklen === [] ? $preise[0][1] : end($zyklen)[1];
+
+        if (isset($a['rabatt']) && count($zyklen) < $a['rabatt'][2]) {
+            // Der naechste Zyklus ist noch rabattiert: das Abo sagt, was es
+            // als naechstes abbucht.
+            $letzterPreis -= $a['rabatt'][1];
+        }
         $waehrung = $a['currency'] ?? 'EUR';
 
         $id = DB::table('subscriptions')->insertGetId([
@@ -281,13 +354,19 @@ class SeedsAbos
             'updated_at' => $stop ?? $start,
         ]);
 
+        [$code, $nachlass, $rabattZyklen] = $a['rabatt'] ?? [null, 0, 0];
+
         foreach ($zyklen as $i => [$bezahlt, $betrag]) {
+            $rabattiert = $code !== null && $i < $rabattZyklen;
+
             DB::table('payments')->insert([
+                'discount_code' => $rabattiert ? $code : null,
+                'discount_cent' => $rabattiert ? $nachlass : null,
                 'brand_id' => $this->marke,
                 'provider' => 'mollie',
                 'provider_id' => 'demo_abo_'.$nummer.'_'.$i,
                 'product' => $a['product'],
-                'amount_cent' => $betrag,
+                'amount_cent' => $rabattiert ? $betrag - $nachlass : $betrag,
                 'currency' => $waehrung,
                 'status' => 'paid',
                 'email' => $email,

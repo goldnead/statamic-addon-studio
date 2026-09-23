@@ -1,0 +1,35 @@
+{{#
+    statamic-funnels F4: der Schnipsel, mit dem eine fremde Seite die Kasse
+    `suite-kasse` als Popup oder eingebettet zeigt.
+
+    Oben zum Kopieren, mit der Adresse dieser Installation eingesetzt. Unten
+    einmal lebendig auf derselben Herkunft (die darf immer). Von einer eigenen
+    Seite aus: deren Herkunft im CP unter Funnels → „Suite: Kasse mit Regeln"
+    → Einstellungen → Einbetten eintragen, sonst verweigert der Browser den
+    Rahmen (`frame-ancestors`). Mehr in DEMO.md.
+#}}
+<style>
+  .einbetten { max-width: 46rem; }
+  .einbetten pre { background: #17171A; color: #F4F4F2; padding: 1rem 1.25rem; border-radius: .5rem; overflow-x: auto; font-size: .85rem; line-height: 1.5; }
+  .einbetten .probe { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #E6E6E4; }
+</style>
+
+<article class="einbetten">
+  <h1>{{ title }}</h1>
+  <p>So bindet eine andere Website die Kasse <code>suite-kasse</code> ein: als Knopf, der ein Popup öffnet, oder direkt in der Seite.</p>
+
+<pre><code>&lt;script src="{{ config:app:url }}/vendor/statamic-funnels/embed.js" async&gt;&lt;/script&gt;
+
+&lt;a href="{{ config:app:url }}/f/suite-kasse" data-funnel-popup&gt;Jetzt anmelden&lt;/a&gt;
+
+&lt;div data-funnel-embed="{{ config:app:url }}/f/suite-kasse"&gt;&lt;/div&gt;</code></pre>
+
+  <p>Die Herkunft der einbettenden Seite muss im Funnel unter „Einbetten" stehen. Hier eingetragen ist nur <code>https://demo.adriangoldner.dev</code>.</p>
+
+  <section class="probe">
+    <h2>Probe auf dieser Seite</h2>
+    <script src="/vendor/statamic-funnels/embed.js" async></script>
+    <p><a href="/f/suite-kasse" data-funnel-popup>Jetzt anmelden (Popup)</a></p>
+    <div data-funnel-embed="/f/suite-kasse"></div>
+  </section>
+</article>
