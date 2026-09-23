@@ -8,6 +8,8 @@ use Goldnead\StatamicFunnels\Models\FunnelStepEvent;
 use Goldnead\StatamicFunnels\Models\FunnelVisit;
 use Goldnead\StatamicOffers\Models\Coupon;
 use Goldnead\StatamicOffers\Models\Offer;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 /**
@@ -16,8 +18,8 @@ use Illuminate\Support\Str;
  * Eine Kasse mit zwei Zahlweisen und zwei Bumps, deren Regeln an der Zahlweise
  * haengen (F1): „Für die Stimmgruppe" kreuzt die Übe-Aufnahmen vor, das
  * Notenpaket verschwindet fuer Wiederkehrer. Der Kassenschritt ist ein
- * A/B-Test auf Kauf mit automatischem Gewinner ab 40 Besuchen (F2), mit 100
- * Besuchen dazu: Fassung A verkauft 5 von 50, Fassung B 21 von 50. Dazu
+ * A/B-Test auf Kauf mit automatischem Gewinner (F2), mit 200
+ * Besuchen dazu: Fassung A verkauft 10 von 100, Fassung B 42 von 100. Dazu
  * In-App-Hinweis (F3), Einbettung von der Demo-Adresse (F4), `SUITE10` als
  * Gutschein aus der Adresse (F5), Tracking-Schnipsel je Funnel und Schritt (F6)
  * und eine Meta-Pixel-ID als Platzhalter (F7). **Kein CAPI-Token**: die Demo
@@ -137,13 +139,24 @@ class SeedsSuiteKasse
         return $funnel;
     }
 
-    /** F2: 50 Besuche je Fassung, A verkauft 5, B 21. */
+    /**
+     * F2: 100 Besuche je Fassung, A verkauft 10, B 42, alle drei bis zehn
+     * Tage alt.
+     *
+     * funnels 1.17 entscheidet mit fester Stichprobe: erst wenn jede Fassung
+     * mindestens 100 Besuche hat (`SplitResults::FLOOR_MIN_VISITS`, auch wenn
+     * der Schritt 40 sagt) UND der letzte davon mindestens einen Tag alt ist.
+     * Frisch geseedete Besuche waren jünger, die Demo zeigte nach jedem Reset
+     * Fassung A und keinen Gewinner. Deshalb zurückdatiert, Besuch und
+     * Ereignisse gleich.
+     */
     protected function abTest(Funnel $funnel): int
     {
         $funnel->visits()->delete();
+        mt_srand(20260925);
 
-        foreach (['a' => 5, 'b' => 21] as $fassung => $kaeufe) {
-            for ($i = 0; $i < 50; $i++) {
+        foreach (['a' => 10, 'b' => 42] as $fassung => $kaeufe) {
+            for ($i = 0; $i < 100; $i++) {
                 $besuch = FunnelVisit::create([
                     'funnel_id' => $funnel->id,
                     'token' => Str::random(32),
@@ -157,10 +170,14 @@ class SeedsSuiteKasse
                     $besuch->record('kasse_1', FunnelStepEvent::ACCEPTED);
                     $besuch->record('spende_1', FunnelStepEvent::ENTERED);
                 }
+
+                $wann = Carbon::now()->subDays(mt_rand(3, 10))->subMinutes(mt_rand(0, 600));
+                DB::table('funnel_visits')->where('id', $besuch->id)->update(['created_at' => $wann, 'updated_at' => $wann]);
+                DB::table('funnel_step_events')->where('visit_id', $besuch->id)->update(['created_at' => $wann, 'updated_at' => $wann]);
             }
         }
 
-        return 100;
+        return 200;
     }
 
     /**
