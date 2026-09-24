@@ -24,6 +24,7 @@ use App\Demo\SeedsKundenkonto;
 use App\Demo\SeedsOffers;
 use App\Demo\SeedsSuiteAutomations;
 use App\Demo\SeedsSuiteKasse;
+use App\Demo\SeedsSuiteWebhooks;
 use App\Demo\SeedsProducts;
 use App\Demo\SeedsProof;
 use App\Demo\SeedsTeam;
@@ -228,6 +229,14 @@ class DemoSeed extends Command
         // Ablaeufe ganz am Ende, weil sie auf Abos, Kurse und den Funnel
         // hin Durchlaeufe werfen.
 
+        // Vor allem, was Suite-Ereignisse wirft (Plätze, Pause, Einschreibung):
+        // die Ausgänge sollen deren Zustellungen mitschreiben.
+        $this->components->task('Webhooks: drei Ausgänge auf Suite-Momente', function () {
+            $this->ergebnis = array_merge($this->ergebnis, (new SeedsSuiteWebhooks)->run());
+
+            return true;
+        });
+
         $this->components->task('Abos: 58 mit Verlauf, Pause, Wechsel, Gutschein', function () use (&$marken) {
             $this->ergebnis = array_merge($this->ergebnis, (new SeedsAbos)->run($marken));
 
@@ -265,7 +274,7 @@ class DemoSeed extends Command
             return true;
         });
 
-        $this->components->task('Abläufe: zehn neue Auslöser, drei Durchläufe', function () {
+        $this->components->task('Abläufe: elf neue Auslöser, vier Durchläufe', function () {
             $this->ergebnis = array_merge($this->ergebnis, (new SeedsSuiteAutomations)->run());
 
             return true;

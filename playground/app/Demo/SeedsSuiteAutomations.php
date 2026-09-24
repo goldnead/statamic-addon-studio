@@ -79,6 +79,10 @@ class SeedsSuiteAutomations extends SeedsAutomations
                 'Abgelehnt: {{ step.offer }} nach {{ payment.product }}, an {{ email }}.'],
         ];
 
+        // Suite-Nachtrag 24.09.2026 (automations 2.21): Momente aus offers.
+        $ablaeufe[] = ['platz-angenommen', 'Platz angenommen: Willkommen im Workshop', 'offers.seat_accepted', [],
+            'Platz angenommen von {{ seat.email }} ({{ seat.name }}), Kontingent {{ pool.taken }} von {{ pool.seats }}.'];
+
         if (class_exists(\Goldnead\Affiliates\ServiceProvider::class)) {
             $ablaeufe[] = ['partner-freigegeben', 'Partner freigegeben: Code schicken', 'affiliates.partner_approved', [],
                 'Freigegeben: {{ partner.name }}, Code {{ partner.code }}.'];
@@ -128,6 +132,16 @@ class SeedsSuiteAutomations extends SeedsAutomations
 
             if ($schritt && $besuch) {
                 event(new UpsellDeclined($besuch, $schritt, 'sk-spende', null));
+            }
+
+            // Ein dritter Platz im Kontingent aus SeedsOffers, eingeladen und
+            // angenommen, nachdem der Ablauf steht: das echte SeatAccepted
+            // startet ihn (und den Ausgang aus SeedsSuiteWebhooks).
+            $pool = \Goldnead\StatamicOffers\Models\SeatPool::query()->where('offer', 'cw-stimmgruppe')->orderBy('id')->first();
+
+            if ($pool !== null && ! $pool->seatRows()->where('email', 'tom.tenor@example.com')->exists()) {
+                $dienst = app(\Goldnead\StatamicOffers\Support\SeatPools::class);
+                $dienst->accept($dienst->invite($pool, 'tom.tenor@example.com', 'Tom Tenor'));
             }
         });
     }

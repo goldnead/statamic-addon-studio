@@ -204,6 +204,19 @@ php artisan vendor:publish --tag=statamic-funnels --force   # embed.js, funnels.
 - CP: `/cp/utilities/funnels` → „Suite: Kasse mit Regeln" (A/B, Bump-Regeln, Einstellungen).
 - Abläufe: `/cp/automations`, Durchläufe unter `/cp/automations/runs`.
 
+**Webhook-Brücken (24.09.2026).** `SeedsSuiteWebhooks` legt in Chorwerkstatt drei ausgehende
+Webhooks auf Suite-Momente an: `payments.subscription_paused`, `offers.seat_accepted`,
+`courses.learner_enrolled`. Ziel ist `https://example.invalid/hook`; `.invalid` löst nie auf,
+jede Zustellung scheitert sofort und steht als Zeile mit Fehler in der Lieferliste. Die
+Zustellungen entstehen im Seed-Lauf durch die echten Ereignisse (Plätze von Sofie und Tom,
+pausiertes Abo, Einschreibung). Dazu der Ablauf `platz-angenommen` in automations. Rundgang:
+Webhooks → Ausgehend → „Platz angenommen an die Teamliste" (gruppierte Auslöser, Payload-Vorschau),
+Lieferungen.
+
+Veröffentlichte Sprachdateien von webhook-manager (`resources/lang/vendor/webhook-manager`,
+`lang/vendor/webhook-manager`, beide ignoriert) überdecken die Labels des Pakets. Nicht
+veröffentlichen; das Addon braucht sie nicht.
+
 **Einbetten von einer eigenen Seite aus (F4).** Die Demo kann keine fremde Herkunft stellen.
 `/einbetten-beispiel` zeigt den Schnipsel und führt ihn auf derselben Herkunft einmal vor. So
 geht es von außen:
