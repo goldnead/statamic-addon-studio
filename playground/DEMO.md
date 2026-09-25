@@ -230,6 +230,28 @@ geht es von außen:
 
 Der nächtliche Reset nimmt den Eintrag wieder heraus.
 
+### Postfach (statamic-inbox, 25.09.2026)
+
+`SeedsInbox` legt unter `nordlicht` das Postfach „Studio" (`hallo@nordlicht.beispiel`) mit fünf
+Gesprächen an: ein Verlauf mit Henrike Albers (LeadHub-Kontakt, drei Mails, die letzte mit Zitat
+und ungelesen), ein HTML-Newsletter mit blockierten entfernten Bildern, eine Anfrage ohne Kontakt,
+eine Rechnungsfrage im Status „wartet", ein erledigter Dank. Die Mails laufen durch den echten
+Abrufer des Addons, aber aus einem Server im Speicher. CP: `/cp/inbox`.
+
+**Die Demo erreicht nie einen Mailserver.** Drei Sicherungen, jede reicht allein:
+
+1. `AppServiceProvider` bindet `MailboxClientFactory` an `App\Demo\Postfach\DemoImapServerFactory`
+   (Speicher, `inbox:fetch` findet nichts, der Verbindungstest gelingt ohne Verbindung) und
+   `TransportFactory` an `DemoSmtp` (Antworten gehen ins Systemlog). Wichtig: das Addon sendet
+   über den SMTP des Postfachs, nicht über den Mailer der Site. `MAIL_MAILER=log` allein griffe
+   hier nicht.
+2. `PostfaecherSchreibgeschuetzt` beantwortet Anlegen, Ändern und Verbindungstest eines Postfachs
+   mit 403. Das Demo-Konto ist Superuser, ein entzogenes Recht griffe dort nicht. Ansehen geht.
+3. Die Hosts des Postfachs liegen unter `.invalid`.
+
+Die Rolle `agentur` hat `view inbox` und `reply inbox`, nicht `manage inbox mailboxes`. Einen
+Scheduler hat die Demo nicht; `inbox:fetch` liefe ohnehin gegen den leeren Speicher-Server.
+
 ## Mollie
 
 Der Playground nimmt einen **Testschlüssel** aus `MOLLIE_KEY` und fährt dann gegen Mollies echtes

@@ -74,6 +74,16 @@ class AppServiceProvider extends ServiceProvider
             };
         });
 
+        // statamic-inbox erreicht auf der Demo nie einen Mailserver: Abruf,
+        // Verbindungstest und Antwort laufen gegen einen Server im Speicher
+        // bzw. ins Systemlog (App\Demo\Postfach). Das Addon bindet seine echten
+        // Adapter per `bindIf`, eine Bindung hier gewinnt. Bewusst VOR der
+        // Mollie-Logik, die frueh zurueckkehrt.
+        if (interface_exists(\Goldnead\StatamicInbox\Contracts\MailboxClientFactory::class)) {
+            $this->app->singleton(\Goldnead\StatamicInbox\Contracts\MailboxClientFactory::class, \App\Demo\Postfach\DemoImapServerFactory::class);
+            $this->app->singleton(\Goldnead\StatamicInbox\Contracts\TransportFactory::class, \App\Demo\Postfach\DemoSmtp::class);
+        }
+
         // The demo talks to Mollie's real test account when a test key is
         // configured, and falls back to the local stand-in when it is not.
         //
@@ -104,6 +114,14 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->meldungsTypenRegistrieren();
+
+        // Postfaecher der Inbox sind auf der Demo nur zum Ansehen da, siehe
+        // die Middleware. Das Demo-Konto ist Superuser, ein Recht zu entziehen
+        // griffe nicht.
+        $this->app['router']->pushMiddlewareToGroup(
+            'statamic.cp.authenticated',
+            \App\Http\Middleware\PostfaecherSchreibgeschuetzt::class,
+        );
     }
 
     /**

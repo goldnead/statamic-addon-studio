@@ -30,6 +30,10 @@ agentur:
     - 'revoke entitlements'
     - 'view leadhub'
     - 'manage leadhub contacts'
+    # statamic-inbox: lesen und antworten, NICHT 'manage inbox mailboxes'.
+    # Ein Postfach-Formular auf einer oeffentlichen Demo waere ein IMAP-Pruefer.
+    - 'view inbox'
+    - 'reply inbox'
 
 redaktion:
   title: Redaktion

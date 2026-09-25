@@ -17,6 +17,7 @@ use App\Demo\SeedsEmailTemplates;
 use App\Demo\SeedsEvents;
 use App\Demo\SeedsFunnels;
 use App\Demo\SeedsIdentity;
+use App\Demo\SeedsInbox;
 use App\Demo\SeedsInsights;
 use App\Demo\SeedsInvoiceExports;
 use App\Demo\SeedsInvoices;
@@ -276,6 +277,14 @@ class DemoSeed extends Command
 
         $this->components->task('Abläufe: elf neue Auslöser, vier Durchläufe', function () {
             $this->ergebnis = array_merge($this->ergebnis, (new SeedsSuiteAutomations)->run());
+
+            return true;
+        });
+
+        // statamic-inbox. Kein echtes Postfach: die Mails gehen durch einen
+        // Server im Speicher und den echten Abrufer (App\Demo\Postfach).
+        $this->components->task('Postfach: fünf Gespräche, eines ungelesen, keins echt', function () use (&$marken) {
+            $this->ergebnis = array_merge($this->ergebnis, (new SeedsInbox)->run($marken));
 
             return true;
         });
