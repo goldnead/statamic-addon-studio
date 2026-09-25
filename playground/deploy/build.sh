@@ -30,10 +30,16 @@ git -C "$STUDIO" archive HEAD:playground | tar -x -C "$ZIEL"
 #      gehoeren niemandem im Betrieb, und mindestens eines davon (testbench
 #      unter entitlements) haelt eine Symlink-Schleife, die rsync nicht
 #      ueberlebt.
+#      Ebenso `playground/` und `node_modules/` der Addon-Repos. Am 25.09.2026
+#      hatte statamic-inbox einen eigenen, ignorierten Playground, dessen
+#      vendor per Symlink auf das Addon selbst zeigt: rsync -L lief im Kreis,
+#      bis /tmp voll war. Schritt 3 ersetzt jedes Addon aus tags.conf ohnehin
+#      durch sein Tag-Archiv; was hier wegfaellt, kaeme nie auf den Server.
 rsync -a "$PLAYGROUND/public/vendor/" "$ZIEL/public/vendor/"
 rsync -a "$PLAYGROUND/public/build/" "$ZIEL/public/build/"
 cp "$PLAYGROUND/composer.lock" "$ZIEL/composer.lock"
-rsync -aL --exclude='/goldnead/*/vendor' "$PLAYGROUND/vendor/" "$ZIEL/vendor/"
+rsync -aL --exclude='/goldnead/*/vendor' --exclude='/goldnead/*/playground' --exclude='/goldnead/*/node_modules' \
+    "$PLAYGROUND/vendor/" "$ZIEL/vendor/"
 
 # 3) Addons als Release-Tags ueberschreiben. Siehe tags.conf: ein "repo tag" je Zeile.
 #
