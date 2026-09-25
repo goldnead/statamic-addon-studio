@@ -209,7 +209,10 @@ done < "$(dirname "$0")/tags.conf"
 #     `Goldnead\Teams\Models\Team`) mit einem include-Fehler abbrechen.
 #
 #     Bekommt eines davon einen Tag: hier streichen und in tags.conf eintragen.
-NICHT_EINSCHALTEN="statamic-teams statamic-app-api"
+#     25.09.2026 abends: teams v0.1.0 und app-api v0.1.0 getaggt, beide stehen
+#     jetzt in tags.conf, die Liste ist leer. Der Schritt bleibt fuer das
+#     naechste Pfad-Repo, das vor seinem ersten Tag im vendor landet.
+NICHT_EINSCHALTEN=""
 for repo in $NICHT_EINSCHALTEN; do
     if grep -qE "^$repo " "$(dirname "$0")/tags.conf"; then
         echo "ABBRUCH: $repo steht in tags.conf UND in NICHT_EINSCHALTEN." >&2
