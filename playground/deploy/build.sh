@@ -192,6 +192,40 @@ while read -r repo tag; do
     fi
 done < "$(dirname "$0")/tags.conf"
 
+# 4a) Pakete, die im Playground-vendor liegen, aber noch keinen Release-Tag
+#     haben, NICHT auf der Demo einschalten.
+#
+#     Schritt 2 nimmt den ganzen vendor mit, also auch jedes Pfad-Repo, das
+#     jemand lokal zum Ausprobieren installiert hat. Ohne Tag liefe es auf dem
+#     Server im Arbeitsstand: Provider, Routen, CP-Navigation und Migrationen
+#     aus einem Stand, den niemand freigegeben hat (am 25.09.2026 statamic-teams
+#     und statamic-app-api, letzteres mit oeffentlichen API-Routen).
+#
+#     Entfernt wird nur der Eintrag in installed.json. Daraus bauen Laravel
+#     (package:discover) und Statamic ihre Paketliste; ohne Eintrag wird kein
+#     Provider geladen, keine Migration registriert. Die Dateien bleiben
+#     liegen, weil die optimierte Classmap sie fuehrt: fehlten sie, wuerde ein
+#     blosses `class_exists()` aus einem anderen Addon (accounts fragt nach
+#     `Goldnead\Teams\Models\Team`) mit einem include-Fehler abbrechen.
+#
+#     Bekommt eines davon einen Tag: hier streichen und in tags.conf eintragen.
+NICHT_EINSCHALTEN="statamic-teams statamic-app-api"
+for repo in $NICHT_EINSCHALTEN; do
+    if grep -qE "^$repo " "$(dirname "$0")/tags.conf"; then
+        echo "ABBRUCH: $repo steht in tags.conf UND in NICHT_EINSCHALTEN." >&2
+        exit 1
+    fi
+    jq --arg repo "goldnead/$repo" 'del(.packages[] | select(.name == $repo))' \
+        "$ZIEL/vendor/composer/installed.json" > "$ZIEL/vendor/composer/installed.json.tmp"
+    mv "$ZIEL/vendor/composer/installed.json.tmp" "$ZIEL/vendor/composer/installed.json"
+    if jq -e --arg repo "goldnead/$repo" 'any(.packages[]; .name == $repo)' \
+        "$ZIEL/vendor/composer/installed.json" > /dev/null; then
+        echo "ABBRUCH: goldnead/$repo steht nach dem Austragen noch in installed.json." >&2
+        exit 1
+    fi
+    echo "   $repo: kein Tag, auf der Demo nicht eingeschaltet (nur Dateien)"
+done
+
 # 5) Migrationen zaehlen, damit der naechste Schritt nicht optional aussieht.
 #
 #    Am 03.09.2026 gingen statamic-assessments und statamic-clientrooms als Code
