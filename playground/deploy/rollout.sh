@@ -51,6 +51,13 @@ echo "-> 3/5 package:discover"
 # (03.09.2026 geprueft). Die Autoload-Dateien kommen fertig aus dem Build.
 im_container php artisan package:discover
 
+# Statamics eigene Addon-Liste (bootstrap/cache/addons.php) baut package:discover
+# NICHT neu; das tut sonst composers post-autoload-dump, und composer gibt es im
+# Container nicht. Am 01.10.2026 stand die Datei seit dem 25.09. still: die
+# Addons-Seite im CP zeigte inline-edit 1.7.0, waehrend 1.7.1 lief. Der Code
+# lief richtig, nur Versionsanzeige und Update-Hinweise logen.
+im_container php please addons:discover
+
 # Der Stache indiziert content/ und liegt in storage/, das der rsync mit
 # ueberschreibt — aber nicht zwingend so, dass Statamic die Aenderung bemerkt.
 # Am 19.09.2026 lag eine neu ausgerollte Seite als Datei auf dem Server und
