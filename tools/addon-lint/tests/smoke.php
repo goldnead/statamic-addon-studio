@@ -118,6 +118,12 @@ check('valid composer.json does not trip structure.service-provider', ! fires($r
 check('valid composer.json does not trip structure.composer-type', ! fires($report, 'structure.composer-type'));
 check('valid composer.json does not trip structure.psr4-src', ! fires($report, 'structure.psr4-src'));
 
+$internal = ['tests/ExampleTest.php' => '<?php', 'MARKETPLACE.md' => '# Price', 'art/cover.png' => 'png'];
+$report = lint($linter, $internal + ['.gitattributes' => "/tests export-ignore\n"]);
+check('MARKETPLACE.md and art/ shipped in the download is reported', fires($report, 'structure.gitattributes'));
+$report = lint($linter, $internal + ['.gitattributes' => "/tests export-ignore\n/art export-ignore\n/MARKETPLACE.md export-ignore\n"]);
+check('export-ignored MARKETPLACE.md and art/ do not trip structure.gitattributes', ! fires($report, 'structure.gitattributes'));
+
 $report = lint($linter, ['composer.json' => '{"name":"acme/thing"}']);
 check('missing extra.statamic is reported', fires($report, 'structure.statamic-metadata'));
 check('missing provider is reported', fires($report, 'structure.service-provider'));

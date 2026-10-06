@@ -332,6 +332,8 @@ phpunit.xml         export-ignore
 pint.json           export-ignore
 phpstan.neon        export-ignore
 CHANGELOG.md        export-ignore
+/art                export-ignore
+/MARKETPLACE.md     export-ignore
 
 # Frontend sources — see §9 before adding these
 /resources/js       export-ignore
@@ -562,6 +564,64 @@ Rules:
 
 ---
 
+## 13. Statamic's own submission guidelines
+
+Since 2026-09-14 the Marketplace reviews every submission, free or paid, against eleven published
+rules: <https://statamic.com/marketplace/submission-guidelines>. They also apply to products that
+are **already listed**; a listing that stops meeting them can be unpublished. Statamic publishes the
+review as an agent skill (`https://statamic.com/downloads/marketplace-review/SKILL.md`). Run it on
+the tag you are about to submit, after this document's checklist, not instead of it. Its output is
+what the reviewer will most likely see too: the first review of a studio addon quoted source lines
+and said "it's an automated check".
+
+Most of the eleven rules are already covered above (metadata, licensing, docs, changelog, security).
+Where the studio was thin, the first two reviews found it:
+
+**Rule 05, keyboard and states, judged in a browser.** Source reading cannot answer it; neither did
+our CP screenshots. Walk every visible surface with the keyboard only, in Playwright, and assert:
+
+- Every control is reachable with Tab and operable with Enter/Space. No control exists only on hover.
+- Focus is **visible** on every focusable element, including narrow ones. A badge that only appears
+  above a width threshold is not a focus indicator; give `:focus-visible` its own outline.
+- **Focus survives a redraw.** If the UI rebuilds DOM on blur, hover or state change (ProseMirror
+  decorations, Vue `:key` swaps), a focused button is replaced and focus falls to `<body>`. Keep the
+  owning element in its focused state while one of its controls has focus, and hand focus to the
+  rebuilt successor by a stable id that names the *action*, never by position: a positional id once
+  moved focus from "Accept all" onto "Undo", one Enter away from undoing the user's work
+  (observed in `goldnead/statamic-bard-assist` 1.0.0).
+- **Focus returns** to the trigger after Escape, save, cancel and closing a panel or overlay, instead
+  of `blur()`. After an action removes the focused control itself, focus goes to the nearest
+  sensible place (the editor, the row), not to `<body>`.
+- Form controls have an accessible name (`<label for>` or `aria-labelledby`), not a nearby `<span>`.
+- Error and status messages are announced (`role="status"` / `role="alert"`) and never clipped.
+- 375 px wide, long titles, empty fields, a failed save: each has a deliberate state.
+
+Keep the walk as a test in the addon (`tests/browser/keyboard.*`), red on the bug, green on the fix.
+
+**Rule 06, experimental releases.** Allowed, if the listing says so (`[Experimental]` in the name),
+the README has a **Limitations** section and installation is reproducible from the tag.
+
+**Rule 10, the demo is part of the listing.** A live demo must run the release you submit. Check the
+served bundle against the tag (`curl -s <demo>/vendor/<addon>/… | md5sum` vs the file in the tag), not
+the demo's composer file. Nothing from another addon may cover the demo's controls (a licence
+toast over the Save button did). Paid services the addon calls are named on the listing.
+
+**A release is not done at the tag.** The Marketplace reads versions and changelog from **GitHub
+Releases**, not from the tag and not from `CHANGELOG.md`. Tag, then
+`gh release create vX.Y.Z --title X.Y.Z --notes-file <that version's CHANGELOG section>`, then the
+docs changelog and the demo. A tag alone left a listing showing 1.0.0 while Packagist served 1.0.2.
+
+**Internal notes stay out of the download.** Pricing notes (`MARKETPLACE.md`) and listing art
+(`art/`) are export-ignored (§8).
+
+**Checkable**
+- Statamic's review skill ran on the submitted tag; every "changes required" item is fixed or answered — *(manual)*
+- `tests/browser/keyboard.*` exists for every addon with a visible interface and passes — *(manual)*
+- Experimental release: `[Experimental]` in the name and a Limitations section in the README — *(manual)*
+- Demo serves the submitted tag's bundle — *(manual)*
+- A GitHub Release exists for every tag — *(manual)*
+- `MARKETPLACE.md` and `art/` are export-ignored — *(manual)*
+
 ## Release checklist
 
 Every line is a hard yes/no. **A single `no` blocks the release.** Run the linter first; it answers
@@ -614,6 +674,8 @@ git archive --format=tar HEAD | tar -t | head -50             # inspect what the
 - [ ] Update scripts automate everything automatable; every class in `src/UpdateScripts/` registers.
 - [ ] Workflows: `permissions:`, SHA-pinned actions, `persist-credentials: false`.
 - [ ] Tag is `vX.Y.Z`, on the `N.x` branch for this Statamic major.
+- [ ] A GitHub Release exists for the tag, with this version's CHANGELOG section as notes (§13).
+- [ ] `MARKETPLACE.md` and `art/` are export-ignored.
 
 ### Judgement — no linter can answer these
 
@@ -624,3 +686,7 @@ git archive --format=tar HEAD | tar -t | head -50             # inspect what the
 - [ ] The public API (tags, parameters, config keys, facade methods) is named well enough to live with
       for the whole major.
 - [ ] No dead files, commented-out features, or `@todo`s ship in the package.
+- [ ] Statamic's marketplace review skill ran on this tag and its required changes are done (§13).
+- [ ] A keyboard-only walk of every visible surface passes: reachable, visible focus, focus survives
+      redraws and returns after closing, no hover-only controls (§13).
+- [ ] The live demo, if there is one, serves this tag's bundle.

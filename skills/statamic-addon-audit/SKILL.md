@@ -116,6 +116,24 @@ unauthorized case on every CP write route?
 **The API surface.** Are tag names, parameters and config keys ones you would still want to support in
 two years? They are semver-locked from the first release.
 
+## 2b. Then review it the way the Marketplace will
+
+Before a Marketplace submission (and once for every addon that is already listed), run Statamic's own
+review skill on the tag: download `https://statamic.com/downloads/marketplace-review/SKILL.md` into
+your skills folder (it is Statamic's, so it is linked here, not vendored) and follow it. Its rules
+are `standards/marketplace-readiness.md` §13; the parts it cannot do from source are yours:
+
+- **Keyboard walk in a real browser**, with Playwright, on the release you submit: Tab through every
+  surface, open and close every panel, menu and overlay, and assert where `document.activeElement` is
+  after each step. `<body>` after an action is a finding. So is a focused element whose pixels do not
+  change. Commit the walk as `tests/browser/keyboard.*` so the next release cannot regress it.
+- **The demo runs this tag.** Compare the md5 of the bundle the demo serves with the one in the tag.
+  Look at the demo with the addon's controls open: nothing from another addon may sit on top.
+- **The listing after release.** The Marketplace page shows the new version only once a GitHub
+  Release exists for the tag.
+
+Report its findings in the verdict below, each with the rule number.
+
 ## 3. Write the verdict
 
 Write to `<findings>/audits/<addon>-<YYYY-MM-DD>.md`:

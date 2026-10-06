@@ -534,6 +534,19 @@ final class GitattributesRule extends AbstractRule
             return [$this->fail('`.gitattributes` contains no export-ignore rules.', '.gitattributes')];
         }
 
-        return [];
+        // Internal pricing notes and listing art are for the Marketplace page, not the buyer's vendor/.
+        $findings = [];
+        foreach (['MARKETPLACE.md', 'art'] as $path) {
+            if ($addon->has($path) && ! preg_match('#^/?'.preg_quote($path, '#').'/?\s+export-ignore#m', $contents)) {
+                $findings[] = $this->fail(
+                    "`{$path}` is shipped to every installing site.",
+                    '.gitattributes',
+                    null,
+                    "Add `/{$path} export-ignore`."
+                );
+            }
+        }
+
+        return $findings;
     }
 }
