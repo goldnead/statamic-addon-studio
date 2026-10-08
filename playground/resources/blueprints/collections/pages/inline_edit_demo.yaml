@@ -1,84 +1,170 @@
 title: 'Inline Edit Demo'
 
-# Eine eigene Vorlage statt zwei Felder im geteilten `pages`-Blueprint. Die
-# Demo braucht genau die Fälle, die das Addon unterscheidet, und die gehen
-# niemanden etwas an, der eine Markenseite pflegt.
+# A blueprint of its own instead of two fields in the shared `pages` blueprint.
+# The demo needs exactly the cases the add-on tells apart, and nobody who
+# maintains a brand page should have to see them.
+#
+# Every field below belongs to one example on the page; the template
+# (resources/views/inline_edit_demo.antlers.html) says which.
 
 tabs:
   main:
     display: Main
     sections:
       -
+        display: 'Text, in place'
         fields:
           -
             handle: title
             field:
               type: text
               required: true
-              display: Titel
+              display: Title
           -
             handle: kicker
             field:
               type: text
-              display: Dachzeile
-              instructions: 'Absichtlich leer gelassen, damit der leere Zustand im Frontend zu sehen ist.'
+              display: Kicker
+              instructions: 'Left empty on purpose, so the empty state is visible on the page.'
           -
             handle: intro
             field:
               type: textarea
-              display: Einleitung
-              instructions: 'Mehrzeilig. Enter setzt im Frontend einen Umbruch, statt das Feld zu verlassen.'
+              display: Intro
+              instructions: 'Multi-line. Enter inserts a line break on the page instead of leaving the field.'
           -
             handle: note
             field:
               type: textarea
-              display: Notiz
-              instructions: 'Auch mehrzeilig, aber ohne echten Zeilenumbruch im Wert. Rendert deshalb im Frontend exakt so wie fuer einen Besucher.'
-          -
-            handle: seats
-            field:
-              type: integer
-              display: Plätze
+              display: Note
+              instructions: 'Also multi-line, but no real line break in the value. It renders exactly as a visitor sees it.'
+      -
+        display: 'Markdown, rich editor'
+        fields:
           -
             handle: body
             field:
               type: markdown
               display: Text
-              instructions: 'Doppelklick oeffnet die Markdown-Quelle, nicht das gerenderte HTML.'
+              instructions: 'Double-click opens a rich editor in the text itself. The stored value stays markdown.'
+      -
+        display: 'Small controls'
+        fields:
           -
-            handle: belegung
+            handle: seats
+            field:
+              type: integer
+              display: Seats
+          -
+            handle: availability
             field:
               type: select
-              display: Belegung
+              display: Availability
               options:
-                offen: 'Plaetze frei'
-                warteliste: Warteliste
-                voll: Ausgebucht
+                open: 'Seats available'
+                waitlist: 'Waiting list'
+                full: 'Fully booked'
           -
             handle: starts_on
             field:
               type: date
-              display: Beginn
-          -
-            handle: schlagworte
-            field:
-              type: list
-              display: Schlagworte
-              instructions: 'Kein Fieldtype, den die Seite bedienen kann. Doppelklick oeffnet das Control Panel.'
-          -
-            handle: inhalt
-            field:
-              type: bard
-              display: Inhalt
-              save_html: true
-              buttons: [h2, h3, bold, italic, unorderedlist, orderedlist, quote, anchor, removeformat]
-              instructions: 'Ein ganzer Editor. Doppelklick oeffnet genau dieses eine Feld als Panel ueber der Seite, nicht das ganze Eintragsformular.'
+              display: Starts on
           -
             handle: promoted
             field:
               type: toggle
-              display: Hervorgehoben
-              instructions: 'Der Wert steht nicht auf der Seite, das Template macht ein Wort daraus. Doppelklick oeffnet deshalb einen Schalter.'
+              display: Featured
+              instructions: 'The value is not on the page, the template turns it into a word. Double-click opens a switch.'
+      -
+        display: Pictures
+        fields:
+          -
+            handle: hero_image
+            field:
+              type: assets
+              container: assets
+              max_files: 1
+              mode: grid
+              display: 'Hero picture'
+              instructions: 'An assets field. Double-click opens the control panel asset browser.'
+      -
+        display: 'Grid cells by row id'
+        fields:
+          -
+            handle: lines
+            field:
+              type: grid
+              display: 'Copy lines'
+              instructions: 'Each row is one piece of copy. The page names a row by its id, never by its position.'
+              mode: table
+              fields:
+                -
+                  handle: text
+                  field:
+                    type: text
+                    display: Text
+                -
+                  handle: value
+                  field:
+                    type: text
+                    display: Value
+      -
+        display: 'Several values in a window'
+        fields:
+          -
+            handle: testimonial_quote
+            field:
+              type: text
+              display: 'Testimonial quote'
+              instructions: 'The page wraps it in quotation marks, so it opens in a window instead of being typed into.'
+          -
+            handle: testimonial_author
+            field:
+              type: text
+              display: 'Testimonial author'
+      -
+        display: 'Bard, edited in the page'
+        fields:
+          -
+            handle: article
+            field:
+              type: bard
+              display: Article
+              save_html: true
+              buttons: [h2, h3, bold, italic, unorderedlist, orderedlist, quote, anchor, removeformat]
+              instructions: 'A whole editor. Double-click opens exactly this field over the block it belongs to.'
+      -
+        display: 'Control panel overlay'
+        fields:
+          -
+            handle: tags
+            field:
+              type: list
+              display: Tags
+              instructions: 'No fieldtype the page can serve. Double-click opens the control panel over the page.'
+          -
+            handle: faq
+            field:
+              type: replicator
+              display: FAQ
+              instructions: 'A Replicator. Double-click opens it in the control panel overlay.'
+              sets:
+                questions:
+                  display: Questions
+                  sets:
+                    question:
+                      display: Question
+                      fields:
+                        -
+                          handle: q
+                          field:
+                            type: text
+                            display: Question
+                        -
+                          handle: a
+                          field:
+                            type: textarea
+                            display: Answer
   meta:
     display: Meta
     sections:

@@ -18,6 +18,7 @@ use App\Demo\SeedsEvents;
 use App\Demo\SeedsFunnels;
 use App\Demo\SeedsIdentity;
 use App\Demo\SeedsInbox;
+use App\Demo\SeedsInlineEdit;
 use App\Demo\SeedsInsights;
 use App\Demo\SeedsInvoiceExports;
 use App\Demo\SeedsInvoices;
@@ -291,6 +292,13 @@ class DemoSeed extends Command
 
         $this->components->task('Kampagne: einmal wirklich senden', function () use (&$marken) {
             $this->ergebnis = array_merge($this->ergebnis, (new SeedsCampaign)->run($marken));
+
+            return true;
+        });
+
+        // Independent of everything above: an English page for statamic-inline-edit.
+        $this->components->task('Inline Edit: the English demo page', function () {
+            $this->ergebnis = array_merge($this->ergebnis, (new SeedsInlineEdit)->run());
 
             return true;
         });

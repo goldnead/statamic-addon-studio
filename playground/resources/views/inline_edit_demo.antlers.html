@@ -1,31 +1,55 @@
 {{#
-    Die Arbeitsprobe für statamic-inline-edit.
+    The working sample for statamic-inline-edit (v1.11).
 
-    Jedes Feld, das ein Redakteur auf der Seite ändern darf, steht hier als
-    {{ editable:handle }} statt {{ handle }}. Das ist der ganze Einbau. Für
-    einen Besucher rendert das byteweise dasselbe wie vorher: kein Wrapper,
-    kein Skript, kein Attribut.
+    Every example on this page is one field, or one cell of a grid, that an
+    editor may change on the page itself. Each has a one-line caption that
+    tells a visitor what to do. The fields are in
+    resources/blueprints/collections/pages/inline_edit_demo.yaml and the
+    content in app/Demo/SeedsInlineEdit.php.
 
-    `promoted` steht absichtlich als gewöhnliches {{ promoted }} da. Ein
-    Toggle ist kein Text, gehört nicht auf die Liste, und die Seite soll
-    zeigen, dass daneben ganz normale Ausgabe steht.
+    Plain fields are `{{ editable:handle }}` instead of `{{ handle }}`. That is
+    the whole integration, and for a visitor it renders byte for byte what it
+    rendered before: no wrapper, no script, no attribute.
+
+    A grid cell by row id, a picture cell with an alt text, and a window over
+    several values are PHP helpers (InlineEdit::cell / popup). The small
+    `ie_demo` tag in app/Tags/IeDemo.php hands them to this template; a real
+    site calls them from its own components.
 #}}
 
 <style>
-    .ie-demo { max-width: 40rem; }
+    .ie-demo { max-width: 42rem; }
     .ie-demo h1 { font-family: 'Outfit', system-ui, sans-serif; font-size: 2.5rem; line-height: 1.1; margin: 0 0 .5rem; }
     .ie-demo .kicker { font-family: 'JetBrains Mono', monospace; font-size: .75rem; letter-spacing: .12em; text-transform: uppercase; color: #6b6b73; margin: 0 0 1rem; }
     .ie-demo .intro { font-size: 1.125rem; line-height: 1.7; }
-    .ie-demo .facts { display: flex; gap: 2rem; margin: 2rem 0; padding: 1rem 0; border-top: 1px solid #E6E6E4; border-bottom: 1px solid #E6E6E4; font-size: .9rem; }
+    .ie-demo .start { padding: 1rem 1.25rem; margin: 0 0 2rem; background: #F4F4F2; border-radius: .5rem; font-size: .9rem; line-height: 1.6; color: #44444a; }
+    .ie-demo section { margin: 2.5rem 0 0; padding-top: 1.25rem; border-top: 1px solid #E6E6E4; }
+    .ie-demo section > h2 { font-family: 'JetBrains Mono', monospace; font-size: .75rem; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: #6b6b73; margin: 0 0 .25rem; }
+    .ie-demo .try { margin: 0 0 1rem; font-size: .875rem; line-height: 1.5; color: #6b6b73; }
+    .ie-demo .try::before { content: 'Try it: '; font-weight: 600; color: #2b2b30; }
+    .ie-demo .facts { display: flex; flex-wrap: wrap; gap: 1rem 2rem; margin: 0; font-size: .9rem; }
     .ie-demo .facts dt { color: #6b6b73; margin-bottom: .25rem; }
     .ie-demo .facts dd { margin: 0; font-weight: 500; }
-    .ie-demo .note { margin-top: 2.5rem; padding: 1rem 1.25rem; background: #F4F4F2; border-radius: .5rem; font-size: .875rem; line-height: 1.6; color: #44444a; }
-    .ie-demo .note code { font-family: 'JetBrains Mono', monospace; font-size: .8125rem; }
-    .ie-demo .body { margin: 2rem 0; }
-    .ie-demo .body h2 { font-family: 'Outfit', system-ui, sans-serif; font-size: 1.25rem; margin: 0 0 .5rem; }
+    .ie-demo .note { padding: 1rem 1.25rem; background: #F4F4F2; border-radius: .5rem; font-size: .875rem; line-height: 1.6; color: #44444a; }
+    .ie-demo .note code, .ie-demo .start code, .ie-demo .try code { font-family: 'JetBrains Mono', monospace; font-size: .8125rem; }
+    .ie-demo .body h2 { font-family: 'Outfit', system-ui, sans-serif; font-size: 1.25rem; margin: 0 0 .5rem; letter-spacing: 0; text-transform: none; color: inherit; }
     .ie-demo .body ul { padding-left: 1.2rem; }
-    .ie-demo .tags { margin-top: 1.5rem; font-size: .9rem; color: #6b6b73; }
+    .ie-demo .hero-image img, .ie-demo .room { display: block; width: 100%; max-height: 16rem; object-fit: cover; border-radius: .5rem; }
+    .ie-demo .room { max-width: 20rem; }
+    .ie-demo .price { display: flex; flex-wrap: wrap; align-items: baseline; gap: .5rem 1.5rem; }
+    .ie-demo .price h3 { margin: 0; font-family: 'Outfit', system-ui, sans-serif; font-size: 1.25rem; }
+    .ie-demo .price .amount { font-size: 1.125rem; }
+    .ie-demo .button { display: inline-block; padding: .5rem 1rem; background: #1f1f24; color: #fff; border-radius: .375rem; font-size: .9rem; }
+    .ie-demo .lead { font-size: 1.25rem; line-height: 1.5; margin: 0; }
+    .ie-demo .lead em { font-style: italic; color: #8a5a00; }
+    .ie-demo .headline { font-family: 'Outfit', system-ui, sans-serif; font-size: 1.75rem; line-height: 1.2; margin: 0; }
+    .ie-demo .headline em { font-style: italic; color: #8a5a00; }
+    .ie-demo blockquote { margin: 0; padding: 0 0 0 1rem; border-left: 3px solid #D9D9D4; font-size: 1.125rem; line-height: 1.5; }
+    .ie-demo blockquote footer { margin-top: .5rem; font-size: .875rem; color: #6b6b73; }
+    .ie-demo .tags { margin: 0; font-size: .9rem; color: #6b6b73; }
     .ie-demo .tag { display: inline-block; margin-left: .35rem; padding: .1rem .5rem; background: #F0F0EE; border-radius: 3px; color: #44444a; }
+    .ie-demo dl.faq dt { font-weight: 600; margin-top: .75rem; }
+    .ie-demo dl.faq dd { margin: .15rem 0 0; }
 </style>
 
 <article class="ie-demo">
@@ -36,58 +60,149 @@
 
     <p class="intro">{{ editable:intro }}</p>
 
-    {{# Auch ein Textarea, aber der Wert hat keinen echten Umbruch. Der Server
-        markiert es deshalb nicht als umbrechend, und es rendert exakt so wie
-        fuer einen Besucher. #}}
-    <p>{{ editable:note }}</p>
+    <div class="start">
+        This page shows every kind of field <strong>Statamic Inline Edit</strong> can edit.
+        Sign in to the control panel, then press <strong>Edit page</strong> in the corner (or
+        <code>Ctrl/Cmd + Shift + E</code>). Every editable thing gets a dashed outline.
+        Double-click it, or focus it with <code>Tab</code> and press <code>Enter</code>.
+        <code>Esc</code> discards a field, <code>Ctrl/Cmd + S</code> saves everything.
+        Not signed in? You are seeing exactly what a visitor sees: plain HTML, no script.
+    </div>
 
-    {{# Markdown. Die Seite zeigt das gerenderte HTML, der Doppelklick
-        oeffnet die Quelle. #}}
-    <div class="body">{{ editable:body }}</div>
+    {{# 1. Text in place. text, textarea. The kicker above is empty on purpose. #}}
+    <section>
+        <h2>1 · Text, typed in place</h2>
+        <p class="try">Double-click the title, the intro above or the note below and type. <code>Enter</code> adds a line break in the intro, leaves the title. The empty kicker above the title gets a box once editing is on.</p>
+        {{# Also a textarea, but its value has no real line break. The server
+            does not mark it as multi-line, so it renders exactly as it does
+            for a visitor. #}}
+        <p>{{ editable:note }}</p>
+    </section>
 
-    <dl class="facts">
-        <div>
-            <dt>Plätze</dt>
-            <dd>{{ editable:seats }}</dd>
+    {{# 2. Markdown. The page shows rendered HTML, the double-click opens the
+        source in a real rich editor, in place. #}}
+    <section>
+        <h2>2 · Markdown, rich editor</h2>
+        <p class="try">Double-click the text, select a few words for the toolbar, type <code>## </code> or <code>- </code> for a heading or a list. Close it and the server renders your markdown.</p>
+        <div class="body">{{ editable:body }}</div>
+    </section>
+
+    {{# 3. Controls. The value is not what the page shows, so a small control
+        opens beside the word. Each needs the pair form. #}}
+    <section>
+        <h2>3 · Small controls</h2>
+        <p class="try">Double-click a value: a number box, a dropdown, a date picker and a switch open next to it. Save and the page reloads with your template's wording.</p>
+        <dl class="facts">
+            <div>
+                <dt>Seats</dt>
+                <dd>{{ editable:seats }}</dd>
+            </div>
+            <div>
+                <dt>Availability</dt>
+                {{# Select. The stored value is a key, the page shows the label. #}}
+                <dd>{{ editable field="availability" }}{{ availability:label }}{{ /editable }}</dd>
+            </div>
+            <div>
+                <dt>Starts on</dt>
+                {{# Date. The template formats it, so the pair form is needed. #}}
+                <dd>{{ editable field="starts_on" }}{{ starts_on format="d.m.Y" }}{{ /editable }}</dd>
+            </div>
+            <div>
+                <dt>Featured</dt>
+                {{# Toggle. The value is nowhere on the page, the template makes a word of it. #}}
+                <dd>{{ editable field="promoted" }}{{ if promoted }}yes{{ else }}no{{ /if }}{{ /editable }}</dd>
+            </div>
+        </dl>
+    </section>
+
+    {{# 4. Picture. An assets field: the control panel's own asset browser. #}}
+    <section>
+        <h2>4 · Pictures</h2>
+        <p class="try">Double-click the picture to pick another one or upload your own, then save.</p>
+        {{ editable field="hero_image" tag="div" }}
+            <div class="hero-image">{{ hero_image }}<img src="{{ url }}" alt="Hero picture">{{ /hero_image }}</div>
+        {{ /editable }}
+    </section>
+
+    {{# 5. Grid cells by row id. Each piece of copy is a row of a grid, named
+        by its id and never by its position. #}}
+    <section>
+        <h2>5 · Grid cells, by row id</h2>
+        <p class="try">Double-click the price, the amount or the button label. Each is one cell of one grid row, found again by its id even if rows move.</p>
+        <div class="price">
+            <h3 {{ ie_demo:cell row="price-label" column="text" label="Price label" }}>{{ ie_demo:value row="price-label" }}</h3>
+            <span class="amount" {{ ie_demo:cell row="price-value" column="text" label="Price" }}>{{ ie_demo:value row="price-value" }}</span>
+            <span class="button" {{ ie_demo:cell row="button" column="text" label="Button label" }}>{{ ie_demo:value row="button" }}</span>
         </div>
-        <div>
-            <dt>Belegung</dt>
-            {{# Select. Der gespeicherte Wert ist ein Schluessel, auf der
-                Seite steht das Label. #}}
-            <dd>{{ editable:belegung }}</dd>
-        </div>
-        <div>
-            <dt>Beginn</dt>
-            {{# Datum. Das Template formatiert es, also muss die Paarform
-                her: der Tag weiss nicht, wie es aussehen soll. #}}
-            <dd>{{ editable field="starts_on" }}{{ starts_on format="d.m.Y" }}{{ /editable }}</dd>
-        </div>
-        <div>
-            <dt>Hervorgehoben</dt>
-            {{# Toggle. Der Wert steht nirgends auf der Seite, das Template
-                macht ein Wort daraus. #}}
-            <dd>{{ editable field="promoted" }}{{ if promoted }}ja{{ else }}nein{{ /if }}{{ /editable }}</dd>
-        </div>
-    </dl>
+    </section>
 
-    {{# Tags. Kein Fieldtype, den diese Leiste bedienen kann, also oeffnet
-        der Doppelklick das Control Panel ueber der Seite. #}}
-    <p class="tags">Schlagworte:
-        {{ editable field="schlagworte" }}{{ schlagworte }}<span class="tag">{{ value }}</span>{{ /schlagworte }}{{ /editable }}
-    </p>
+    {{# 6. A picture cell. The grid row holds the path of a picture, and a
+        second row holds its alt text. #}}
+    <section>
+        <h2>6 · Picture in a grid, with its alt text</h2>
+        <p class="try">Double-click the photo: the asset browser opens with an Alt text field under it. Change only the alt text and just that one line is saved.</p>
+        <img class="room"
+             src="{{ ie_demo:raw row="room" column="value" }}"
+             alt="{{ ie_demo:raw row="room-alt" column="value" }}"
+             {{ ie_demo:cell row="room" column="value" label="Room picture" image="true" alt="room-alt" }}>
+    </section>
 
-    {{# Bard. Ein ganzer Editor, den diese Leiste nicht nachbaut. Der
-        Doppelklick oeffnet genau dieses Feld als Panel ueber der Seite. #}}
-    <div class="body">{{ editable:inhalt }}</div>
+    {{# 7. source: the page draws *word* as emphasis. While the cell is being
+        edited, the stored value is shown instead. #}}
+    <section>
+        <h2>7 · Text the page draws differently</h2>
+        <p class="try">Double-click the sentence: the stars around <em>whole</em> appear, because that is what is stored. Press <code>Esc</code> and it is drawn as emphasis again.</p>
+        <p class="lead" {{ ie_demo:cell row="lead" column="text" label="Lead" source="true" }}>{{ ie_demo:value row="lead" emphasis="true" }}</p>
+    </section>
 
-    <p>Dieser Absatz steht fest im Template und gehört zu keinem Feld. Er darf
-    nie eine Umrandung bekommen.</p>
+    {{# 8. A window. Two cells joined into one headline, and a quote the page
+        wraps in quotation marks, cannot be typed into. #}}
+    <section>
+        <h2>8 · A small window for composed text</h2>
+        <p class="try">Double-click the headline (two cells in one) or the quote (stored without its quotation marks). A small window opens with one box per value. Change a box and save.</p>
+        <p class="headline" {{ ie_demo:popup cells="headline-1:text:Line 1|headline-2:text:Line 2" label="Headline" }}>
+            {{ ie_demo:value row="headline-1" }} {{ ie_demo:value row="headline-2" emphasis="true" }}
+        </p>
+        <p class="try" style="margin-top:1.5rem">The same window for one cell, and for two separate fields of the entry:</p>
+        <p class="lead" {{ ie_demo:cell row="pull-quote" column="text" label="Pull quote" popup="true" }}>{{ ie_demo:value row="pull-quote" quotes="true" }}</p>
+        <blockquote style="margin-top:1.5rem" {{ ie_demo:popup fields="testimonial_quote:Quote|testimonial_author:Name" label="Testimonial" }}>
+            &ldquo;{{ testimonial_quote }}&rdquo;
+            <footer>{{ testimonial_author }}</footer>
+        </blockquote>
+    </section>
 
-    <div class="note">
-        Angemeldet? Dann liegt unten eine Leiste. <strong>Seite bearbeiten</strong>
-        anklicken, dann Doppelklick auf einen umrandeten Text. <code>Esc</code>
-        verwirft das Feld, <code>Cmd/Ctrl + S</code> speichert alles.
-        Die Dachzeile ist leer und bekommt erst im Bearbeiten-Modus eine Box.
+    {{# 9. Bard. A whole editor that this bar does not rebuild: the real
+        control panel field opens over the block, in the page's own type. #}}
+    <section>
+        <h2>9 · Bard, edited in the page</h2>
+        <p class="try">Double-click the article: the real Bard editor opens right over it, in the page's own font. Select words for the toolbar, then Save.</p>
+        <div class="body">{{ editable:article }}</div>
+    </section>
+
+    {{# 10. The control panel overlay. Fieldtypes this bar cannot serve open
+        that one field as a panel over the page. #}}
+    <section>
+        <h2>10 · Everything else: the control panel, over the page</h2>
+        <p class="try">Double-click the tags or the questions: that one field opens as a control panel form in an overlay. Add a tag or a question, save, and the page reloads.</p>
+        <p class="tags">Tags:
+            {{ editable field="tags" }}{{ tags }}<span class="tag">{{ value }}</span>{{ /tags }}{{ /editable }}
+        </p>
+        {{ editable field="faq" tag="div" }}
+            <dl class="faq">{{ faq }}<dt>{{ q }}</dt><dd>{{ a }}</dd>{{ /faq }}</dl>
+        {{ /editable }}
+    </section>
+
+    <section>
+        <h2>Not editable, by choice</h2>
+        <p class="try">Edit mode on: this paragraph gets no outline. Only fields the template marks are editable.</p>
+        <p>This paragraph is fixed in the template and belongs to no field. It never gets a box.</p>
+    </section>
+
+    <div class="note" style="margin-top:2.5rem">
+        Also in the add-on, but not something one page can show: it refuses the slug and other
+        structural fields, warns when another editor saved first, never writes past a revisions
+        workflow, works per site in a multisite setup, and taps (once) instead of double-clicking
+        on a phone.
     </div>
 
 </article>

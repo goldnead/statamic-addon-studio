@@ -115,6 +115,15 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->meldungsTypenRegistrieren();
 
+        // statamic-inline-edit: the demo page keeps picture paths in grid
+        // rows. Tell the text save route, so it refuses to write them as text.
+        if (class_exists(\Goldnead\StatamicInlineEdit\InlineEdit::class)) {
+            \Goldnead\StatamicInlineEdit\InlineEdit::imageCells(
+                fn (array $row, string $column) => $column === 'value'
+                    && preg_match('~^/assets/.+\.(jpe?g|png|webp)$~i', (string) ($row['value'] ?? '')) === 1
+            );
+        }
+
         // Postfaecher der Inbox sind auf der Demo nur zum Ansehen da, siehe
         // die Middleware. Das Demo-Konto ist Superuser, ein Recht zu entziehen
         // griffe nicht.
