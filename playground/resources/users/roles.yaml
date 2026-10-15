@@ -44,6 +44,21 @@ redaktion:
     - 'manage leadhub contacts'
     - 'view activity'
 
+# Chorfinder-Demo (directory, messaging, community, teams-Claims): die
+# Moderation eines Chorverzeichnisses. Sie sieht die drei Bereiche im CP und
+# darf Ansprueche auf Profile entscheiden (App\Claims\DemoClaimPolicy), sonst
+# nichts: kein Zahlungsverkehr, keine Marken, keine Einstellungen.
+chorfinder_moderation:
+  title: 'Chorfinder-Moderation'
+  permissions:
+    - 'access cp'
+    - 'view directory'
+    - 'manage directory'
+    - 'view community'
+    - 'moderate community'
+    - 'view messaging'
+    - 'manage messaging'
+
 buchhaltung:
   title: Buchhaltung
   permissions:

@@ -74,6 +74,15 @@ class AppServiceProvider extends ServiceProvider
             };
         });
 
+        // statamic-teams 0.4.0 liest `teams.claims.policy` aus der Konfiguration
+        // nirgends: die Policy kommt aus dem Container (`bindIf` auf
+        // DenyClaimPolicy), und der Konfigurationsschluessel, den die Doku
+        // nennt, bleibt wirkungslos. Die Bindung hier gewinnt. Steht der Fix
+        // im Addon, ist diese Zeile ueberfluessig, aber harmlos.
+        if (interface_exists(\Goldnead\Teams\Contracts\ClaimPolicy::class)) {
+            $this->app->bind(\Goldnead\Teams\Contracts\ClaimPolicy::class, \App\Claims\DemoClaimPolicy::class);
+        }
+
         // statamic-inbox erreicht auf der Demo nie einen Mailserver: Abruf,
         // Verbindungstest und Antwort laufen gegen einen Server im Speicher
         // bzw. ins Systemlog (App\Demo\Postfach). Das Addon bindet seine echten
@@ -114,6 +123,11 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->meldungsTypenRegistrieren();
+
+        // Chorfinder (directory, messaging, community): drei Meldungen ueber die
+        // verzoegerte Zustellung von statamic-notifications 1.11.
+        \App\Demo\ChorfinderMeldungen::typenRegistrieren();
+        \App\Demo\ChorfinderMeldungen::hoeren();
 
         // statamic-inline-edit: the demo page keeps picture paths in grid
         // rows. Tell the text save route, so it refuses to write them as text.

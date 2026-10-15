@@ -9,6 +9,8 @@ use App\Demo\SeedsAssessments;
 use App\Demo\SeedsAutomations;
 use App\Demo\SeedsBrands;
 use App\Demo\SeedsCampaign;
+use App\Demo\SeedsChorfinder;
+use App\Demo\SeedsChorfinderGespraeche;
 use App\Demo\SeedsClientRooms;
 use App\Demo\SeedsCommerce;
 use App\Demo\SeedsCourses;
@@ -299,6 +301,19 @@ class DemoSeed extends Command
         // Independent of everything above: an English page for statamic-inline-edit.
         $this->components->task('Inline Edit: the English demo page', function () {
             $this->ergebnis = array_merge($this->ergebnis, (new SeedsInlineEdit)->run());
+
+            return true;
+        });
+
+        // Chorfinder (directory, Ansprueche, messaging, community, Zusagen,
+        // verzoegerte Meldungen). Nach den Terminen: die Zusagen haengen an
+        // deren Ereignissen. Raeumt seine eigenen Tabellen selbst auf.
+        $this->components->task('Chorfinder: Chöre, Ansprüche, Gespräche, Community, Zusagen', function () {
+            $this->ergebnis = array_merge(
+                $this->ergebnis,
+                (new SeedsChorfinder)->run(),
+                (new SeedsChorfinderGespraeche)->run(),
+            );
 
             return true;
         });

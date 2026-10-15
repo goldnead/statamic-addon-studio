@@ -1,0 +1,97 @@
+title: Chor
+tabs:
+  main:
+    display: Profil
+    sections:
+      -
+        fields:
+          -
+            handle: title
+            field:
+              type: text
+              required: true
+              validate:
+                - required
+          -
+            handle: city
+            field:
+              type: text
+              display: Stadt
+              validate:
+                - required
+          -
+            handle: description
+            field:
+              type: textarea
+              display: Beschreibung
+              instructions: 'Das einzige Freitextfeld, das das Verzeichnis oeffentlich ausgibt.'
+          -
+            handle: choir_type
+            field:
+              type: select
+              display: Art
+              options:
+                gemischt: Gemischter Chor
+                frauen: Frauenchor
+                maenner: Männerchor
+                kammer: Kammerchor
+                gospel: Gospel und Pop
+                jugend: Jugendchor
+          -
+            handle: target_group
+            field:
+              type: select
+              display: Zielgruppe
+              options:
+                erwachsene: Erwachsene
+                jugend: Jugendliche
+                senioren: Senioren
+                alle: Alle Altersgruppen
+          -
+            handle: rehearsal
+            field:
+              type: text
+              display: Probe
+              instructions: 'Nur auf der Detailseite der Demo, nicht Teil der Verzeichnis-Ausgabe.'
+      -
+        display: Verzeichnis
+        fields:
+          -
+            handle: visibility
+            field:
+              type: select
+              display: Sichtbarkeit
+              default: public
+              options:
+                public: Öffentlich
+                private: Privat
+          -
+            handle: hidden
+            field:
+              type: toggle
+              display: 'Aus dem Verzeichnis genommen'
+              default: false
+          -
+            handle: lat
+            field:
+              type: float
+              display: Breitengrad
+              width: 50
+          -
+            handle: lng
+            field:
+              type: float
+              display: Längengrad
+              width: 50
+  sidebar:
+    display: Sidebar
+    sections:
+      -
+        fields:
+          -
+            handle: slug
+            field:
+              type: slug
+              required: true
+              validate:
+                - required

@@ -100,6 +100,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Zusagen (RSVP, seit statamic-events 2.8.0)
+    |--------------------------------------------------------------------------
+    |
+    | In der Vorgabe aus. Das Demo schaltet sie ein, weil die Chorfinder-Seite
+    | /chorfinder/veranstaltungen Zu- und Absagen mit Zahlen zeigt. Wer nur die
+    | Zahlen sieht und wer die Namen, entscheidet die Policy des Addons, nicht
+    | diese Datei.
+    */
+
+    'rsvp' => [
+        'enabled' => true,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Optional sibling bridges
     |--------------------------------------------------------------------------
     |
