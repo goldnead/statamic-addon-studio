@@ -69,6 +69,26 @@ class DemoImapServer implements MailboxClient
             ?? throw new \RuntimeException("Keine Mail mit UID {$uid} in {$folder}.");
     }
 
+    /** Nur der Header-Block einer Mail (bis zur ersten Leerzeile), ohne Body. */
+    public function fetchHeaders(string $folder, int $uid): string
+    {
+        $roh = $this->fetchRaw($folder, $uid);
+
+        return preg_split('/\r?\n\r?\n/', $roh, 2)[0]."\r\n\r\n";
+    }
+
+    /** UID der Mail mit dieser Message-ID im Ordner, sonst null. */
+    public function findUid(string $folder, string $messageId): ?int
+    {
+        foreach ($this->ordner[$folder] ?? [] as $uid => $roh) {
+            if (preg_match('/^Message-ID:\s*<?'.preg_quote(trim($messageId, '<>'), '/').'>?\s*$/mi', $roh)) {
+                return $uid;
+            }
+        }
+
+        return null;
+    }
+
     public function append(string $folder, string $raw, array $flags = ['\\Seen']): void
     {
         $this->zustellen($folder, $raw);
@@ -77,6 +97,12 @@ class DemoImapServer implements MailboxClient
     public function detectSentFolder(): ?string
     {
         return 'Gesendet';
+    }
+
+    /** Die Demo kennt keinen Ordner für alle Mails, also null. */
+    public function detectAllMailFolder(): ?string
+    {
+        return null;
     }
 
     public function uidValidity(string $folder): ?int
