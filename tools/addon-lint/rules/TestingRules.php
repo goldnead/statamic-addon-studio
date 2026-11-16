@@ -168,6 +168,87 @@ final class StacheIsolationRule extends AbstractRule
     }
 }
 
+final class NoDdlInTestsRule extends AbstractRule
+{
+    public function id(): string
+    {
+        return 'testing.no-ddl-in-tests';
+    }
+
+    public function title(): string
+    {
+        return 'Do not drop, rename or alter tables from a test (use an unmigrated second connection)';
+    }
+
+    public function category(): string
+    {
+        return 'testing';
+    }
+
+    public function severity(): string
+    {
+        return Severity::MINOR;
+    }
+
+    public function rationale(): string
+    {
+        return 'DDL commits implicitly on MySQL. The transaction RefreshDatabase opened is gone, its rollback '
+            .'runs into nothing, rows leak into the next test, and the rollback of the registered migrations '
+            .'then fails on a table that no longer exists (SQLSTATE 42S02) — a migration error that is really '
+            .'the test\'s fault, and often only visible when two tests run together. SQLite hides it. Run the '
+            .'test against an empty second connection instead (code standard §15).';
+    }
+
+    public function appliesTo(AddonContext $addon): bool
+    {
+        return $this->testFiles($addon) !== [];
+    }
+
+    public function check(AddonContext $addon): array
+    {
+        $findings = [];
+
+        foreach ($addon->grep('/Schema::(?:drop|dropIfExists|dropColumns?|rename|table)\s*\(|DB::(?:statement|unprepared)\s*\(\s*[\'"]\s*(?:DROP|ALTER|RENAME)\b/i', $this->testFiles($addon)) as $hit) {
+            if ($this->isMarked($addon, $hit['file'], $hit['line'])) {
+                continue;
+            }
+
+            $findings[] = $this->fail(
+                'DDL in a test: `'.$hit['text'].'`',
+                $hit['file'],
+                $hit['line'],
+                'Wrap the code that needs the missing table in an empty second SQLite connection '
+                .'(`withUnmigratedDatabase()`); if the DDL is the point of the test, mark the line `// ddl-ok: <reason>`.'
+            );
+        }
+
+        return $findings;
+    }
+
+    /**
+     * Test files that may be linted: fixtures and migration-path suites run DDL on purpose.
+     *
+     * @return string[]
+     */
+    private function testFiles(AddonContext $addon): array
+    {
+        return array_values(array_filter(
+            $addon->phpFiles(),
+            fn (string $f) => str_starts_with($f, 'tests/')
+                && ! preg_match('#^tests/(?:Fixtures|__fixtures__|Migrations)/#', $f)
+                && ! preg_match('#Migration[^/]*$#', $f)
+        ));
+    }
+
+    /** True when the line, or the one above it, carries a `ddl-ok` marker comment. */
+    private function isMarked(AddonContext $addon, string $file, int $line): bool
+    {
+        $lines = explode("\n", (string) $addon->read($file));
+
+        return str_contains($lines[$line - 1] ?? '', 'ddl-ok') || str_contains($lines[$line - 2] ?? '', 'ddl-ok');
+    }
+}
+
 final class CiWorkflowRule extends AbstractRule
 {
     public function id(): string
