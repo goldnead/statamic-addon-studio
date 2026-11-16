@@ -610,6 +610,24 @@ check('a padded div straight on a Panel is reported', fires($report, 'ui.panel-b
 $report = lint($linter, vue("<Panel>\n    <Card>\n        <div class=\"px-3\">Content</div>\n    </Card>\n</Panel>"));
 check('Panel > Card > content is accepted', ! fires($report, 'ui.panel-body'));
 
+// --- testing.no-ddl-in-tests ------------------------------------------------
+
+$report = lint($linter, ['tests/GuardTest.php' => "<?php\nit('x', function () {\n    Schema::drop('things');\n});\n"]);
+check('Schema::drop in a test is reported', fires($report, 'testing.no-ddl-in-tests'));
+
+$report = lint($linter, ['tests/GuardTest.php' => "<?php\nit('x', function () {\n    Schema::rename('a', 'b');\n});\n"]);
+check('Schema::rename in a test is reported', fires($report, 'testing.no-ddl-in-tests'));
+
+$report = lint($linter, ['tests/GuardTest.php' => "<?php\nit('x', function () {\n    // ddl-ok: the migration is the subject\n    Schema::dropIfExists('things');\n});\n"]);
+check('a ddl-ok marker silences testing.no-ddl-in-tests', ! fires($report, 'testing.no-ddl-in-tests'));
+
+$report = lint($linter, [
+    'tests/Fixtures/released/2026_create.php' => "<?php\nSchema::dropIfExists('things');\n",
+    'tests/UpgradeMigrationTest.php' => "<?php\nSchema::dropIfExists('things');\n",
+    'tests/GuardTest.php' => "<?php\nit('x', fn () => withUnmigratedDatabase(fn () => 1));\n",
+]);
+check('fixtures, migration suites and the unmigrated-connection helper are not reported', ! fires($report, 'testing.no-ddl-in-tests'));
+
 // --- robustness ------------------------------------------------------------
 
 $report = lint($linter, []);

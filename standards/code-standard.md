@@ -906,8 +906,61 @@ is silently untested (observed in `statamic-rad-pack/runway`).
   (observed in `statamic-rad-pack/mailchimp`).
 - Annotate regression tests with the issue URL they close (R15).
 
+### Tests that need a table that is not there
+
+A fresh install, a demo whose migrations never ran, a ledger that breaks under a purchase: a test that
+needs "the table is missing" must **not** call `Schema::drop()`, `dropIfExists()` or `rename()` on the
+real connection. Under SQLite it passes by accident. **MySQL commits DDL implicitly**: the transaction
+`RefreshDatabase` opened is over, its rollback runs into nothing, rows survive into the next test, and
+Testbench's rollback of the registered migrations then fails on a table that no longer exists:
+
+```
+SQLSTATE[42S02]: Base table or view not found: 1146 Table '…' doesn't exist
+(SQL: alter table `…` add unique `…`(`handle`))
+```
+
+That reads like a broken harness, not a test result, and it often shows only when two tests run
+together. Four addons lost a night to it (2026-09-08). Two other fixes do not hold: renaming the tables
+away and back is DDL again, and a savepoint around the drop works on SQLite but not on MySQL for the
+same reason.
+
+**The norm:** run the code under test against an empty second connection on which nothing was ever
+migrated. No DDL, the same under every driver, and a more honest picture of the install the test is
+about. Put it once on the base `TestCase`:
+
+```php
+protected function withUnmigratedDatabase(callable $work): mixed
+{
+    config()->set('database.connections.unmigrated', [
+        'driver' => 'sqlite', 'database' => ':memory:', 'prefix' => '', 'foreign_key_constraints' => false,
+    ]);
+
+    $previous = (string) config('database.default');
+
+    config()->set('database.default', 'unmigrated');
+    DB::setDefaultConnection('unmigrated');
+
+    try {
+        return $work();
+    } finally {
+        config()->set('database.default', $previous);
+        DB::setDefaultConnection($previous);
+        DB::purge('unmigrated');
+    }
+}
+```
+
+Everything that depends on the missing state (the request, the call) runs inside the closure; setup
+that needs real tables runs before it. If a test needs the *neighbours* of a missing table to exist, it
+cannot use the empty connection: leave the DDL, mark the line `// ddl-ok: <reason>`, and say why.
+Migration-path suites (`tests/Migrations/`, `*Migration*Test.php`) and `tests/Fixtures/` run DDL on
+purpose and are not linted. Prove the MySQL leg is green with `gh run list --commit <sha>` and judge
+**every** workflow it returns, not `--limit 1` (the green `build-check` hid the red `tests` twice).
+
 **Checkable**
 - `testing.suite` (BLOCKER), `testing.addon-testcase`, `testing.stache-isolation`
+- `testing.no-ddl-in-tests` — no `Schema::drop/dropIfExists/rename/table` and no `DROP/ALTER` statement
+  in `tests/` outside fixtures and migration suites, unless marked `// ddl-ok`
 - `grep -c getPackageProviders tests/` == 0 — *(manual)*
 - Every route name in `routes/cp.php` appears in `tests/` — *(manual)*
 - ≥1 `assertForbidden()`/`assertStatus(403)`/`assertRedirect('/cp')` per write route — *(manual)*
