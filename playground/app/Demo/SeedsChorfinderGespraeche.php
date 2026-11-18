@@ -255,8 +255,14 @@ class SeedsChorfinderGespraeche
         // Bea stellt Mails fuer Kommentare ab, bevor die Zustellung laeuft: die
         // Mail-Zeile endet `skipped / preference_disabled`, die In-App-Zeile
         // `accepted`. Beide stehen danach in der Warteschlange.
+        // Unter der Standardmarke setzen, nicht ohne Marke: ohne aktuelle Marke
+        // schliesst der Marken-Scope die Suche des Upserts aus, die Zeile wird
+        // beim zweiten Lauf neu eingefuegt und bricht an UNIQUE(brand_id, uniqueness_key).
         $bea = IdentityContext::resolve($this->u['bea']);
-        Notifications::preferences()->set($bea, 'community.comment', 'mail', false);
+        app('brand-context')->runFor(
+            app('brand-context')->defaultId(),
+            fn () => Notifications::preferences()->set($bea, 'community.comment', 'mail', false),
+        );
 
         $dispatch();
 
