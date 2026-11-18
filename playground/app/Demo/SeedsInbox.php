@@ -84,7 +84,7 @@ class SeedsInbox
             'inbox_folder' => 'INBOX',
             'sent_folder' => 'Gesendet',
             'import_since' => Carbon::now()->subDays(90),
-        ]);
+        ] + $this->newsletterZulassen());
 
         $fabrik = app(MailboxClientFactory::class);
 
@@ -108,6 +108,20 @@ class SeedsInbox
             'postfach' => 1,
             'gespräche' => Conversation::query()->count(),
         ];
+    }
+
+    /**
+     * Seit statamic-inbox 0.2.0 sortiert der Abrufer Massenmail aus
+     * (`skip_bulk`, Vorgabe an): der Newsletter mit `List-Unsubscribe` unten
+     * wuerde nie ein Gespraech, und `zustaende()` bricht an „Pixelpost" ab.
+     * Die Demo zeigt ihn aber gerade, mit den blockierten Bildern. Die Spalte
+     * gibt es erst ab 0.2.0, daher nur setzen, wo sie existiert.
+     *
+     * @return array<string, bool>
+     */
+    protected function newsletterZulassen(): array
+    {
+        return Schema::hasColumn('inbox_mailboxes', 'skip_bulk') ? ['skip_bulk' => false] : [];
     }
 
     protected function zustaende(): void
